@@ -1,2 +1,9 @@
-@import "tw-animate-css";
 @import "tailwindcss";
+@import "tw-animate-css";
+
+@theme {
+ --font-roboto: 'Roboto', sans-serif;
+ --breakpoint-3xl: 120rem;
+ --color-primary: #007DE3;
+ --color-secondary: #FE8C68;
+}
