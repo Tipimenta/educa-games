@@ -7,3 +7,8 @@
  --color-primary: #007DE3;
  --color-secondary: #FE8C68;
 }
+
+[class] {
+ -webkit-user-modify: read-only !important;
+ user-select: none;
+}

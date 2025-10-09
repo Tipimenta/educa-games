@@ -10,7 +10,6 @@ const RedefinirSenhaPage = () => {
 
   const handleReset = (e) => {
     e.preventDefault();
-    // Lógica para verificar os tokens da URL e redefinir a senha do usuário no backend
     console.log('Senha redefinida!');
     navigate('/login');
   };

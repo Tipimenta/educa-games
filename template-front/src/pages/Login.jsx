@@ -1,30 +1,34 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import AuthLayout from '../components/AuthLayout';
 import Button from '../components/Button';
 import { GoogleIcon } from '../components/Icons';
 import Input from '../components/Input';
 
-const LoginPage = () => {
-  const navigate = useNavigate();
+const LoginPage = ({ onLogin }) => {
+  const [email, setEmail] = useState('');
 
   const handleLogin = (e) => {
     e.preventDefault();
-    // Lógica de login com e-mail/senha aqui
-    navigate('/dashboard');
+    onLogin(email);
   };
 
   const handleGoogleLogin = () => {
-    // Lógica de login com Google aqui
-    navigate('/dashboard');
+    onLogin('aluno@google.com');
   };
 
   return (
     <AuthLayout>
       <h2 className="mb-8 text-center text-2xl font-bold text-gray-800">Bem-vindo!</h2>
       <form onSubmit={handleLogin}>
-        <Input type="email" placeholder="Seu e-mail" required />
+        <Input
+          type="email"
+          placeholder="Seu e-mail"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
         <Input type="password" placeholder="Sua Senha" required />
         <Button type="submit">Entrar</Button>
       </form>

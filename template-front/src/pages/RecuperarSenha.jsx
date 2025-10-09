@@ -10,8 +10,7 @@ const RecuperarSenhaPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-  
-    
+
     setSent(true);
   };
 
