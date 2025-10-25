@@ -26,6 +26,7 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
 
   // Função para validar convite
   const validateInvite = async (token) => {
@@ -121,7 +122,7 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
 
     // Validação da confirmação de senha
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'As senhas não coincidem';
+      newErrors.confirmPassword = 'As senhas digitadas são diferentes';
     }
 
     // Validação da turma (apenas para estudantes)
@@ -139,6 +140,95 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
     // Regex para permitir apenas letras (incluindo acentos), espaços e hífens
     const nameRegex = /^[a-zA-ZÀ-ÿ\s\-']+$/;
     return nameRegex.test(name);
+  };
+
+  // Função para validar confirmação de senha
+  const validateConfirmPassword = () => {
+    if (formData.password !== formData.confirmPassword) {
+      setErrors((prev) => ({
+        ...prev,
+        confirmPassword: 'As senhas digitadas são diferentes',
+      }));
+    } else {
+      setErrors((prev) => ({
+        ...prev,
+        confirmPassword: '',
+      }));
+    }
+  };
+
+  // Função para validar nome
+  const validateNameField = () => {
+    const trimmedName = formData.name.trim();
+
+    if (trimmedName.length < 3) {
+      setErrors((prev) => ({
+        ...prev,
+        name: 'Nome deve ter pelo menos 3 caracteres',
+      }));
+    } else if (trimmedName.length > 120) {
+      setErrors((prev) => ({
+        ...prev,
+        name: 'O nome deve ter no máximo 120 caracteres',
+      }));
+    } else if (!validateName(trimmedName)) {
+      setErrors((prev) => ({
+        ...prev,
+        name: 'O nome deve conter apenas letras, espaços e hífens',
+      }));
+    } else {
+      setErrors((prev) => ({
+        ...prev,
+        name: '',
+      }));
+    }
+  };
+
+  // Função para validar senha
+  const validatePasswordField = () => {
+    if (formData.password.length < 8) {
+      setErrors((prev) => ({
+        ...prev,
+        password: 'Senha deve ter pelo menos 8 caracteres',
+      }));
+    } else if (formData.password.length > 120) {
+      setErrors((prev) => ({
+        ...prev,
+        password: 'A senha excede o limite de caracteres',
+      }));
+    } else {
+      setErrors((prev) => ({
+        ...prev,
+        password: '',
+      }));
+    }
+  };
+
+  // Handler para onBlur do nome
+  const handleNameBlur = () => {
+    setTouched((prev) => ({
+      ...prev,
+      name: true,
+    }));
+    validateNameField();
+  };
+
+  // Handler para onBlur da senha
+  const handlePasswordBlur = () => {
+    setTouched((prev) => ({
+      ...prev,
+      password: true,
+    }));
+    validatePasswordField();
+  };
+
+  // Handler para onBlur da confirmação de senha
+  const handleConfirmPasswordBlur = () => {
+    setTouched((prev) => ({
+      ...prev,
+      confirmPassword: true,
+    }));
+    validateConfirmPassword();
   };
 
   // Função para verificar se o formulário está válido
@@ -179,53 +269,6 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
         ...prev,
         [name]: '',
       }));
-    }
-
-    // Validação dinâmica para o campo nome
-    if (name === 'name') {
-      const trimmedValue = value.trim();
-
-      if (value.length > 120) {
-        setErrors((prev) => ({
-          ...prev,
-          name: 'O nome deve ter no máximo 120 caracteres',
-        }));
-      } else if (trimmedValue.length > 0 && trimmedValue.length < 3) {
-        setErrors((prev) => ({
-          ...prev,
-          name: 'O nome deve ter pelo menos 3 caracteres',
-        }));
-      } else if (trimmedValue.length > 0 && !validateName(trimmedValue)) {
-        setErrors((prev) => ({
-          ...prev,
-          name: 'O nome não deve conter números ou caracteres especiais',
-        }));
-      } else {
-        setErrors((prev) => ({
-          ...prev,
-          name: '',
-        }));
-      }
-    }
-
-    // Validação dinâmica para o campo senha
-    if (name === 'password') {
-      if (value.length > 120) {
-        setErrors((prev) => ({
-          ...prev,
-          password: 'A senha excede o limite de caracteres',
-        }));
-      } else if (value.length > 0 && value.length < 8) {
-        setErrors((prev) => ({
-          ...prev,
-          password: 'Senha deve ter pelo menos 8 caracteres',
-        }));
-      } else {
-        setErrors((prev) => ({
-          ...prev,
-          password: '',
-        }));
-      }
     }
   };
 
@@ -341,17 +384,19 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
               finalizar seu cadastro.
             </p>
           )}
-          <form onSubmit={handleSignup} className="space-y-5">
+          <form onSubmit={handleSignup} className="space-y-4">
             <div>
               <Input
                 type="text"
                 name="name"
-                placeholder="Seu nome completo"
+                placeholder="Digite seu nome completo"
                 value={formData.name}
                 onChange={handleInputChange}
+                onBlur={handleNameBlur}
                 required
+                error={Boolean(errors.name)}
               />
-              <ErrorMessage message={errors.name} />
+              <ErrorMessage message={touched.name ? errors.name : ''} />
             </div>
 
             <div>
@@ -363,6 +408,7 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
                 onChange={handleInputChange}
                 readOnly={inviteData && inviteData.email}
                 required
+                error={Boolean(errors.email)}
               />
               <ErrorMessage message={errors.email} />
             </div>
@@ -373,9 +419,11 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
                 placeholder="Digite sua senha (mínimo 8 caracteres)"
                 value={formData.password}
                 onChange={handleInputChange}
+                onBlur={handlePasswordBlur}
                 required
+                error={Boolean(errors.password)}
               />
-              <ErrorMessage message={errors.password} />
+              <ErrorMessage message={touched.password ? errors.password : ''} />
             </div>
 
             <div>
@@ -384,15 +432,11 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
                 placeholder="Confirme sua senha"
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
+                onBlur={handleConfirmPasswordBlur}
                 required
+                error={Boolean(errors.confirmPassword)}
               />
-              <ErrorMessage
-                message={
-                  formData.confirmPassword && formData.password !== formData.confirmPassword
-                    ? 'As senhas não coincidem'
-                    : errors.confirmPassword
-                }
-              />
+              <ErrorMessage message={touched.confirmPassword ? errors.confirmPassword : ''} />
             </div>
 
             {(inviteData ? inviteData.role === ROLES.STUDENT : userRole === ROLES.STUDENT) && (
@@ -402,7 +446,11 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
                   value={formData.turma}
                   onChange={handleInputChange}
                   required
-                  className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className={`w-full appearance-none rounded-lg border bg-white px-4 py-3 focus:ring-2 focus:outline-none ${
+                    errors.turma
+                      ? 'border-red-500 focus:ring-red-500'
+                      : 'border-gray-300 focus:ring-blue-500'
+                  }`}
                 >
                   <option value="" disabled>
                     Selecione sua turma
@@ -413,7 +461,9 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
                     </option>
                   ))}
                 </select>
-                {errors.turma && <p className="mt-1 text-sm text-red-600">{errors.turma}</p>}
+                {errors.turma && (
+                  <p className="mt-1 pl-1 text-left text-sm text-red-600">{errors.turma}</p>
+                )}
               </div>
             )}
 

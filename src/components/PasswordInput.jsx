@@ -1,11 +1,26 @@
 import { useState } from 'react';
 
-const PasswordInput = ({ placeholder, value, onChange, name, required = false, ...props }) => {
+const PasswordInput = ({
+  placeholder,
+  value,
+  onChange,
+  name,
+  required = false,
+  error = false,
+  className = '',
+  ...props
+}) => {
   const [showPassword, setShowPassword] = useState(false);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
+
+  const base =
+    'w-full rounded-lg border px-4 py-3 pr-12 transition focus:ring-2 focus:outline-none';
+  const border = error
+    ? 'border-red-500 focus:ring-red-500'
+    : 'border-gray-300 focus:ring-blue-500';
 
   return (
     <div className="relative">
@@ -16,7 +31,7 @@ const PasswordInput = ({ placeholder, value, onChange, name, required = false, .
         value={value}
         onChange={onChange}
         required={required}
-        className="w-full rounded-lg border border-gray-300 px-4 py-3 pr-12 transition focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        className={`${base} ${border} ${className}`}
         {...props}
       />
       <button

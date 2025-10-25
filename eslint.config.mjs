@@ -9,6 +9,7 @@ export default [
   js.configs.recommended,
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
+    ignores: ['src/mocks/**'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',

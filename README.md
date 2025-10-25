@@ -26,6 +26,15 @@ Certifique-se de ter o Node.js e o npm (ou Yarn) instalados em sua máquina.
     # ou yarn install
     ```
 
+3. Configure as variáveis de ambiente:
+
+    - Copie `.env.example` para `.env`
+    - Ajuste conforme necessário:
+
+    Observações:
+    - `VITE_USE_MOCKS=true` ativa respostas mock no `src/services/api.js`.
+    - Defina `VITE_USE_MOCKS=false` quando usar backend.
+
 ### Executando o Projeto
 
 Para iniciar o servidor de desenvolvimento:

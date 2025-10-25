@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom';
 
 import AuthLayout from '../components/AuthLayout';
 import Button from '../components/Button';
+import ErrorMessage from '../components/ErrorMessage';
 import Input from '../components/Input';
+import PasswordInput from '../components/PasswordInput';
 import { useAuth } from '../hooks/useAuth';
 
 const LoginPage = () => {
@@ -11,10 +13,29 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const { login, errorMessage } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [touched, setTouched] = useState({ email: false, password: false });
+  const [formErrors, setFormErrors] = useState({ email: '', password: '' });
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const validateEmail = (value) => {
+    if (!value) return 'E-mail é obrigatório';
+    if (!emailRegex.test(value)) return 'Digite um e-mail válido';
+    return '';
+  };
+
+  const validatePassword = (value) => {
+    if (!value) return 'Senha é obrigatória';
+    return '';
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !password) return;
+
+    const emailErr = validateEmail(email);
+    const passErr = validatePassword(password);
+    setFormErrors({ email: emailErr, password: passErr });
+    setTouched({ email: true, password: true });
+    if (emailErr || passErr) return;
 
     setLoading(true);
     try {
@@ -25,6 +46,10 @@ const LoginPage = () => {
   };
 
   const errorMessages = errorMessage ? errorMessage.split('\n') : [];
+
+  // Verificar se o formulário é válido para habilitar o botão
+  const isFormValid =
+    email.trim() !== '' && password.trim() !== '' && !formErrors.email && !formErrors.password;
 
   return (
     <AuthLayout>
@@ -52,24 +77,51 @@ const LoginPage = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <Input
-          type="email"
-          placeholder="Seu e-mail"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+      <form onSubmit={handleSubmit} noValidate className="space-y-5">
+        <div>
+          <Input
+            type="email"
+            name="email"
+            placeholder="Seu e-mail"
+            value={email}
+            onChange={(e) => {
+              const val = e.target.value;
+              setEmail(val);
+              if (touched.email) {
+                setFormErrors((prev) => ({ ...prev, email: validateEmail(val) }));
+              }
+            }}
+            onBlur={() => {
+              setTouched((prev) => ({ ...prev, email: true }));
+              setFormErrors((prev) => ({ ...prev, email: validateEmail(email) }));
+            }}
+            error={Boolean(formErrors.email)}
+          />
+          <ErrorMessage message={formErrors.email} />
+        </div>
 
-        <Input
-          type="password"
-          placeholder="Sua Senha"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        <div>
+          <PasswordInput
+            name="password"
+            placeholder="Sua Senha"
+            value={password}
+            onChange={(e) => {
+              const val = e.target.value;
+              setPassword(val);
+              if (touched.password) {
+                setFormErrors((prev) => ({ ...prev, password: validatePassword(val) }));
+              }
+            }}
+            onBlur={() => {
+              setTouched((prev) => ({ ...prev, password: true }));
+              setFormErrors((prev) => ({ ...prev, password: validatePassword(password) }));
+            }}
+            error={Boolean(formErrors.password)}
+          />
+          <ErrorMessage message={formErrors.password} />
+        </div>
 
-        <Button type="submit" disabled={loading} className="w-full">
+        <Button type="submit" disabled={loading || !isFormValid} className="w-full">
           {loading ? 'Entrando...' : 'Entrar'}
         </Button>
       </form>

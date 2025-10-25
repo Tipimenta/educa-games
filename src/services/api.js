@@ -1,8 +1,15 @@
 const API_BASE = '/api';
 
+const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true';
+
 // Mapeamento de erros técnicos para mensagens amigáveis
 const mapTechnicalErrorToUserMessage = (technicalMessage) => {
   const message = technicalMessage.toLowerCase();
+
+  // Caso específico: mensagem técnica "Invalid CORS request"
+  if (message.includes('invalid cors request')) {
+    return 'Servidor indisponível ou erro ao se comunicar com o servidor.';
+  }
 
   // Mapeamento de erros estruturado
   const errorMappings = [
@@ -34,7 +41,7 @@ const mapTechnicalErrorToUserMessage = (technicalMessage) => {
     'credenciais inválidas',
     'validation',
     'required',
-    'invalid',
+    // Removemos o genérico "invalid" para evitar capturar a frase técnica de CORS
     'já existe',
     'não encontrado',
     'expirado',
@@ -80,6 +87,7 @@ const handleResponse = async (response) => {
   return response.json();
 };
 
+// Helpers fetch
 const get = (url) =>
   fetch(`${API_BASE}${url}`, {
     credentials: 'include',
@@ -116,10 +124,61 @@ const authPost = (url, data) =>
     body: JSON.stringify(data),
   });
 
-export const api = {
-  auth: {
-    login: (email, password) => authPost('/auth/login', { email, password }),
-    logout: () => authPost('/auth/logout', {}),
-    getMe: () => get('/auth/me'),
-  },
-};
+// =====================
+// Modo Mock
+// =====================
+const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+const makeResponse = (json, status = 200) =>
+  new Response(JSON.stringify(json), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+let api;
+
+if (USE_MOCKS) {
+  const MOCK_USER = {
+    id: 1,
+    name: 'Usuário Mock',
+    email: 'mock@educagames.com',
+    role: 'student',
+  };
+
+  api = {
+    auth: {
+      login: async (email, password) => {
+        await delay(200);
+        // Simula credenciais inválidas
+        if (!email || !password) {
+          return makeResponse({ message: 'Credenciais inválidas.' }, 400);
+        }
+        return makeResponse({ message: 'ok' }, 200);
+      },
+      logout: async () => {
+        await delay(100);
+        return makeResponse({ message: 'ok' }, 200);
+      },
+      getMe: async () => {
+        await delay(150);
+        return { data: MOCK_USER };
+      },
+      register: async (userData) => {
+        await delay(250);
+        const created = { id: 999, ...userData, role: userData.role || 'student' };
+        return makeResponse(created, 201);
+      },
+    },
+  };
+} else {
+  api = {
+    auth: {
+      login: (email, password) => authPost('/auth/login', { email, password }),
+      logout: () => authPost('/auth/logout', {}),
+      getMe: () => get('/auth/me'),
+      register: (userData) => post('/auth/register', userData),
+    },
+  };
+}
+
+export { del, get, post, put };
+export { api };
