@@ -3,11 +3,13 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { AuthLayout, Button, ErrorMessage, Input, PasswordInput } from '../components';
 import { ROLES } from '../constants';
+import { useToast } from '../hooks';
 import { createCadastroSchema, isValid, validateAll, validateSingleField } from '../schemas';
 
 const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { showToast } = useToast();
 
   const [inviteToken, setInviteToken] = useState(null);
   const [inviteData, setInviteData] = useState(null);
@@ -167,7 +169,6 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
       setIsSubmitting(true);
       try {
         if (inviteToken) {
-          // Fluxo de convite - chamar /complete-signup
           const payload = {
             name: formData.name,
             password: formData.password,
@@ -185,23 +186,14 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
           if (response.ok) {
             const successData = await response.json();
             // Exibir mensagem de sucesso e redirecionar para login
-            setErrors({ submit: '' }); // Limpar erros anteriores
+            setErrors({ submit: '' });
 
-            // Mostrar feedback de sucesso usando a mensagem do backend
-            const successMessage = document.createElement('div');
-            successMessage.className =
-              'fixed bottom-4 right-4 bg-white text-gray-800 px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 border-l-4 border-green-500';
-            successMessage.style.borderLeftColor = '#10b981';
-            successMessage.textContent =
-              successData.message || 'Cadastro realizado com sucesso! Redirecionando...';
-            document.body.appendChild(successMessage);
-
-            // Remover toast após 2 segundos
-            setTimeout(() => {
-              if (successMessage.parentNode) {
-                successMessage.remove();
-              }
-            }, 2000);
+            // Mostrar feedback de sucesso usando a mensagem do backend (Toast)
+            showToast({
+              message: successData.message || 'Cadastro realizado com sucesso! Redirecionando...',
+              type: 'success',
+              duration: 2000,
+            });
 
             // Redirecionar após 2 segundos
             setTimeout(() => {
