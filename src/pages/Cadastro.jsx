@@ -1,12 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
-import AuthLayout from '../components/AuthLayout';
-import Button from '../components/Button';
-import ErrorMessage from '../components/ErrorMessage';
-import Input from '../components/Input';
-import PasswordInput from '../components/PasswordInput';
-import { ROLES } from '../constants/roles';
+import { AuthLayout, Button, ErrorMessage, Input, PasswordInput } from '../components';
+import { ROLES } from '../constants';
+import { createCadastroSchema, isValid, validateAll, validateSingleField } from '../schemas';
 
 const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
   const navigate = useNavigate();
@@ -88,120 +85,16 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
     }
   }, [searchParams]);
 
-  // Função para validar email
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+  // Função utilitária para obter o schema condicional de acordo com o papel
+  const getSchema = () =>
+    createCadastroSchema((inviteData ? inviteData.role : userRole) === ROLES.STUDENT);
 
   // Função para validar todos os campos
   const validateForm = () => {
-    const newErrors = {};
+    const schemaErrors = validateAll(getSchema(), formData);
 
-    // Validação do nome
-    const trimmedName = formData.name.trim();
-    if (trimmedName.length < 3) {
-      newErrors.name = 'Nome deve ter pelo menos 3 caracteres';
-    } else if (trimmedName.length > 120) {
-      newErrors.name = 'O nome deve ter no máximo 120 caracteres';
-    } else if (!validateName(trimmedName)) {
-      newErrors.name = 'O nome deve conter apenas letras, espaços e hífens';
-    }
-
-    // Validação do email (apenas se não for convite)
-    if (!inviteToken && !validateEmail(formData.email)) {
-      newErrors.email = 'Email deve ter um formato válido';
-    }
-
-    // Validação da senha
-    if (formData.password.length < 8) {
-      newErrors.password = 'Senha deve ter pelo menos 8 caracteres';
-    } else if (formData.password.length > 120) {
-      newErrors.password = 'A senha excede o limite de caracteres';
-    }
-
-    // Validação da confirmação de senha
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'As senhas digitadas são diferentes';
-    }
-
-    // Validação da turma (apenas para estudantes)
-    const currentRole = inviteData ? inviteData.role : userRole;
-    if (currentRole === ROLES.STUDENT && !formData.turma) {
-      newErrors.turma = 'Selecione uma turma';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  // Função para validar se o nome contém apenas letras e espaços
-  const validateName = (name) => {
-    // Regex para permitir apenas letras (incluindo acentos), espaços e hífens
-    const nameRegex = /^[a-zA-ZÀ-ÿ\s\-']+$/;
-    return nameRegex.test(name);
-  };
-
-  // Função para validar confirmação de senha
-  const validateConfirmPassword = () => {
-    if (formData.password !== formData.confirmPassword) {
-      setErrors((prev) => ({
-        ...prev,
-        confirmPassword: 'As senhas digitadas são diferentes',
-      }));
-    } else {
-      setErrors((prev) => ({
-        ...prev,
-        confirmPassword: '',
-      }));
-    }
-  };
-
-  // Função para validar nome
-  const validateNameField = () => {
-    const trimmedName = formData.name.trim();
-
-    if (trimmedName.length < 3) {
-      setErrors((prev) => ({
-        ...prev,
-        name: 'Nome deve ter pelo menos 3 caracteres',
-      }));
-    } else if (trimmedName.length > 120) {
-      setErrors((prev) => ({
-        ...prev,
-        name: 'O nome deve ter no máximo 120 caracteres',
-      }));
-    } else if (!validateName(trimmedName)) {
-      setErrors((prev) => ({
-        ...prev,
-        name: 'O nome deve conter apenas letras, espaços e hífens',
-      }));
-    } else {
-      setErrors((prev) => ({
-        ...prev,
-        name: '',
-      }));
-    }
-  };
-
-  // Função para validar senha
-  const validatePasswordField = () => {
-    if (formData.password.length < 8) {
-      setErrors((prev) => ({
-        ...prev,
-        password: 'Senha deve ter pelo menos 8 caracteres',
-      }));
-    } else if (formData.password.length > 120) {
-      setErrors((prev) => ({
-        ...prev,
-        password: 'A senha excede o limite de caracteres',
-      }));
-    } else {
-      setErrors((prev) => ({
-        ...prev,
-        password: '',
-      }));
-    }
+    setErrors(schemaErrors);
+    return Object.keys(schemaErrors).length === 0;
   };
 
   // Handler para onBlur do nome
@@ -210,7 +103,8 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
       ...prev,
       name: true,
     }));
-    validateNameField();
+    const msg = validateSingleField(getSchema(), formData, 'name');
+    setErrors((prev) => ({ ...prev, name: msg }));
   };
 
   // Handler para onBlur da senha
@@ -219,7 +113,8 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
       ...prev,
       password: true,
     }));
-    validatePasswordField();
+    const msg = validateSingleField(getSchema(), formData, 'password');
+    setErrors((prev) => ({ ...prev, password: msg }));
   };
 
   // Handler para onBlur da confirmação de senha
@@ -228,36 +123,29 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
       ...prev,
       confirmPassword: true,
     }));
-    validateConfirmPassword();
+    const msg = validateSingleField(getSchema(), formData, 'confirmPassword');
+    setErrors((prev) => ({ ...prev, confirmPassword: msg }));
+  };
+
+  // Handler para onBlur do e-mail
+  const handleEmailBlur = () => {
+    setTouched((prev) => ({
+      ...prev,
+      email: true,
+    }));
+    const msg = validateSingleField(getSchema(), formData, 'email');
+    setErrors((prev) => ({ ...prev, email: msg }));
   };
 
   // Função para verificar se o formulário está válido
   const isFormValid = () => {
-    // Quando há inviteToken, o email já vem preenchido e é readonly
-    const emailValidation = inviteToken ? true : validateEmail(formData.email);
-
-    const baseValidation =
-      formData.name.trim().length >= 3 &&
-      formData.name.trim().length <= 120 &&
-      validateName(formData.name.trim()) &&
-      emailValidation &&
-      formData.password.length >= 8 &&
-      formData.password.length <= 120 &&
-      formData.password === formData.confirmPassword;
-
-    // Para usuários com convite (inviteData), usar o role do convite
-    // Para usuários sem convite, usar o userRole padrão
-    const currentRole = inviteData ? inviteData.role : userRole;
-
-    if (currentRole === ROLES.STUDENT) {
-      return baseValidation && formData.turma;
-    }
-
-    return baseValidation;
+    const baseValid = isValid(getSchema(), formData);
+    return baseValid;
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -406,11 +294,12 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
                 placeholder="Digite seu e-mail"
                 value={formData.email}
                 onChange={handleInputChange}
+                onBlur={handleEmailBlur}
                 readOnly={inviteData && inviteData.email}
                 required
                 error={Boolean(errors.email)}
               />
-              <ErrorMessage message={errors.email} />
+              <ErrorMessage message={touched.email ? errors.email : ''} />
             </div>
 
             <div>

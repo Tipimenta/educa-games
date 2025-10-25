@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { LogOutIcon, MenuIcon } from '../components/Icons';
+import { LogOutIcon, MenuIcon } from '../components';
 
 const Header = ({ user, toggleSidebar, onLogout }) => {
   const [isProfileOpen, setProfileOpen] = useState(false);

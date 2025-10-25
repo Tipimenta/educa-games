@@ -1,18 +1,18 @@
 import { useState } from 'react';
 
-import DashboardCard from '../components/DashboardCard';
-import Header from '../components/Header';
 import {
   ArrowDownCircleIcon,
   ArrowUpCircleIcon,
   BarChartIcon,
   CheckSquareIcon,
+  DashboardCard,
   FlameIcon,
+  Header,
   MinusCircleIcon,
+  Sidebar,
   TargetIcon,
-} from '../components/Icons';
-import Sidebar from '../components/Sidebar';
-import { useAuth } from '../hooks/useAuth';
+} from '../components';
+import { useAuth } from '../hooks';
 
 const RankingIndicator = ({ change }) => {
   if (change > 0) {

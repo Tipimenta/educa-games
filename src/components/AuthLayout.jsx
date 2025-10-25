@@ -1,4 +1,4 @@
-import { LogoPlaceholderIcon } from '../components/Icons';
+import { LogoPlaceholderIcon } from '../components';
 
 const AuthLayout = ({ children }) => (
   <div className="font-roboto flex min-h-screen flex-col md:flex-row">

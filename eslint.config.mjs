@@ -1,4 +1,5 @@
 import js from '@eslint/js';
+import prettierConfig from 'eslint-config-prettier';
 import prettierPlugin from 'eslint-plugin-prettier';
 import pluginReact from 'eslint-plugin-react';
 import pluginReactHooks from 'eslint-plugin-react-hooks';
@@ -6,10 +7,20 @@ import pluginSimpleImportSort from 'eslint-plugin-simple-import-sort';
 import globals from 'globals';
 
 export default [
+  {
+    ignores: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/dist-ssr/**',
+      '**/.vite/**',
+      '**/build/**',
+      '**/src/mocks/**',
+    ],
+  },
   js.configs.recommended,
+  prettierConfig,
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
-    ignores: ['src/mocks/**'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
@@ -29,6 +40,7 @@ export default [
       prettier: prettierPlugin,
     },
     rules: {
+      // Variáveis não usadas
       'no-unused-vars': [
         'warn',
         {
@@ -45,6 +57,8 @@ export default [
       'react/prop-types': 'off',
       'react/jsx-uses-react': 'error',
       'react/jsx-uses-vars': 'error',
+
+      // React Hooks
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
 

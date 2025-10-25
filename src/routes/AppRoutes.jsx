@@ -1,8 +1,8 @@
 import { useContext } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
-import { ROLES } from '../constants/roles';
-import { AuthContext } from '../context/AuthContext';
+import { ROLES } from '../constants';
+import { AuthContext } from '../context';
 import ManageAnnouncementsPage from '../pages/Admin/ManageAnnouncements';
 import ManageClassesPage from '../pages/Admin/ManageClasses';
 import ManageContentPage from '../pages/Admin/ManageContent';
@@ -13,7 +13,7 @@ import StudentProfilePage from '../pages/Admin/StudentProfile';
 import DashboardPage from '../pages/Dashboard';
 import ProfilePage from '../pages/Profile';
 import StudentCoursesPage from '../pages/StudentCourses';
-import ProtectedRoute from './ProtectedRoute';
+import { ProtectedRoute } from './';
 
 const AppRoutes = ({
   students,

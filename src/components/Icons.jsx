@@ -373,7 +373,7 @@ export const Trash2Icon = ({ className }) => (
 );
 
 // Em educa-games/template-front/src/components/Icons.jsx
-export const FlameIcon = ({ className }) => (
+export const FlameIcon = ({ _className }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -428,7 +428,7 @@ export const LockIcon = ({ className }) => (
   </svg>
 );
 
-export const CheckSquareIcon = ({ className }) => (
+export const CheckSquareIcon = ({ _className }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"

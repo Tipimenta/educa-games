@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from './context';
 import {
   initialAnnouncements,
   initialCourses,
@@ -13,7 +13,7 @@ import CadastroPage from './pages/Cadastro';
 import LoginPage from './pages/Login';
 import RecuperarSenhaPage from './pages/RecuperarSenha';
 import RedefinirSenhaPage from './pages/RedefinirSenha';
-import AppRoutes from './routes/AppRoutes';
+import { AppRoutes } from './routes';
 
 function App() {
   const [students, setStudents] = useState(initialStudents);

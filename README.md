@@ -1,77 +1,72 @@
 # EducaGames Frontend
 
-Este é o repositório do frontend do projeto EducaGames.
+Frontend do projeto EducaGames, baseado em React + Vite com Tailwind.
 
-## Configuração do Projeto
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black&style=for-the-badge)](https://react.dev)
+[![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white&style=for-the-badge)](https://vitejs.dev)
+[![Zod](https://img.shields.io/badge/Zod-4-2F2F2F?logo=semanticweb&logoColor=white&style=for-the-badge)](https://zod.dev)
 
-Para configurar e rodar o projeto localmente, siga os passos abaixo:
+## Pré-requisitos
+- Node.js 18+ e npm (ou Yarn)
 
-### Pré-requisitos
+## Instalação
+1. Clone o repositório:
+   ```bash
+   git clone https://github.com/Tipimenta/educa-games.git
+   cd educa-games
+   ```
+2. Instale as dependências:
+   ```bash
+   npm install
+   # ou yarn install
+   ```
+3. Configure o ambiente:
+   - Copie `.env.example` para `.env` e ajuste conforme necessário.
+   - Variáveis disponíveis:
+     - `VITE_API_PROXY_TARGET`: URL do backend para proxy (`/api`).
+     - `VITE_DEV_SERVER_PORT`: porta do dev server (default: 5172).
+     - `VITE_USE_MOCKS`: `true/false` para habilitar mocks no `src/services/api.js`.
 
-Certifique-se de ter o Node.js e o npm (ou Yarn) instalados em sua máquina.
-
-### Instalação
-
-1. Clone este repositório (se ainda não o fez):
-
-    ```bash
-    git clone https://github.com/Tipimenta/educa-games.git
-    cd educa-games
-    ```
-
-2. Instale as dependências do projeto:
-
-    ```bash
-    npm install
-    # ou yarn install
-    ```
-
-3. Configure as variáveis de ambiente:
-
-    - Copie `.env.example` para `.env`
-    - Ajuste conforme necessário:
-
-    Observações:
-    - `VITE_USE_MOCKS=true` ativa respostas mock no `src/services/api.js`.
-    - Defina `VITE_USE_MOCKS=false` quando usar backend.
-
-### Executando o Projeto
-
-Para iniciar o servidor de desenvolvimento:
-
+## Executando o Projeto
 ```bash
 npm run dev
 # ou yarn dev
 ```
-
-O aplicativo estará disponível em `http://localhost:5172` (ou outra porta, se configurado).
-
-## Estrutura de Pastas
-
-- `src/`: Contém o código fonte da aplicação.
-  - `assets/`: Imagens, ícones e outros recursos estáticos.
-  - `components/`: Componentes React reutilizáveis.
-  - `constants/`: Constantes e configurações globais.
-  - `context/`: Contextos React para gerenciamento de estado global.
-  - `hooks/`: Hooks React personalizados.
-  - `lib/`: Funções utilitárias e bibliotecas auxiliares.
-  - `pages/`: Páginas da aplicação, incluindo a subpasta `Admin` para funcionalidades administrativas.
-  - `services/`: Serviços para comunicação com a API.
-- `public/`: Arquivos estáticos que são servidos diretamente.
-- `vite.config.js`: Configuração do Vite.
-- `package.json`: Gerenciamento de dependências e scripts do projeto.
+- Por padrão roda em `http://localhost:5172`.
+- Se você definir `VITE_DEV_SERVER_PORT`, a porta muda (verifique o output do terminal).
 
 ## Scripts Disponíveis
+- `npm run dev`: inicia o servidor de desenvolvimento.
+- `npm run build`: compila para produção.
+- `npm run preview`: serve a build de produção localmente.
+- `npm run lint`: executa o linter.
+- `npm run lint:fix`: executa o linter com correções automáticas.
+- `npm run prepare`: configura hooks do Husky.
 
-- `npm run dev`: Inicia o servidor de desenvolvimento.
-- `npm run build`: Compila o projeto para produção.
-- `npm run lint`: Executa o linter para verificar problemas de código.
-- `npm run preview`: Serve a build de produção localmente.
+## Estrutura de Pastas
+- `src/`: código-fonte
+  - `assets/`: recursos estáticos
+  - `components/`: componentes React reutilizáveis (barrel `index.js`)
+  - `constants/`: constantes globais (barrel)
+  - `context/`: contextos React (barrel)
+  - `hooks/`: hooks customizados (barrel)
+  - `lib/`: utilitários
+  - `mocks/`: dados mock
+  - `pages/`: páginas
+  - `routes/`: rotas (barrel)
+  - `schemas/`: validações com Zod (barrel)
+  - `services/`: API e helpers (barrel)
+- `index.html`, `vite.config.js`, `package.json`
+- Observação: pasta `public/` é opcional no Vite e não é usada aqui.
+
+Nota rápida sobre imports: há alias `@` para `src/*` (ver `jsconfig.json`). Prefira importar via diretórios, ex.: `import { Button } from '@/components'`.
+
+## Proxy e Mocks
+- Proxy `/api` é configurado em `vite.config.js` via `VITE_API_PROXY_TARGET`.
+- `VITE_USE_MOCKS=true` habilita respostas mock para autenticação em `src/services/api.js`.
 
 ## Contribuição
-
-Sinta-se à vontade para contribuir com o projeto. Por favor, siga as diretrizes de contribuição (se houver).
+Sinta-se à vontade para contribuir. Ajuste lint/format antes do commit.
 
 ## Licença
-
-Este projeto está licenciado sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+MIT. Veja `LICENSE`.

@@ -1,14 +1,17 @@
 import { createContext, useState } from 'react';
 
-import { api } from '../services/api';
+import { api } from '../services';
 
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [hasLoggedOut, setHasLoggedOut] = useState(false);
 
   const checkSession = async () => {
+    if (isLoggingOut || hasLoggedOut) return;
     setLoading(true);
     try {
       const response = await api.auth.getMe();
@@ -33,7 +36,18 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading, checkSession }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        setUser,
+        loading,
+        checkSession,
+        isLoggingOut,
+        setIsLoggingOut,
+        hasLoggedOut,
+        setHasLoggedOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

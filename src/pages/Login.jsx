@@ -1,12 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import AuthLayout from '../components/AuthLayout';
-import Button from '../components/Button';
-import ErrorMessage from '../components/ErrorMessage';
-import Input from '../components/Input';
-import PasswordInput from '../components/PasswordInput';
-import { useAuth } from '../hooks/useAuth';
+import { AuthLayout, Button, ErrorMessage, Input, PasswordInput } from '../components';
+import { useAuth } from '../hooks';
+import { isValid, loginSchema, validateAll, validateSingleField } from '../schemas';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -16,26 +13,13 @@ const LoginPage = () => {
   const [touched, setTouched] = useState({ email: false, password: false });
   const [formErrors, setFormErrors] = useState({ email: '', password: '' });
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const validateEmail = (value) => {
-    if (!value) return 'E-mail é obrigatório';
-    if (!emailRegex.test(value)) return 'Digite um e-mail válido';
-    return '';
-  };
-
-  const validatePassword = (value) => {
-    if (!value) return 'Senha é obrigatória';
-    return '';
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const emailErr = validateEmail(email);
-    const passErr = validatePassword(password);
-    setFormErrors({ email: emailErr, password: passErr });
+    const errors = validateAll(loginSchema, { email, password });
+    setFormErrors(errors);
     setTouched({ email: true, password: true });
-    if (emailErr || passErr) return;
+    if (Object.keys(errors).length) return;
 
     setLoading(true);
     try {
@@ -48,8 +32,7 @@ const LoginPage = () => {
   const errorMessages = errorMessage ? errorMessage.split('\n') : [];
 
   // Verificar se o formulário é válido para habilitar o botão
-  const isFormValid =
-    email.trim() !== '' && password.trim() !== '' && !formErrors.email && !formErrors.password;
+  const isFormValid = isValid(loginSchema, { email, password });
 
   return (
     <AuthLayout>
@@ -88,12 +71,18 @@ const LoginPage = () => {
               const val = e.target.value;
               setEmail(val);
               if (touched.email) {
-                setFormErrors((prev) => ({ ...prev, email: validateEmail(val) }));
+                setFormErrors((prev) => ({
+                  ...prev,
+                  email: validateSingleField(loginSchema, { email: val, password }, 'email'),
+                }));
               }
             }}
             onBlur={() => {
               setTouched((prev) => ({ ...prev, email: true }));
-              setFormErrors((prev) => ({ ...prev, email: validateEmail(email) }));
+              setFormErrors((prev) => ({
+                ...prev,
+                email: validateSingleField(loginSchema, { email, password }, 'email'),
+              }));
             }}
             error={Boolean(formErrors.email)}
           />
@@ -109,12 +98,18 @@ const LoginPage = () => {
               const val = e.target.value;
               setPassword(val);
               if (touched.password) {
-                setFormErrors((prev) => ({ ...prev, password: validatePassword(val) }));
+                setFormErrors((prev) => ({
+                  ...prev,
+                  password: validateSingleField(loginSchema, { email, password: val }, 'password'),
+                }));
               }
             }}
             onBlur={() => {
               setTouched((prev) => ({ ...prev, password: true }));
-              setFormErrors((prev) => ({ ...prev, password: validatePassword(password) }));
+              setFormErrors((prev) => ({
+                ...prev,
+                password: validateSingleField(loginSchema, { email, password }, 'password'),
+              }));
             }}
             error={Boolean(formErrors.password)}
           />

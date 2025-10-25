@@ -1,17 +1,18 @@
 import { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { ROLES } from '../constants/roles';
-import { AuthContext } from '../context/AuthContext';
-import { api, extractErrorMessage } from '../services/api';
+import { ROLES } from '../constants';
+import { AuthContext } from '../context';
+import { api, extractErrorMessage } from '../services';
 
 export const useAuth = () => {
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState('');
-  const { setUser } = useContext(AuthContext);
+  const { setUser, setIsLoggingOut, setHasLoggedOut } = useContext(AuthContext);
 
   const login = async (email, password) => {
     setErrorMessage('');
+    setHasLoggedOut(false);
     try {
       const res = await api.auth.login(email, password);
 
@@ -74,12 +75,16 @@ export const useAuth = () => {
 
   const logout = async () => {
     try {
+      setIsLoggingOut(true);
+      setHasLoggedOut(true);
       await api.auth.logout();
     } catch (err) {
       console.error('Erro no logout:', err);
     } finally {
       setUser(null);
       navigate('/login');
+      // limpar a flag de isLoggingOut após navegação
+      setTimeout(() => setIsLoggingOut(false), 0);
     }
   };
 

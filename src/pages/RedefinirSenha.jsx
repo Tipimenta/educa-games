@@ -1,9 +1,6 @@
-import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-import AuthLayout from '../components/AuthLayout';
-import Button from '../components/Button';
-import Input from '../components/Input';
+import { AuthLayout, Button, Input } from '../components';
 
 const RedefinirSenhaPage = () => {
   const navigate = useNavigate();
