@@ -1,14 +1,14 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @theme {
- --font-roboto: 'Roboto', sans-serif;
- --breakpoint-3xl: 120rem;
- --color-primary: #007DE3;
- --color-secondary: #FE8C68;
+  --font-roboto: 'Roboto', sans-serif;
+  --breakpoint-3xl: 120rem;
+  --color-primary: #007de3;
+  --color-secondary: #fe8c68;
 }
 
 [class] {
- -webkit-user-modify: read-only !important;
- user-select: none;
+  -webkit-user-modify: read-only !important;
+  user-select: none;
 }

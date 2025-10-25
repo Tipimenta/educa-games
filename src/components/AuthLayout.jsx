@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { LogoPlaceholderIcon } from '../components/Icons';
 
 const AuthLayout = ({ children }) => (

@@ -24,12 +24,15 @@ export const useAuth = () => {
           setUser(userData.data);
           const role = userData.data.role;
 
-          if (role === ROLES.INSTRUCTOR) {
-            navigate('/Admin/Courses');
-          } else if (role === ROLES.STUDENT) {
-            navigate('/Dashboard');
+          // Normalizar o role para minúsculas para comparação
+          const normalizedRole = role.toLowerCase();
+
+          if (normalizedRole === ROLES.INSTRUCTOR) {
+            navigate('/admin/manage-courses');
+          } else if (normalizedRole === ROLES.STUDENT) {
+            navigate('/dashboard');
           } else {
-            navigate('/Dashboard');
+            navigate('/dashboard');
           }
         } else {
           setErrorMessage('Login bem-sucedido, mas não foi possível obter os dados do usuário.');
@@ -43,14 +46,29 @@ export const useAuth = () => {
           errData = await clonedRes.json().catch(() => ({}));
         } else {
           const errorText = await clonedRes.text();
-          console.error('Error response is not JSON:', errorText);
           errData = { message: errorText || 'Erro desconhecido do servidor.' };
         }
         setErrorMessage(extractErrorMessage(errData));
       }
     } catch (err) {
-      setErrorMessage('Erro de rede ou servidor indisponível.');
-      console.error(err);
+      // Tratar erros de rede e CORS de forma mais específica
+      let userFriendlyMessage =
+        'Não foi possível conectar ao servidor. Tente novamente em alguns instantes.';
+
+      if (err.message) {
+        const errorMsg = err.message.toLowerCase();
+        if (errorMsg.includes('cors') || errorMsg.includes('cross-origin')) {
+          userFriendlyMessage =
+            'Não foi possível conectar ao servidor. Tente novamente em alguns instantes.';
+        } else if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
+          userFriendlyMessage = 'Problema de conexão. Verifique sua internet e tente novamente.';
+        } else if (errorMsg.includes('timeout')) {
+          userFriendlyMessage = 'A conexão demorou muito para responder. Tente novamente.';
+        }
+      }
+
+      setErrorMessage(userFriendlyMessage);
+      console.error('Erro de login:', err);
     }
   };
 

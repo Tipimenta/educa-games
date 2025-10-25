@@ -28,7 +28,7 @@ const LoginPage = () => {
 
   return (
     <AuthLayout>
-      <h2 className="mb-8 text-center text-2xl font-bold text-gray-800">Bem-vindo!</h2>
+      <h2 className="mb-8 text-center text-3xl font-bold text-gray-800">Bem-vindo!</h2>
 
       {errorMessages.length > 0 && (
         <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3">
@@ -38,10 +38,13 @@ const LoginPage = () => {
           ) : (
             // Múltiplos erros de validação
             <div className="text-sm text-red-600">
-              <p className="mb-2 text-center font-semibold">Erros de validação:</p>
-              <ul className="list-inside list-disc space-y-1">
-                {errorMessages.map((msg, index) => (
-                  <li key={index}>{msg}</li>
+              <p className="mb-2 text-center font-medium">Por favor, corrija os seguintes erros:</p>
+              <ul className="space-y-1">
+                {errorMessages.map((error, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="mr-2 text-red-500">•</span>
+                    <span>{error}</span>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -49,24 +52,24 @@ const LoginPage = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="space-y-5">
         <Input
           type="email"
           placeholder="Seu e-mail"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          disabled={loading}
           required
         />
+
         <Input
           type="password"
           placeholder="Sua Senha"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          disabled={loading}
           required
         />
-        <Button type="submit" disabled={loading}>
+
+        <Button type="submit" disabled={loading} className="w-full">
           {loading ? 'Entrando...' : 'Entrar'}
         </Button>
       </form>
@@ -77,12 +80,43 @@ const LoginPage = () => {
         </Link>
       </div>
 
-      <p className="mt-8 text-center text-sm text-gray-600">
-        Não tem uma conta?{' '}
-        <Link to="/cadastro" className="text-primary font-semibold hover:underline">
-          Cadastre-se
-        </Link>
-      </p>
+      {/* Linha divisória */}
+      <div className="mt-10 mb-6">
+        <hr className="border-gray-200" />
+      </div>
+
+      {/* Seções de ajuda */}
+      <div className="space-y-4">
+        {/* Primeiro acesso */}
+        <div className="rounded-lg border border-gray-100 bg-gray-50/30 p-5">
+          <div className="flex items-start space-x-3">
+            <span className="text-lg">📧</span>
+            <div>
+              <p className="text-sm font-semibold text-gray-800">Primeiro acesso?</p>
+              <p className="mt-1 text-xs text-gray-500">
+                Verifique seu email e clique no link de convite
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Oferecer cursos */}
+        <div className="rounded-lg border border-gray-100 bg-gray-50/30 p-5">
+          <div className="flex items-start space-x-3">
+            <span className="text-lg">🎓</span>
+            <div>
+              <p className="text-sm font-semibold text-gray-800">
+                Quer oferecer cursos gamificados?
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                <a href="mailto:contato@educagames.com" className="text-secondary hover:underline">
+                  Fale conosco
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </AuthLayout>
   );
 };

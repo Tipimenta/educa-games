@@ -12,14 +12,14 @@ Certifique-se de ter o Node.js e o npm (ou Yarn) instalados em sua máquina.
 
 ### Instalação
 
-1.  Clone este repositório (se ainda não o fez):
+1. Clone este repositório (se ainda não o fez):
 
     ```bash
     git clone https://github.com/Tipimenta/educa-games.git
     cd educa-games
     ```
 
-2.  Instale as dependências do projeto:
+2. Instale as dependências do projeto:
 
     ```bash
     npm install
@@ -35,29 +35,29 @@ npm run dev
 # ou yarn dev
 ```
 
-O aplicativo estará disponível em `http://localhost:5173` (ou outra porta, se configurado).
+O aplicativo estará disponível em `http://localhost:5172` (ou outra porta, se configurado).
 
 ## Estrutura de Pastas
 
--   `src/`: Contém o código fonte da aplicação.
-    -   `assets/`: Imagens, ícones e outros recursos estáticos.
-    -   `components/`: Componentes React reutilizáveis.
-    -   `constants/`: Constantes e configurações globais.
-    -   `context/`: Contextos React para gerenciamento de estado global.
-    -   `hooks/`: Hooks React personalizados.
-    -   `lib/`: Funções utilitárias e bibliotecas auxiliares.
-    -   `pages/`: Páginas da aplicação, incluindo a subpasta `Admin` para funcionalidades administrativas.
-    -   `services/`: Serviços para comunicação com a API.
--   `public/`: Arquivos estáticos que são servidos diretamente.
--   `vite.config.js`: Configuração do Vite.
--   `package.json`: Gerenciamento de dependências e scripts do projeto.
+- `src/`: Contém o código fonte da aplicação.
+  - `assets/`: Imagens, ícones e outros recursos estáticos.
+  - `components/`: Componentes React reutilizáveis.
+  - `constants/`: Constantes e configurações globais.
+  - `context/`: Contextos React para gerenciamento de estado global.
+  - `hooks/`: Hooks React personalizados.
+  - `lib/`: Funções utilitárias e bibliotecas auxiliares.
+  - `pages/`: Páginas da aplicação, incluindo a subpasta `Admin` para funcionalidades administrativas.
+  - `services/`: Serviços para comunicação com a API.
+- `public/`: Arquivos estáticos que são servidos diretamente.
+- `vite.config.js`: Configuração do Vite.
+- `package.json`: Gerenciamento de dependências e scripts do projeto.
 
 ## Scripts Disponíveis
 
--   `npm run dev`: Inicia o servidor de desenvolvimento.
--   `npm run build`: Compila o projeto para produção.
--   `npm run lint`: Executa o linter para verificar problemas de código.
--   `npm run preview`: Serve a build de produção localmente.
+- `npm run dev`: Inicia o servidor de desenvolvimento.
+- `npm run build`: Compila o projeto para produção.
+- `npm run lint`: Executa o linter para verificar problemas de código.
+- `npm run preview`: Serve a build de produção localmente.
 
 ## Contribuição
 

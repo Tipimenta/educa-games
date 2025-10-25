@@ -73,7 +73,7 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
             </>
           )}
 
-          {userRole === 'admin' && (
+          {userRole === 'instructor' && (
             <>
               <li>
                 <NavLink

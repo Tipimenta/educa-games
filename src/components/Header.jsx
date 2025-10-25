@@ -21,7 +21,7 @@ const Header = ({ user, toggleSidebar, onLogout }) => {
     onLogout();
   };
 
-  const initial = user?.role === 'admin' ? 'A' : user?.name?.charAt(0).toUpperCase() || 'U';
+  const initial = user?.role === 'instructor' ? 'I' : user?.name?.charAt(0).toUpperCase() || 'U';
 
   return (
     <header className="flex h-16 flex-shrink-0 items-center justify-between bg-white px-6 shadow-sm">

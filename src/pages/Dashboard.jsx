@@ -39,6 +39,7 @@ const RankingIndicator = ({ change }) => {
 const DashboardPage = ({ user, students, courses, modules, announcements }) => {
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(true);
   const { logout } = useAuth();
+
   const currentUserData = students.find((s) => s.id === user.id) || user;
   const toggleSidebar = () => setSidebarCollapsed(!isSidebarCollapsed);
 
