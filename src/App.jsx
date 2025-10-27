@@ -27,14 +27,11 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            {/* Rotas públicas */}
             <Route path="/" element={<Navigate to="/login" />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/cadastro" element={<CadastroPage turmas={turmas} />} />
             <Route path="/recuperar-senha" element={<RecuperarSenhaPage />} />
             <Route path="/redefinir-senha" element={<RedefinirSenhaPage />} />
-
-            {/* Rotas protegidas */}
             <Route
               path="/*"
               element={

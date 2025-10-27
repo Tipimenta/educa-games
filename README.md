@@ -56,7 +56,6 @@ npm run dev
 ## Estrutura de Pastas
 
 ```
-// Directory tree (3 levels, limitado a 200 entradas)
 ├── .editorconfig
 ├── .env.example
 ├── .eslintcache
@@ -76,72 +75,21 @@ npm run dev
 ├── package-lock.json
 ├── package.json
 ├── public\
-│   ├── android-chrome-192x192.png
-│   ├── android-chrome-512x512.png
-│   ├── apple-touch-icon.png
-│   ├── favicon-16x16.png
-│   ├── favicon-32x32.png
-│   ├── favicon.ico
-│   └── site.webmanifest
 ├── src\
 │   ├── App.jsx
 │   ├── assets\
-│   │   ├── +.svg
-│   │   └── +EducaGames.svg
 │   ├── components\
-│   │   ├── AuthLayout.jsx
-│   │   ├── Button.jsx
-│   │   ├── DashboardCard.jsx
-│   │   ├── ErrorMessage.jsx
-│   │   ├── Header.jsx
-│   │   ├── Icons.jsx
-│   │   ├── Input.jsx
-│   │   ├── Modal.jsx
-│   │   ├── PasswordInput.jsx
-│   │   ├── Quiz.jsx
-│   │   ├── Sidebar.jsx
-│   │   ├── Stepper.jsx
-│   │   ├── Toast.jsx
-│   │   └── index.js
 │   ├── constants\
-│   │   ├── index.js
-│   │   └── roles.js
 │   ├── context\
-│   │   ├── AuthContext.jsx
-│   │   ├── ToastContext.jsx
-│   │   └── index.js
 │   ├── hooks\
-│   │   ├── index.js
-│   │   ├── useAuth.js
-│   │   └── useToast.js
 │   ├── index.css
 │   ├── lib\
-│   │   ├── errors.js
-│   │   └── utils.js
 │   ├── main.jsx
 │   ├── mocks\
-│   │   └── data.js
 │   ├── pages\
-│   │   ├── Admin\
-│   │   ├── Cadastro.jsx
-│   │   ├── Dashboard.jsx
-│   │   ├── Login.jsx
-│   │   ├── Profile.jsx
-│   │   ├── RecuperarSenha.jsx
-│   │   ├── RedefinirSenha.jsx
-│   │   └── StudentCourses.jsx
 │   ├── routes\
-│   │   ├── AppRoutes.jsx
-│   │   ├── ProtectedRoute.jsx
-│   │   └── index.js
 │   ├── schemas\
-│   │   ├── cadastroSchema.js
-│   │   ├── helpers.js
-│   │   ├── index.js
-│   │   └── loginSchema.js
 │   └── services\
-│       ├── api.js
-│       └── index.js
 └── vite.config.js
 ```
 

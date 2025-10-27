@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { AuthLayout, Button, ErrorMessage, Input, PasswordInput } from '../components';
@@ -29,58 +29,56 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
 
-  const validateInvite = async (token) => {
-    setIsLoadingInvite(true);
-    try {
-      const response_data = await api.auth.validateInvite(token);
+  const validateInvite = useCallback(
+    async (token) => {
+      setIsLoadingInvite(true);
+      try {
+        const response_data = await api.auth.validateInvite(token);
 
-      const inviteInfo = response_data?.data;
-      const backendMessage = response_data?.message;
+        const inviteInfo = response_data?.data;
+        const backendMessage = response_data?.message;
 
-      if (!inviteInfo || !inviteInfo.email) {
-        setInviteData(null);
-        setErrors({ invite: backendMessage || 'Convite inválido ou expirado.' });
+        if (!inviteInfo || !inviteInfo.email) {
+          setInviteData(null);
+          setErrors({ invite: backendMessage || 'Convite inválido ou expirado.' });
+          return null;
+        }
+
+        setInviteData(inviteInfo);
+        setFormData((prev) => ({
+          ...prev,
+          email: inviteInfo.email,
+        }));
+        setErrors((prev) => ({ ...prev, invite: '' }));
+        return inviteInfo;
+      } catch (error) {
+        if (error instanceof NetworkError) {
+          showToast({ message: 'Erro ao se comunicar com o servidor', type: 'error' });
+          setErrors({ invite: '' });
+        } else if (error instanceof UnauthorizedError) {
+          setErrors({ invite: 'Sessão expirada. Faça login novamente.' });
+        } else if (error instanceof ValidationError || error?.status) {
+          presentError({
+            status: error.status || 400,
+            errData: error.data || { message: error.message },
+            setInline: (msg) => setErrors({ invite: msg }),
+            showToast,
+          });
+        } else {
+          showToast({ message: 'Erro ao se comunicar com o servidor', type: 'error' });
+          setErrors({ invite: '' });
+        }
         return null;
+      } finally {
+        setIsLoadingInvite(false);
       }
+    },
+    [showToast]
+  );
 
-      setInviteData(inviteInfo);
-      setFormData((prev) => ({
-        ...prev,
-        email: inviteInfo.email,
-      }));
-      // Limpar possível erro anterior
-      setErrors((prev) => ({ ...prev, invite: '' }));
-      return inviteInfo;
-    } catch (error) {
-      if (error instanceof NetworkError) {
-        // CORS/rede/timeout sempre via toast
-        showToast({ message: 'Erro ao se comunicar com o servidor', type: 'error' });
-        setErrors({ invite: '' });
-      } else if (error instanceof UnauthorizedError) {
-        setErrors({ invite: 'Sessão expirada. Faça login novamente.' });
-      } else if (error instanceof ValidationError || error?.status) {
-        // 4xx inline; 5xx será NetworkError
-        presentError({
-          status: error.status || 400,
-          errData: error.data || { message: error.message },
-          setInline: (msg) => setErrors({ invite: msg }),
-          showToast,
-        });
-      } else {
-        showToast({ message: 'Erro ao se comunicar com o servidor', type: 'error' });
-        setErrors({ invite: '' });
-      }
-      return null;
-    } finally {
-      setIsLoadingInvite(false);
-    }
-  };
-
-  // useEffect para capturar token da URL e validar convite
   useEffect(() => {
     const token = searchParams.get('token') || searchParams.get('invite');
 
-    // Evitar chamadas duplicadas (React StrictMode) e garantir 1 request por token
     if (!window.__lastInviteTokenRef) {
       window.__lastInviteTokenRef = { value: null };
     }
@@ -91,12 +89,11 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
       setInviteToken(token);
       validateInvite(token);
     } else if (!token) {
-      // Se não há token, definir erro para bloquear acesso
       setErrors({
         invite: 'Acesso negado. Esta página só pode ser acessada através de um convite válido.',
       });
     }
-  }, [searchParams]);
+  }, [searchParams, validateInvite]);
 
   const getSchema = () =>
     createCadastroSchema((inviteData ? inviteData.role : userRole) === ROLES.STUDENT);
@@ -161,7 +158,6 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
       [name]: value,
     }));
 
-    // Limpar erros quando o usuário começar a digitar
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -169,7 +165,6 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
       }));
     }
 
-    // Se a senha original mudar, limpar o erro de confirmação imediatamente
     if (name === 'password' && errors.confirmPassword) {
       setErrors((prev) => ({
         ...prev,
@@ -192,7 +187,6 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
           };
 
           const successData = await api.auth.completeSignup(payload);
-          // Exibir mensagem de sucesso e redirecionar para login
           setErrors({ submit: '' });
           showToast({
             message: successData.message || 'Cadastro realizado com sucesso! Redirecionando...',
@@ -203,7 +197,6 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
             navigate('/login?registered=true');
           }, 2000);
         } else {
-          // Fluxo normal de cadastro
           navigate('/dashboard');
         }
       } catch (error) {
@@ -211,7 +204,6 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
           showToast({ message: 'Erro ao se comunicar com o servidor', type: 'error' });
           setErrors({ submit: '' });
         } else if (error instanceof ValidationError || error?.status) {
-          // Tratamento extra: se for 403 (inclui CORS), padronizar como toast (sem inline)
           const status = error?.status || 400;
           const errData = error?.data || { message: error?.message };
           if (status === 403 || isCorsError(status, errData)) {

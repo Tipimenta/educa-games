@@ -30,8 +30,7 @@ const LoginPage = () => {
   };
 
   const errorMessages = errorMessage ? errorMessage.split('\n') : [];
-
-  // Verificar se o formulário é válido para habilitar o botão
+  
   const isFormValid = isValid(loginSchema, { email, password });
 
   return (
@@ -125,14 +124,11 @@ const LoginPage = () => {
         </Link>
       </div>
 
-      {/* Linha divisória */}
       <div className="mt-10 mb-6">
         <hr className="border-gray-200" />
       </div>
 
-      {/* Seções de ajuda */}
       <div className="space-y-4">
-        {/* Primeiro acesso */}
         <div className="rounded-lg border border-gray-100 bg-gray-50/30 p-5">
           <div className="flex items-start space-x-3">
             <span className="text-lg">📧</span>
@@ -144,8 +140,6 @@ const LoginPage = () => {
             </div>
           </div>
         </div>
-
-        {/* Oferecer cursos */}
         <div className="rounded-lg border border-gray-100 bg-gray-50/30 p-5">
           <div className="flex items-start space-x-3">
             <span className="text-lg">🎓</span>
