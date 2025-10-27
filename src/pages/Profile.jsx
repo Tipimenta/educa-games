@@ -1,10 +1,7 @@
 import { useState } from 'react';
 
-import Button from '../components/Button';
-import Header from '../components/Header';
-import Input from '../components/Input';
-import Sidebar from '../components/Sidebar';
-import { useAuth } from '../hooks/useAuth';
+import { Button, Header, Input, Sidebar } from '../components';
+import { useAuth } from '../hooks';
 
 const ProfilePage = ({ user }) => {
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(true);

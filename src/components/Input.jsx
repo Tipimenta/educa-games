@@ -1,12 +1,26 @@
-import React from 'react';
+const Input = ({
+  type = 'text',
+  placeholder,
+  readOnly = false,
+  error = false,
+  className = '',
+  ...props
+}) => {
+  const base = 'w-full rounded-lg border px-4 py-3 transition focus:ring-2 focus:outline-none';
+  const border = error
+    ? 'border-red-500 focus:ring-red-500'
+    : 'border-gray-300 focus:ring-blue-500';
+  const ro = readOnly ? 'cursor-not-allowed bg-gray-100' : '';
 
-const Input = ({ type = 'text', placeholder, ...props }) => (
-  <input
-    type={type}
-    placeholder={placeholder}
-    className="mb-4 w-full rounded-lg border border-gray-300 px-4 py-3 transition focus:ring-2 focus:ring-blue-500 focus:outline-none"
-    {...props}
-  />
-);
+  return (
+    <input
+      type={type}
+      placeholder={placeholder}
+      readOnly={readOnly}
+      className={`${base} ${border} ${ro} ${className}`}
+      {...props}
+    />
+  );
+};
 
 export default Input;

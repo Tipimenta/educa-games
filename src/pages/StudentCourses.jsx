@@ -1,17 +1,17 @@
 import { useMemo, useState } from 'react';
 
-import Header from '../components/Header';
 import {
   ChevronLeftIcon,
   FileTextIcon,
+  Header,
   HelpCircleIcon,
   LibraryIcon,
   LockIcon,
+  Modal,
+  Quiz,
+  Sidebar,
   YoutubeIcon,
-} from '../components/Icons';
-import Modal from '../components/Modal';
-import Quiz from '../components/Quiz';
-import Sidebar from '../components/Sidebar';
+} from '../components';
 
 const StudentCoursesPage = ({ user, onLogout, courses, modules, updateStudentProgress }) => {
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(true);
@@ -73,7 +73,7 @@ const StudentCoursesPage = ({ user, onLogout, courses, modules, updateStudentPro
     setActiveSelection(0);
   };
 
-  const getResourceIcon = (type) => {
+  const _getResourceIcon = (type) => {
     return type === 'youtube' ? (
       <YoutubeIcon className="h-5 w-5 text-red-500" />
     ) : (

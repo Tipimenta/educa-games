@@ -1,14 +1,94 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
+/* -------------------------- */
+/* Tema global (Tailwind custom properties) */
+/* -------------------------- */
 @theme {
- --font-roboto: 'Roboto', sans-serif;
- --breakpoint-3xl: 120rem;
- --color-primary: #007DE3;
- --color-secondary: #FE8C68;
+  --font-roboto: 'Roboto', sans-serif;
+  --breakpoint-3xl: 120rem;
+  --color-primary: #007de3;
+  --color-secondary: #fe8c68;
 }
 
-[class] {
- -webkit-user-modify: read-only !important;
- user-select: none;
+/* -------------------------- */
+/* Animações de Toast (fade + slide) */
+/* -------------------------- */
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOutDown {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.3s ease-out forwards;
+}
+
+.animate-fade-out-down {
+  animation: fadeOutDown 0.25s ease-in forwards;
+}
+
+.toast {
+  will-change: transform, opacity;
+}
+
+/* -------------------------- */
+/* Regras globais */
+/* -------------------------- */
+
+button,
+img,
+.logo,
+.icon {
+  -webkit-user-modify: read-only !important;
+  user-select: none;
+}
+
+body {
+  font-family: var(--font-roboto);
+  min-width: 320px;
+  color: #111827;
+  background-color: #fff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* -------------------------- */
+/* Ajustes de responsividade mínima */
+/* -------------------------- */
+@media (max-width: 360px) {
+  h1,
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  input,
+  button {
+    font-size: 0.95rem;
+  }
+}
+
+/* -------------------------- */
+/* Ajuste de padding no card de autenticação */
+/* -------------------------- */
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 1.5rem; /* reduz um pouco em telas pequenas */
+  }
 }

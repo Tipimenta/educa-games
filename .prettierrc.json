@@ -7,5 +7,5 @@
   "printWidth": 100,
   "bracketSpacing": true,
   "jsxSingleQuote": false,
-  "endOfLine": "crlf"
+  "endOfLine": "lf"
 }

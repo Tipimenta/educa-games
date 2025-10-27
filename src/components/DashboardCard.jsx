@@ -1,5 +1,3 @@
-import React from 'react';
-
 const DashboardCard = ({ icon, title, value }) => (
   <div className="flex items-center justify-evenly space-x-4 rounded-lg bg-white p-6 shadow-md">
     <div className="rounded-full bg-blue-100 p-3">{icon}</div>

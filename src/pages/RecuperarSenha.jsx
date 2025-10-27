@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import AuthLayout from '../components/AuthLayout';
-import Button from '../components/Button';
-import Input from '../components/Input';
+import { AuthLayout, Button, Input } from '../components';
 
 const RecuperarSenhaPage = () => {
   const [sent, setSent] = useState(false);
