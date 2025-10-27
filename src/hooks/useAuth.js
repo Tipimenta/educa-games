@@ -3,16 +3,17 @@ import { useNavigate } from 'react-router-dom';
 
 import { ROLES } from '../constants';
 import { AuthContext } from '../context';
-import { api, extractErrorMessage } from '../services';
+import { api, extractErrorMessage, presentError } from '../services';
+import { useToast } from './useToast';
 
 export const useAuth = () => {
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState('');
-  const { setUser, setIsLoggingOut, setHasLoggedOut } = useContext(AuthContext);
+  const { setUser } = useContext(AuthContext);
+  const { showToast } = useToast();
 
   const login = async (email, password) => {
     setErrorMessage('');
-    setHasLoggedOut(false);
     try {
       const res = await api.auth.login(email, password);
 
@@ -49,7 +50,10 @@ export const useAuth = () => {
           const errorText = await clonedRes.text();
           errData = { message: errorText || 'Erro desconhecido do servidor.' };
         }
-        setErrorMessage(extractErrorMessage(errData));
+
+        // Propagar mensagens do backend inline para erros 4xx (400/401 etc.)
+        presentError({ status: res.status, errData, setInline: setErrorMessage, showToast });
+        // Tratamento realizado por presentError acima.
       }
     } catch (err) {
       // Tratar erros de rede e CORS de forma mais específica
@@ -68,23 +72,21 @@ export const useAuth = () => {
         }
       }
 
-      setErrorMessage(userFriendlyMessage);
+      // Erros de rede vão para toast
+      showToast({ message: userFriendlyMessage, type: 'error' });
+      setErrorMessage(''); // Limpar erro inline
       console.error('Erro de login:', err);
     }
   };
 
   const logout = async () => {
     try {
-      setIsLoggingOut(true);
-      setHasLoggedOut(true);
       await api.auth.logout();
     } catch (err) {
       console.error('Erro no logout:', err);
     } finally {
       setUser(null);
       navigate('/login');
-      // limpar a flag de isLoggingOut após navegação
-      setTimeout(() => setIsLoggingOut(false), 0);
     }
   };
 
@@ -93,17 +95,36 @@ export const useAuth = () => {
     try {
       const res = await api.auth.register(userData);
 
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data);
-        navigate('/dashboard');
+      // Produção: wrappers retornam JSON; Mock: retorna Response
+      if (res && typeof res.ok === 'boolean') {
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data);
+          navigate('/dashboard');
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          presentError({ status: res.status, errData, setInline: setErrorMessage, showToast });
+        }
       } else {
-        const errData = await res.json().catch(() => ({}));
-        setErrorMessage(extractErrorMessage(errData));
+        // JSON direto (produção)
+        setUser(res);
+        navigate('/dashboard');
       }
     } catch (err) {
-      setErrorMessage('Erro de rede ou servidor indisponível.');
-      console.error(err);
+      if (err?.status) {
+        // Usar política: 4xx inline, 5xx/CORS/rede/timeout toast
+        presentError({
+          status: err.status,
+          errData: err.data || {},
+          setInline: setErrorMessage,
+          showToast,
+        });
+      } else {
+        // Erro de rede / CORS / timeout
+        showToast({ message: 'Erro ao se comunicar com o servidor', type: 'error' });
+        setErrorMessage('');
+      }
+      console.error('Erro no cadastro:', err);
     }
   };
 

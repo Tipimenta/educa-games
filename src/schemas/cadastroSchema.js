@@ -8,7 +8,7 @@ export const createCadastroSchema = (isStudent) =>
         .trim()
         .min(1, 'Nome é obrigatório')
         .min(3, 'Nome deve ter pelo menos 3 caracteres')
-        .max(100, 'Nome deve ter no máximo 100 caracteres')
+        .max(120, 'Nome deve ter no máximo 120 caracteres')
         .regex(/^[\p{L}\p{M}\s'-]+$/u, 'Nome não pode conter números ou símbolos especiais')
         .refine((val) => val.split(/\s+/).filter(Boolean).length >= 2, {
           message: 'Digite seu nome e sobrenome',

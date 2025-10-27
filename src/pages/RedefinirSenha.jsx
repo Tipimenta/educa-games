@@ -7,7 +7,6 @@ const RedefinirSenhaPage = () => {
 
   const handleReset = (e) => {
     e.preventDefault();
-    console.log('Senha redefinida!');
     navigate('/login');
   };
 

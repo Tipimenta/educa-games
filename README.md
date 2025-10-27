@@ -50,24 +50,100 @@ npm run dev
 - `npm run preview`: serve a build de produção localmente.
 - `npm run lint`: executa o linter.
 - `npm run lint:fix`: executa o linter com correções automáticas.
+- `npm run format`: formata o código com Prettier.
 - `npm run prepare`: configura hooks do Husky.
 
 ## Estrutura de Pastas
 
-- `src/`: código-fonte
-  - `assets/`: recursos estáticos
-  - `components/`: componentes React reutilizáveis (barrel `index.js`)
-  - `constants/`: constantes globais (barrel)
-  - `context/`: contextos React (barrel)
-  - `hooks/`: hooks customizados (barrel)
-  - `lib/`: utilitários
-  - `mocks/`: dados mock
-  - `pages/`: páginas
-  - `routes/`: rotas (barrel)
-  - `schemas/`: validações com Zod (barrel)
-  - `services/`: API e helpers (barrel)
-- `index.html`, `vite.config.js`, `package.json`
-- Observação: pasta `public/` é opcional no Vite e não é usada aqui.
+```
+// Directory tree (3 levels, limitado a 200 entradas)
+├── .editorconfig
+├── .env.example
+├── .eslintcache
+├── .gitattributes
+├── .gitignore
+├── .husky\
+│   ├── _\
+│   └── pre-commit
+├── .prettierrc.json
+├── .vscode\
+├── LICENSE
+├── README.md
+├── components.json
+├── eslint.config.mjs
+├── index.html
+├── jsconfig.json
+├── package-lock.json
+├── package.json
+├── public\
+│   ├── android-chrome-192x192.png
+│   ├── android-chrome-512x512.png
+│   ├── apple-touch-icon.png
+│   ├── favicon-16x16.png
+│   ├── favicon-32x32.png
+│   ├── favicon.ico
+│   └── site.webmanifest
+├── src\
+│   ├── App.jsx
+│   ├── assets\
+│   │   ├── +.svg
+│   │   └── +EducaGames.svg
+│   ├── components\
+│   │   ├── AuthLayout.jsx
+│   │   ├── Button.jsx
+│   │   ├── DashboardCard.jsx
+│   │   ├── ErrorMessage.jsx
+│   │   ├── Header.jsx
+│   │   ├── Icons.jsx
+│   │   ├── Input.jsx
+│   │   ├── Modal.jsx
+│   │   ├── PasswordInput.jsx
+│   │   ├── Quiz.jsx
+│   │   ├── Sidebar.jsx
+│   │   ├── Stepper.jsx
+│   │   ├── Toast.jsx
+│   │   └── index.js
+│   ├── constants\
+│   │   ├── index.js
+│   │   └── roles.js
+│   ├── context\
+│   │   ├── AuthContext.jsx
+│   │   ├── ToastContext.jsx
+│   │   └── index.js
+│   ├── hooks\
+│   │   ├── index.js
+│   │   ├── useAuth.js
+│   │   └── useToast.js
+│   ├── index.css
+│   ├── lib\
+│   │   ├── errors.js
+│   │   └── utils.js
+│   ├── main.jsx
+│   ├── mocks\
+│   │   └── data.js
+│   ├── pages\
+│   │   ├── Admin\
+│   │   ├── Cadastro.jsx
+│   │   ├── Dashboard.jsx
+│   │   ├── Login.jsx
+│   │   ├── Profile.jsx
+│   │   ├── RecuperarSenha.jsx
+│   │   ├── RedefinirSenha.jsx
+│   │   └── StudentCourses.jsx
+│   ├── routes\
+│   │   ├── AppRoutes.jsx
+│   │   ├── ProtectedRoute.jsx
+│   │   └── index.js
+│   ├── schemas\
+│   │   ├── cadastroSchema.js
+│   │   ├── helpers.js
+│   │   ├── index.js
+│   │   └── loginSchema.js
+│   └── services\
+│       ├── api.js
+│       └── index.js
+└── vite.config.js
+```
 
 Nota rápida sobre imports: há alias `@` para `src/*` (ver `jsconfig.json`). Prefira importar via diretórios, ex.: `import { Button } from '@/components'`.
 

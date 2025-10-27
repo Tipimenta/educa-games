@@ -4,7 +4,9 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthLayout, Button, ErrorMessage, Input, PasswordInput } from '../components';
 import { ROLES } from '../constants';
 import { useToast } from '../hooks';
+import { NetworkError, UnauthorizedError, ValidationError } from '../lib/errors';
 import { createCadastroSchema, isValid, validateAll, validateSingleField } from '../schemas';
+import { api, isCorsError, presentError } from '../services';
 
 const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
   const navigate = useNavigate();
@@ -27,46 +29,47 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
 
-  // Função para validar convite
   const validateInvite = async (token) => {
     setIsLoadingInvite(true);
     try {
-      const response = await fetch(`/api/auth/validate-invite?token=${token}`);
-      if (response.ok) {
-        const response_data = await response.json();
+      const response_data = await api.auth.validateInvite(token);
 
-        // A API retorna { message: "...", data: { email: "...", role: "..." } }
-        const inviteInfo = response_data.data;
-        setInviteData(inviteInfo);
-        setFormData((prev) => ({
-          ...prev,
-          email: inviteInfo.email,
-        }));
-        return inviteInfo;
-      } else {
-        const errorData = await response.json();
-        let errorMessage = 'Convite inválido ou expirado';
+      const inviteInfo = response_data?.data;
+      const backendMessage = response_data?.message;
 
-        switch (response.status) {
-          case 404:
-            errorMessage = 'Convite inválido.';
-            break;
-          case 409:
-            errorMessage = 'Este convite já foi utilizado.';
-            break;
-          case 410:
-            errorMessage = 'Link expirado. Solicite um novo.';
-            break;
-          default:
-            errorMessage = errorData.message || 'Convite inválido ou expirado';
-        }
-
-        setErrors({ invite: errorMessage });
+      if (!inviteInfo || !inviteInfo.email) {
+        setInviteData(null);
+        setErrors({ invite: backendMessage || 'Convite inválido ou expirado.' });
         return null;
       }
+
+      setInviteData(inviteInfo);
+      setFormData((prev) => ({
+        ...prev,
+        email: inviteInfo.email,
+      }));
+      // Limpar possível erro anterior
+      setErrors((prev) => ({ ...prev, invite: '' }));
+      return inviteInfo;
     } catch (error) {
-      console.error('Erro ao validar convite:', error);
-      setErrors({ invite: 'Erro de rede ou na API' });
+      if (error instanceof NetworkError) {
+        // CORS/rede/timeout sempre via toast
+        showToast({ message: 'Erro ao se comunicar com o servidor', type: 'error' });
+        setErrors({ invite: '' });
+      } else if (error instanceof UnauthorizedError) {
+        setErrors({ invite: 'Sessão expirada. Faça login novamente.' });
+      } else if (error instanceof ValidationError || error?.status) {
+        // 4xx inline; 5xx será NetworkError
+        presentError({
+          status: error.status || 400,
+          errData: error.data || { message: error.message },
+          setInline: (msg) => setErrors({ invite: msg }),
+          showToast,
+        });
+      } else {
+        showToast({ message: 'Erro ao se comunicar com o servidor', type: 'error' });
+        setErrors({ invite: '' });
+      }
       return null;
     } finally {
       setIsLoadingInvite(false);
@@ -76,10 +79,18 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
   // useEffect para capturar token da URL e validar convite
   useEffect(() => {
     const token = searchParams.get('token') || searchParams.get('invite');
-    if (token) {
+
+    // Evitar chamadas duplicadas (React StrictMode) e garantir 1 request por token
+    if (!window.__lastInviteTokenRef) {
+      window.__lastInviteTokenRef = { value: null };
+    }
+    const last = window.__lastInviteTokenRef;
+
+    if (token && token !== last.value) {
+      last.value = token;
       setInviteToken(token);
       validateInvite(token);
-    } else {
+    } else if (!token) {
       // Se não há token, definir erro para bloquear acesso
       setErrors({
         invite: 'Acesso negado. Esta página só pode ser acessada através de um convite válido.',
@@ -87,11 +98,9 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
     }
   }, [searchParams]);
 
-  // Função utilitária para obter o schema condicional de acordo com o papel
   const getSchema = () =>
     createCadastroSchema((inviteData ? inviteData.role : userRole) === ROLES.STUDENT);
 
-  // Função para validar todos os campos
   const validateForm = () => {
     const schemaErrors = validateAll(getSchema(), formData);
 
@@ -139,7 +148,6 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
     setErrors((prev) => ({ ...prev, email: msg }));
   };
 
-  // Função para verificar se o formulário está válido
   const isFormValid = () => {
     const baseValid = isValid(getSchema(), formData);
     return baseValid;
@@ -160,6 +168,14 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
         [name]: '',
       }));
     }
+
+    // Se a senha original mudar, limpar o erro de confirmação imediatamente
+    if (name === 'password' && errors.confirmPassword) {
+      setErrors((prev) => ({
+        ...prev,
+        confirmPassword: '',
+      }));
+    }
   };
 
   const handleSignup = async (e) => {
@@ -175,55 +191,44 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
             invite: inviteToken,
           };
 
-          const response = await fetch('/api/auth/complete-signup', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
+          const successData = await api.auth.completeSignup(payload);
+          // Exibir mensagem de sucesso e redirecionar para login
+          setErrors({ submit: '' });
+          showToast({
+            message: successData.message || 'Cadastro realizado com sucesso! Redirecionando...',
+            type: 'success',
+            duration: 2000,
           });
-
-          if (response.ok) {
-            const successData = await response.json();
-            // Exibir mensagem de sucesso e redirecionar para login
-            setErrors({ submit: '' });
-
-            // Mostrar feedback de sucesso usando a mensagem do backend (Toast)
-            showToast({
-              message: successData.message || 'Cadastro realizado com sucesso! Redirecionando...',
-              type: 'success',
-              duration: 2000,
-            });
-
-            // Redirecionar após 2 segundos
-            setTimeout(() => {
-              navigate('/login?registered=true');
-            }, 2000);
-          } else {
-            const errorData = await response.json();
-            let errorMessage = 'Erro ao finalizar cadastro';
-
-            switch (response.status) {
-              case 400:
-                errorMessage = errorData.message || 'Dados inválidos. Verifique os campos.';
-                break;
-              case 409:
-                errorMessage = 'Já existe um usuário cadastrado com este email.';
-                break;
-              default:
-                errorMessage = errorData.message || 'Erro ao finalizar cadastro';
-            }
-
-            setErrors({ submit: errorMessage });
-          }
+          setTimeout(() => {
+            navigate('/login?registered=true');
+          }, 2000);
         } else {
           // Fluxo normal de cadastro
-          console.log('Dados do formulário:', formData);
           navigate('/dashboard');
         }
       } catch (error) {
-        console.error('Erro ao processar cadastro:', error);
-        setErrors({ submit: 'Erro interno. Tente novamente.' });
+        if (error instanceof NetworkError) {
+          showToast({ message: 'Erro ao se comunicar com o servidor', type: 'error' });
+          setErrors({ submit: '' });
+        } else if (error instanceof ValidationError || error?.status) {
+          // Tratamento extra: se for 403 (inclui CORS), padronizar como toast (sem inline)
+          const status = error?.status || 400;
+          const errData = error?.data || { message: error?.message };
+          if (status === 403 || isCorsError(status, errData)) {
+            showToast({ message: 'Erro ao se comunicar com o servidor', type: 'error' });
+            setErrors({ submit: '' });
+          } else {
+            presentError({
+              status,
+              errData,
+              setInline: (msg) => setErrors({ submit: msg }),
+              showToast,
+            });
+          }
+        } else {
+          showToast({ message: 'Erro ao se comunicar com o servidor', type: 'error' });
+          setErrors({ submit: '' });
+        }
       } finally {
         setIsSubmitting(false);
       }

@@ -2,89 +2,130 @@ const API_BASE = '/api';
 
 const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true';
 
-// Mapeamento de erros técnicos para mensagens amigáveis
-const mapTechnicalErrorToUserMessage = (technicalMessage) => {
-  const msg = (technicalMessage ?? '').toString().toLowerCase();
-
-  const includesAny = (text, keywords) => keywords.some((k) => text.includes(k));
-
-  // Preservar mensagens originalmente direcionadas ao usuário
-  const preserve = [
-    'email ou senha incorretos',
-    'credenciais inválidas',
-    'validation',
-    'required',
-    'já existe',
-    'não encontrado',
-    'expirado',
-    'inválido',
-  ];
-  if (includesAny(msg, preserve)) {
-    return technicalMessage;
+// Extração simples das mensagens vindas do backend (sem mapeamentos)
+export const extractErrorMessage = (errorData = {}) => {
+  if (Array.isArray(errorData.errors) && errorData.errors.length > 0) {
+    return errorData.errors.join('\n');
   }
-
-  if (msg.includes('invalid cors request')) {
-    return 'Servidor indisponível ou erro ao se comunicar com o servidor.';
+  if (typeof errorData.message === 'string' && errorData.message.trim().length > 0) {
+    return errorData.message;
   }
-
-  // Mapeamentos simplificados por categorias
-  const mappings = [
-    {
-      keywords: ['cors', 'cross-origin'],
-      message: 'Não foi possível conectar ao servidor. Tente novamente em alguns instantes.',
-    },
-    {
-      keywords: ['network', 'fetch'],
-      message: 'Problema de conexão. Verifique sua internet e tente novamente.',
-    },
-    {
-      keywords: ['timeout'],
-      message: 'A conexão demorou muito para responder. Tente novamente.',
-    },
-    {
-      keywords: ['500', 'internal server error'],
-      message: 'Erro interno do servidor. Tente novamente em alguns minutos.',
-    },
-  ];
-
-  const found = mappings.find((m) => includesAny(msg, m.keywords));
-  if (found) {
-    return found.message;
-  }
-
   return 'Ocorreu um erro inesperado. Tente novamente.';
 };
 
-export const extractErrorMessage = (errorData) => {
-  if (errorData.errors && Array.isArray(errorData.errors) && errorData.errors.length > 0) {
-    // Para múltiplos erros, mapear cada um individualmente
-    const mappedErrors = errorData.errors.map((error) => mapTechnicalErrorToUserMessage(error));
-    return mappedErrors.join('\n');
-  }
-
-  if (errorData.message) {
-    return mapTechnicalErrorToUserMessage(errorData.message);
-  }
-
-  return 'Ocorreu um erro inesperado. Tente novamente.';
+// Apresentação: 4xx inline; 5xx toast genérico
+// Padronização extra: 403 com mensagem de CORS vira toast genérico
+export const isCorsError = (status, errDataOrMsg) => {
+  const rawMsg =
+    typeof errDataOrMsg === 'string' ? errDataOrMsg : extractErrorMessage(errDataOrMsg);
+  const lower = (rawMsg || '').toLowerCase();
+  return (
+    status === 403 &&
+    (lower.includes('cors') ||
+      lower.includes('cross-origin') ||
+      lower.includes('invalid cors request'))
+  );
 };
 
+export const presentError = ({ status, errData, setInline, showToast }) => {
+  const msg = extractErrorMessage(errData);
+
+  // 403 com mensagens de CORS: toast genérico
+  if (isCorsError(status, errData)) {
+    showToast({ message: 'Erro ao se comunicar com o servidor', type: 'error' });
+    setInline('');
+    return;
+  }
+
+  // 409 Conflict: toast com mensagem do backend
+  if (status === 409) {
+    showToast({ message: msg || 'Conflito ao processar a solicitação', type: 'error' });
+    setInline('');
+    return;
+  }
+
+  // 5xx: toast genérico
+  if (status >= 500) {
+    showToast({ message: 'Erro ao se comunicar com o servidor', type: 'error' });
+    setInline('');
+    return;
+  }
+
+  // Demais 4xx: inline
+  setInline(msg);
+};
+
+import { ApiError, NetworkError, UnauthorizedError, ValidationError } from '../lib/errors';
 const handleResponse = async (response) => {
   if (!response.ok) {
-    if (response.status === 401) {
-      return null;
+    let errData = {};
+    let rawText = '';
+    try {
+      errData = await response.json();
+      rawText = (errData && (errData.message || errData.error || errData.detail)) || '';
+    } catch {
+      // Fallback para respostas não-JSON (ex.: "Invalid CORS request")
+      try {
+        const text = await response.text();
+        rawText = text || '';
+        if (text) errData = { message: text };
+      } catch {
+        errData = {};
+        rawText = '';
+      }
     }
-    const error = await response.json().catch(() => ({}));
-    throw new Error(extractErrorMessage(error));
+
+    const msgLower = rawText.toString().toLowerCase();
+    const isCors403 =
+      response.status === 403 &&
+      (msgLower.includes('cors') ||
+        msgLower.includes('cross-origin') ||
+        msgLower.includes('invalid cors request'));
+
+    if (response.status >= 500 || isCors403) {
+      const netErr = new NetworkError('Erro ao se comunicar com o servidor');
+      netErr.status = response.status;
+      netErr.data = errData;
+      throw netErr;
+    }
+
+    if (response.status === 401) {
+      throw new UnauthorizedError('Não autorizado. Faça login para continuar.', errData);
+    }
+
+    if (response.status >= 400 && response.status < 500) {
+      const message = extractErrorMessage(errData);
+      const ve = new ValidationError(message, errData);
+      ve.status = response.status;
+      throw ve;
+    }
+
+    const message = extractErrorMessage(errData);
+    throw new ApiError(message, response.status, errData);
   }
-  return response.json();
+
+  // Em sucesso, tentar JSON; se não houver corpo, retornar objeto vazio
+  try {
+    return await response.json();
+  } catch {
+    return {};
+  }
 };
 
-// Helpers fetch
+// Helpers fetch (converter falhas de rede em NetworkError)
 const get = (url) =>
   fetch(`${API_BASE}${url}`, {
     credentials: 'include',
-  }).then(handleResponse);
+  })
+    .then(handleResponse)
+    .catch((e) => {
+      if (e && (e.name === 'TypeError' || /Failed to fetch/i.test(e?.message || ''))) {
+        const netErr = new NetworkError('Erro ao se comunicar com o servidor');
+        netErr.data = { message: e?.message };
+        throw netErr;
+      }
+      throw e;
+    });
 
 const post = (url, data) =>
   fetch(`${API_BASE}${url}`, {
@@ -92,7 +133,16 @@ const post = (url, data) =>
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
-  }).then(handleResponse);
+  })
+    .then(handleResponse)
+    .catch((e) => {
+      if (e && (e.name === 'TypeError' || /Failed to fetch/i.test(e?.message || ''))) {
+        const netErr = new NetworkError('Erro ao se comunicar com o servidor');
+        netErr.data = { message: e?.message };
+        throw netErr;
+      }
+      throw e;
+    });
 
 const put = (url, data) =>
   fetch(`${API_BASE}${url}`, {
@@ -100,13 +150,31 @@ const put = (url, data) =>
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
-  }).then(handleResponse);
+  })
+    .then(handleResponse)
+    .catch((e) => {
+      if (e && (e.name === 'TypeError' || /Failed to fetch/i.test(e?.message || ''))) {
+        const netErr = new NetworkError('Erro ao se comunicar com o servidor');
+        netErr.data = { message: e?.message };
+        throw netErr;
+      }
+      throw e;
+    });
 
 const del = (url) =>
   fetch(`${API_BASE}${url}`, {
     method: 'DELETE',
     credentials: 'include',
-  }).then(handleResponse);
+  })
+    .then(handleResponse)
+    .catch((e) => {
+      if (e && (e.name === 'TypeError' || /Failed to fetch/i.test(e?.message || ''))) {
+        const netErr = new NetworkError('Erro ao se comunicar com o servidor');
+        netErr.data = { message: e?.message };
+        throw netErr;
+      }
+      throw e;
+    });
 
 // Sem handleResponse para não interferir no login e logout
 const authPost = (url, data) =>
@@ -133,7 +201,7 @@ if (USE_MOCKS) {
   const MOCK_USER = {
     id: 1,
     name: 'Usuário Mock',
-    email: 'mock@educagames.com',
+    email: 'aluno@email.com',
     role: 'student',
   };
 
@@ -169,6 +237,8 @@ if (USE_MOCKS) {
       logout: () => authPost('/auth/logout', {}),
       getMe: () => get('/auth/me'),
       register: (userData) => post('/auth/register', userData),
+      validateInvite: (token) => get(`/auth/validate-invite?token=${token}`),
+      completeSignup: (payload) => post('/auth/complete-signup', payload),
     },
   };
 }

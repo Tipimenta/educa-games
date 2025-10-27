@@ -41,10 +41,8 @@ const LoginPage = () => {
       {errorMessages.length > 0 && (
         <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3">
           {errorMessages.length === 1 ? (
-            // Erro único
             <p className="text-center text-sm text-red-600">{errorMessages[0]}</p>
           ) : (
-            // Múltiplos erros de validação
             <div className="text-sm text-red-600">
               <p className="mb-2 text-center font-medium">Por favor, corrija os seguintes erros:</p>
               <ul className="space-y-1">
