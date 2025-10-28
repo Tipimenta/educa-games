@@ -148,9 +148,9 @@ const LoginPage = () => {
                 Quer oferecer cursos gamificados?
               </p>
               <p className="mt-1 text-xs text-gray-500">
-                <a href="mailto:contato@educagames.com" className="text-secondary hover:underline">
+                <Link to="/" className="text-secondary hover:underline">
                   Fale conosco
-                </a>
+                </Link>
               </p>
             </div>
           </div>

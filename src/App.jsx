@@ -10,6 +10,7 @@ import {
   initialTurmas,
 } from './mocks/data';
 import CadastroPage from './pages/Cadastro';
+import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/Login';
 import RecuperarSenhaPage from './pages/RecuperarSenha';
 import RedefinirSenhaPage from './pages/RedefinirSenha';
@@ -27,7 +28,7 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Navigate to="/login" />} />
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/cadastro" element={<CadastroPage turmas={turmas} />} />
             <Route path="/recuperar-senha" element={<RecuperarSenhaPage />} />
