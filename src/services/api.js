@@ -1,6 +1,9 @@
 const API_BASE = '/api';
 
 const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true';
+const MOCK_USER_ROLE = (import.meta.env.VITE_MOCK_USER_ROLE || 'student').toLowerCase();
+const VALID_ROLES = ['student', 'instructor'];
+const RESOLVED_MOCK_ROLE = VALID_ROLES.includes(MOCK_USER_ROLE) ? MOCK_USER_ROLE : 'student';
 
 // Extração simples das mensagens vindas do backend (sem mapeamentos)
 export const extractErrorMessage = (errorData = {}) => {
@@ -198,30 +201,70 @@ const makeResponse = (json, status = 200) =>
 let api;
 
 if (USE_MOCKS) {
-  const MOCK_USER = {
-    id: 1,
-    name: 'Usuário Mock',
+  // Sessão atual simulada (preenchida no login e limpa no logout)
+  let SELECTED_MOCK_USER = null;
+
+  // Estrutura adicional para estudante, alinhada com src/mocks/data.js
+  const DEFAULT_STUDENT_SHAPE = {
+    name: 'Ana Coder',
     email: 'aluno@email.com',
-    role: 'student',
+    turmaId: 1,
+    score: 190,
+    previousScore: 150,
+    loginStreak: 3,
+    lastLogin: '2025-10-07',
+    currentModuleId: 1,
+    progress: {
+      completedLessons: new Set([1]),
+      finalizedQuizzes: new Set(),
+      dailyBonusDay: null,
+    },
   };
+
+  const DEFAULT_INSTRUCTOR_SHAPE = {
+    name: 'Instrutor Mock',
+    email: 'instrutor@email.com',
+  };
+
+  const makeStudentUser = () => ({ id: 1, role: 'student', ...DEFAULT_STUDENT_SHAPE });
+  const makeInstructorUser = () => ({ id: 900, role: 'instructor', ...DEFAULT_INSTRUCTOR_SHAPE });
 
   api = {
     auth: {
       login: async (email, password) => {
         await delay(200);
-        // Simula credenciais inválidas
+        // Credenciais básicas: aceita somente os usuários mock conhecidos
         if (!email || !password) {
           return makeResponse({ message: 'Credenciais inválidas.' }, 400);
         }
-        return makeResponse({ message: 'ok' }, 200);
+
+        const normalized = String(email).trim().toLowerCase();
+        if (normalized === DEFAULT_STUDENT_SHAPE.email.toLowerCase()) {
+          SELECTED_MOCK_USER = makeStudentUser();
+          return makeResponse({ message: 'ok' }, 200);
+        }
+        if (normalized === DEFAULT_INSTRUCTOR_SHAPE.email.toLowerCase()) {
+          SELECTED_MOCK_USER = makeInstructorUser();
+          return makeResponse({ message: 'ok' }, 200);
+        }
+
+        // Usuário não encontrado
+        return makeResponse({ message: 'Usuário não encontrado.' }, 401);
       },
       logout: async () => {
         await delay(100);
+        SELECTED_MOCK_USER = null;
         return makeResponse({ message: 'ok' }, 200);
       },
       getMe: async () => {
         await delay(150);
-        return { data: MOCK_USER };
+        if (!SELECTED_MOCK_USER) {
+          // Sem sessão mock ativa: comporta-se como não autenticado
+          const err = new UnauthorizedError('Não autorizado. Faça login para continuar.');
+          err.status = 401;
+          throw err;
+        }
+        return { data: SELECTED_MOCK_USER };
       },
       register: async (userData) => {
         await delay(250);
