@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 
+import { ROLES } from '../constants';
 import {
   BarChartIcon,
   BookOpenIcon,
@@ -38,7 +39,7 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
       </div>
       <nav className="flex-grow pt-4">
         <ul>
-          {userRole === 'aluno' && (
+          {userRole === ROLES.STUDENT && (
             <>
               <li>
                 <NavLink
@@ -73,11 +74,11 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
             </>
           )}
 
-          {userRole === 'instructor' && (
+          {userRole === ROLES.INSTRUCTOR && (
             <>
               <li>
                 <NavLink
-                  to="/admin/courses"
+                  to="/admin/manage-courses"
                   className={({ isActive }) =>
                     `flex items-center py-3 transition-colors duration-200 ${
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'
@@ -92,7 +93,7 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
               </li>
               <li>
                 <NavLink
-                  to="/admin/content"
+                  to="/admin/manage-content"
                   className={({ isActive }) =>
                     `flex items-center py-3 transition-colors duration-200 ${
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'
@@ -107,7 +108,7 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
               </li>
               <li>
                 <NavLink
-                  to="/admin/classes"
+                  to="/admin/manage-classes"
                   className={({ isActive }) =>
                     `flex items-center py-3 transition-colors duration-200 ${
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'
@@ -135,7 +136,7 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
               </li>
               <li>
                 <NavLink
-                  to="/admin/announcements"
+                  to="/admin/manage-announcements"
                   className={({ isActive }) =>
                     `flex items-center py-3 transition-colors duration-200 ${
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'

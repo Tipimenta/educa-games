@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { ROLES } from '../constants';
 import { AuthContext } from '../context';
+import { useAuth } from '../hooks';
 import ManageAnnouncementsPage from '../pages/Admin/ManageAnnouncements';
 import ManageClassesPage from '../pages/Admin/ManageClasses';
 import ManageContentPage from '../pages/Admin/ManageContent';
@@ -28,6 +29,7 @@ const AppRoutes = ({
   setAnnouncements,
 }) => {
   const { user, setUser } = useContext(AuthContext);
+  const { logout } = useAuth();
 
   const getTodayDateString = () => new Date().toISOString().split('T')[0];
 
@@ -94,6 +96,7 @@ const AppRoutes = ({
         element={
           <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
             <DashboardPage
+              user={user}
               students={students}
               courses={courses}
               modules={modules}
@@ -109,6 +112,8 @@ const AppRoutes = ({
         element={
           <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
             <StudentCoursesPage
+              user={user}
+              onLogout={logout}
               courses={courses}
               modules={modules}
               students={students}
@@ -122,7 +127,7 @@ const AppRoutes = ({
         path="/profile"
         element={
           <ProtectedRoute allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR]}>
-            <ProfilePage />
+            <ProfilePage user={user} />
           </ProtectedRoute>
         }
       />
@@ -131,7 +136,13 @@ const AppRoutes = ({
         path="/admin/manage-classes"
         element={
           <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
-            <ManageClassesPage turmas={turmas} setTurmas={setTurmas} />
+            <ManageClassesPage
+              user={user}
+              userRole={user?.role}
+              onLogout={logout}
+              turmas={turmas}
+              setTurmas={setTurmas}
+            />
           </ProtectedRoute>
         }
       />
@@ -141,6 +152,8 @@ const AppRoutes = ({
         element={
           <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
             <ManageCoursesPage
+              user={user}
+              userRole={user?.role}
               courses={courses}
               setCourses={setCourses}
               turmas={turmas}
@@ -155,7 +168,14 @@ const AppRoutes = ({
         path="/admin/manage-content"
         element={
           <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
-            <ManageContentPage courses={courses} modules={modules} setModules={setModules} />
+            <ManageContentPage
+              user={user}
+              userRole={user?.role}
+              onLogout={logout}
+              courses={courses}
+              modules={modules}
+              setModules={setModules}
+            />
           </ProtectedRoute>
         }
       />
@@ -164,7 +184,28 @@ const AppRoutes = ({
         path="/admin/module-editor/:moduleId"
         element={
           <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
-            <ModuleEditor modules={modules} setModules={setModules} />
+            <ModuleEditor
+              user={user}
+              userRole={user?.role}
+              onLogout={logout}
+              modules={modules}
+              setModules={setModules}
+            />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/module-editor"
+        element={
+          <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
+            <ModuleEditor
+              user={user}
+              userRole={user?.role}
+              onLogout={logout}
+              modules={modules}
+              setModules={setModules}
+            />
           </ProtectedRoute>
         }
       />
@@ -174,6 +215,9 @@ const AppRoutes = ({
         element={
           <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
             <ManageAnnouncementsPage
+              user={user}
+              userRole={user?.role}
+              onLogout={logout}
               announcements={announcements}
               setAnnouncements={setAnnouncements}
               turmas={turmas}
@@ -186,7 +230,14 @@ const AppRoutes = ({
         path="/admin/reports"
         element={
           <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
-            <ReportsPage students={students} courses={courses} modules={modules} />
+            <ReportsPage
+              user={user}
+              userRole={user?.role}
+              onLogout={logout}
+              turmas={turmas}
+              students={students}
+              modules={modules}
+            />
           </ProtectedRoute>
         }
       />
@@ -196,11 +247,12 @@ const AppRoutes = ({
         element={
           <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
             <StudentProfilePage
+              user={user}
+              userRole={user?.role}
+              onLogout={logout}
               students={students}
-              setStudents={setStudents}
-              courses={courses}
-              modules={modules}
               turmas={turmas}
+              modules={modules}
             />
           </ProtectedRoute>
         }
