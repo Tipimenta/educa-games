@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import Header from '../../components/Header';
-import Sidebar from '../../components/Sidebar';
+import AppLayout from '../../components/AppLayout';
+import PageTitle from '../../components/PageTitle';
 
-const ReportsPage = ({ user, userRole, onLogout, turmas, students, modules }) => {
-  const [isSidebarCollapsed, setSidebarCollapsed] = useState(true);
+const ReportsPage = ({ user, _userRole, onLogout, turmas, students, modules }) => {
   const [selectedTurma, setSelectedTurma] = useState(
     turmas && turmas.length > 0 ? turmas[0].name : ''
   );
@@ -16,10 +15,6 @@ const ReportsPage = ({ user, userRole, onLogout, turmas, students, modules }) =>
     }
   }, [turmas, selectedTurma]);
 
-  const handleMouseEnter = () => setSidebarCollapsed(false);
-  const handleMouseLeave = () => setSidebarCollapsed(true);
-  const toggleSidebar = () => setSidebarCollapsed(!isSidebarCollapsed);
-
   const filteredAndSortedStudents = (students || [])
     .filter((student) => {
       const turmaDoAluno = turmas.find((t) => t.id === student.turmaId);
@@ -28,48 +23,38 @@ const ReportsPage = ({ user, userRole, onLogout, turmas, students, modules }) =>
     .sort((a, b) => b.score - a.score);
 
   return (
-    <div className="flex min-h-screen bg-gray-100 font-sans">
-      <Sidebar
-        isCollapsed={isSidebarCollapsed}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        userRole={userRole}
-      />
-      <div
-        className={`flex flex-1 flex-col transition-all duration-300 ease-in-out ${
-          isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
-        }`}
-      >
-        <Header user={user} toggleSidebar={toggleSidebar} onLogout={onLogout} />
-        <main className="flex-grow p-6">
-          <h2 className="mb-6 text-3xl font-bold text-gray-800">Relatórios de Alunos</h2>
-
-          <div className="mb-6">
-            <label htmlFor="turma-select" className="mr-4 text-sm font-semibold text-gray-700">
-              Filtrar por Turma:
-            </label>
-            <select
-              id="turma-select"
-              value={selectedTurma}
-              onChange={(e) => setSelectedTurma(e.target.value)}
-              className="rounded-lg border border-gray-300 bg-white px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            >
-              {turmas && turmas.length > 0 ? (
-                turmas.map((turma) => (
-                  <option key={turma.id} value={turma.name}>
-                    {turma.name}
-                  </option>
-                ))
-              ) : (
-                <option disabled>Nenhuma turma disponível</option>
-              )}
-            </select>
-          </div>
+    <AppLayout user={user} onLogout={onLogout}>
+      <main className="flex-grow p-6">
+        <div className="mx-auto max-w-7xl">
+          <PageTitle>Demonstrativo de Alunos</PageTitle>
 
           <div className="rounded-lg bg-white p-6 shadow-md">
-            <h3 className="mb-4 text-xl font-bold text-gray-800">
-              Ranking e Progresso - {selectedTurma || 'Nenhuma turma selecionada'}
-            </h3>
+            <div className="mb-6 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-800">
+                Ranking e Progresso - {selectedTurma || 'Nenhuma turma selecionada'}
+              </h3>
+              <div className="flex items-center gap-2">
+                <label htmlFor="turma-select" className="text-sm font-semibold text-gray-700">
+                  Filtrar por Turma:
+                </label>
+                <select
+                  id="turma-select"
+                  value={selectedTurma}
+                  onChange={(e) => setSelectedTurma(e.target.value)}
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {turmas && turmas.length > 0 ? (
+                    turmas.map((turma) => (
+                      <option key={turma.id} value={turma.name}>
+                        {turma.name}
+                      </option>
+                    ))
+                  ) : (
+                    <option disabled>Nenhuma turma disponível</option>
+                  )}
+                </select>
+              </div>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
@@ -138,9 +123,9 @@ const ReportsPage = ({ user, userRole, onLogout, turmas, students, modules }) =>
               </table>
             </div>
           </div>
-        </main>
-      </div>
-    </div>
+        </div>
+      </main>
+    </AppLayout>
   );
 };
 

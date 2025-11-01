@@ -306,17 +306,14 @@ const ModuleEditor = ({ user, userRole, onLogout, modules, setModules }) => {
         onMouseLeave={() => setSidebarCollapsed(true)}
         userRole={userRole}
       />
-      <div
-        className={`flex flex-1 flex-col transition-all duration-300 ease-in-out ${
-          isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
-        }`}
-      >
+      <div className={`flex flex-1 flex-col transition-all duration-300 ease-in-out`}>
         <Header
           user={user}
           toggleSidebar={() => setSidebarCollapsed(!isSidebarCollapsed)}
           onLogout={onLogout}
+          leftPaddingClass={isSidebarCollapsed ? 'ml-12' : 'ml-48'}
         />
-        <main className="flex-grow p-6">
+        <main className={`flex-grow p-6 ${isSidebarCollapsed ? 'ml-12' : 'ml-48'}`}>
           <Link
             to="/admin/manage-content"
             state={{ courseId: moduleId ? currentModule.courseId : courseId }}

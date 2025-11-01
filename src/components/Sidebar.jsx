@@ -1,5 +1,7 @@
 import { NavLink } from 'react-router-dom';
 
+import PlusLogo from '../assets/+.svg';
+import FullLogo from '../assets/+EducaGames.svg';
 import { ROLES } from '../constants';
 import {
   BarChartIcon,
@@ -13,31 +15,20 @@ import {
 const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
   return (
     <aside
-      className={`bg-primary fixed top-0 left-0 z-30 flex h-full flex-col text-white transition-all duration-300 ease-in-out ${
-        isCollapsed ? 'w-20' : 'w-64'
+      className={`bg-primary fixed top-0 left-0 z-30 flex h-full flex-col text-white overflow-hidden transition-all duration-300 ease-in-out ${
+        isCollapsed ? 'w-12' : 'w-48'
       }`}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
       <div className="relative flex h-16 items-center justify-center bg-white">
-        <h1
-          className={`font-sigmar flex items-center justify-center text-center text-2xl font-bold transition-opacity duration-200 ${
-            isCollapsed ? 'opacity-0' : 'opacity-100'
-          }`}
-        >
-          <span className={`text-secondary text-4xl font-bold`}>+</span>
-          <span className={`text-primary`}>Educa</span>
-          <span className={`text-secondary`}>Games</span>
-        </h1>
-        <h1
-          className={`font-sigmar absolute text-4xl font-bold transition-opacity duration-200 ${
-            isCollapsed ? 'opacity-100' : 'opacity-0'
-          }`}
-        >
-          <span className={`text-secondary text-4xl font-bold`}>+</span>
-        </h1>
+        {isCollapsed ? (
+          <img src={PlusLogo} alt="Logo compacta" className="h-5" />
+        ) : (
+          <img src={FullLogo} alt="EducaGames" className="h-4" />
+        )}
       </div>
-      <nav className="flex-grow pt-4">
+      <nav className="flex-grow pt-0">
         <ul>
           {userRole === ROLES.STUDENT && (
             <>
@@ -45,30 +36,38 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
                 <NavLink
                   to="/dashboard"
                   className={({ isActive }) =>
-                    `flex items-center py-3 transition-colors duration-200 ${
+                    `flex items-center py-2 pl-4 transition-colors duration-200 ${
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'
                     }`
                   }
                 >
-                  <LayoutDashboardIcon
-                    className={`text-secondary mx-auto ${!isCollapsed && 'mr-3 ml-6'}`}
-                  />
-                  <span className={isCollapsed ? 'hidden' : 'inline'}>Dashboard</span>
+                  <LayoutDashboardIcon className="text-secondary h-5 w-5 mr-3 flex-shrink-0" />
+                  <span
+                    className={`whitespace-nowrap transition-opacity duration-200 ${
+                      isCollapsed ? 'opacity-0' : 'opacity-100'
+                    }`}
+                  >
+                    Dashboard
+                  </span>
                 </NavLink>
               </li>
               <li>
                 <NavLink
                   to="/courses"
                   className={({ isActive }) =>
-                    `flex items-center py-3 transition-colors duration-200 ${
+                    `flex items-center py-2 pl-4 transition-colors duration-200 ${
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'
                     }`
                   }
                 >
-                  <BookOpenIcon
-                    className={`text-secondary mx-auto ${!isCollapsed && 'mr-3 ml-6'}`}
-                  />
-                  <span className={isCollapsed ? 'hidden' : 'inline'}>Cursos</span>
+                  <BookOpenIcon className="text-secondary h-5 w-5 mr-3 flex-shrink-0" />
+                  <span
+                    className={`whitespace-nowrap transition-opacity duration-200 ${
+                      isCollapsed ? 'opacity-0' : 'opacity-100'
+                    }`}
+                  >
+                    Cursos
+                  </span>
                 </NavLink>
               </li>
             </>
@@ -80,73 +79,95 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
                 <NavLink
                   to="/admin/manage-courses"
                   className={({ isActive }) =>
-                    `flex items-center py-3 transition-colors duration-200 ${
+                    `flex items-center py-2 pl-4 transition-colors duration-200 ${
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'
                     }`
                   }
                 >
-                  <LibraryIcon
-                    className={`text-secondary mx-auto ${!isCollapsed && 'mr-3 ml-6'}`}
-                  />
-                  <span className={isCollapsed ? 'hidden' : 'inline'}>Cursos</span>
+                  <LibraryIcon className="text-secondary h-5 w-5 mr-3 flex-shrink-0" />
+                  <span
+                    className={`whitespace-nowrap transition-opacity duration-200 ${
+                      isCollapsed ? 'opacity-0' : 'opacity-100'
+                    }`}
+                  >
+                    Cursos
+                  </span>
                 </NavLink>
               </li>
               <li>
                 <NavLink
                   to="/admin/manage-content"
                   className={({ isActive }) =>
-                    `flex items-center py-3 transition-colors duration-200 ${
+                    `flex items-center py-2 pl-4 transition-colors duration-200 ${
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'
                     }`
                   }
                 >
-                  <BookOpenIcon
-                    className={`text-secondary mx-auto ${!isCollapsed && 'mr-3 ml-6'}`}
-                  />
-                  <span className={isCollapsed ? 'hidden' : 'inline'}>Módulos</span>
+                  <BookOpenIcon className="text-secondary h-5 w-5 mr-3 flex-shrink-0" />
+                  <span
+                    className={`whitespace-nowrap transition-opacity duration-200 ${
+                      isCollapsed ? 'opacity-0' : 'opacity-100'
+                    }`}
+                  >
+                    Módulos
+                  </span>
                 </NavLink>
               </li>
               <li>
                 <NavLink
                   to="/admin/manage-classes"
                   className={({ isActive }) =>
-                    `flex items-center py-3 transition-colors duration-200 ${
+                    `flex items-center py-2 pl-4 transition-colors duration-200 ${
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'
                     }`
                   }
                 >
-                  <UsersIcon className={`text-secondary mx-auto ${!isCollapsed && 'mr-3 ml-6'}`} />
-                  <span className={isCollapsed ? 'hidden' : 'inline'}>Turmas</span>
+                  <UsersIcon className="text-secondary h-5 w-5 mr-3 flex-shrink-0" />
+                  <span
+                    className={`whitespace-nowrap transition-opacity duration-200 ${
+                      isCollapsed ? 'opacity-0' : 'opacity-100'
+                    }`}
+                  >
+                    Turmas
+                  </span>
                 </NavLink>
               </li>
               <li>
                 <NavLink
                   to="/admin/reports"
                   className={({ isActive }) =>
-                    `flex items-center py-3 transition-colors duration-200 ${
+                    `flex items-center py-2 pl-4 transition-colors duration-200 ${
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'
                     }`
                   }
                 >
-                  <BarChartIcon
-                    className={`text-secondary mx-auto ${!isCollapsed && 'mr-3 ml-6'}`}
-                  />
-                  <span className={isCollapsed ? 'hidden' : 'inline'}>Relatórios</span>
+                  <BarChartIcon className="text-secondary h-5 w-5 mr-3 flex-shrink-0" />
+                  <span
+                    className={`whitespace-nowrap transition-opacity duration-200 ${
+                      isCollapsed ? 'opacity-0' : 'opacity-100'
+                    }`}
+                  >
+                    Demonstrativo
+                  </span>
                 </NavLink>
               </li>
               <li>
                 <NavLink
                   to="/admin/manage-announcements"
                   className={({ isActive }) =>
-                    `flex items-center py-3 transition-colors duration-200 ${
+                    `flex items-center py-2 pl-4 transition-colors duration-200 ${
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'
                     }`
                   }
                 >
-                  <MegaphoneIcon
-                    className={`text-secondary mx-auto ${!isCollapsed && 'mr-3 ml-6'}`}
-                  />
-                  <span className={isCollapsed ? 'hidden' : 'inline'}>Avisos</span>
+                  <MegaphoneIcon className="text-secondary h-5 w-5 mr-3 flex-shrink-0" />
+                  <span
+                    className={`whitespace-nowrap transition-opacity duration-200 ${
+                      isCollapsed ? 'opacity-0' : 'opacity-100'
+                    }`}
+                  >
+                    Avisos
+                  </span>
                 </NavLink>
               </li>
             </>

@@ -1,12 +1,12 @@
-import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
+import AppLayout from '../../components/AppLayout';
 import Button from '../../components/Button';
-import Header from '../../components/Header';
-import Sidebar from '../../components/Sidebar';
+import PageTitle from '../../components/PageTitle';
+import { useAuth } from '../../hooks/useAuth';
 
-const ManageContentPage = ({ user, userRole, onLogout, courses, modules, setModules }) => {
-  const [isSidebarCollapsed, setSidebarCollapsed] = useState(true);
+const ManageContentPage = ({ user, courses, modules, setModules }) => {
+  const { logout } = useAuth();
   const location = useLocation();
 
   const selectedCourseId = location.state?.courseId;
@@ -24,30 +24,15 @@ const ManageContentPage = ({ user, userRole, onLogout, courses, modules, setModu
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100 font-sans">
-      <Sidebar
-        isCollapsed={isSidebarCollapsed}
-        onMouseEnter={() => setSidebarCollapsed(false)}
-        onMouseLeave={() => setSidebarCollapsed(true)}
-        userRole={userRole}
-      />
-      <div
-        className={`flex flex-1 flex-col transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'}`}
-      >
-        <Header
-          user={user}
-          toggleSidebar={() => setSidebarCollapsed(!isSidebarCollapsed)}
-          onLogout={onLogout}
-        />
-        <main className="flex-grow p-6">
-          <div className="flex items-center justify-between">
-            <h2 className="mb-6 text-3xl font-bold text-gray-800">Gerir Módulos</h2>
-            {selectedCourseId && (
+    <AppLayout user={user} onLogout={logout}>
+      <PageTitle>Gerir Módulos</PageTitle>
+          {selectedCourseId && (
+            <div className="mb-6 flex justify-center">
               <Link to="/admin/module-editor" state={{ courseId: selectedCourseId }}>
                 <Button>+ Novo Módulo</Button>
               </Link>
-            )}
-          </div>
+            </div>
+          )}
 
           {selectedCourseId ? (
             <h3 className="mb-4 text-xl font-semibold text-gray-700">
@@ -130,9 +115,7 @@ const ManageContentPage = ({ user, userRole, onLogout, courses, modules, setModu
               </table>
             </div>
           </div>
-        </main>
-      </div>
-    </div>
+    </AppLayout>
   );
 };
 

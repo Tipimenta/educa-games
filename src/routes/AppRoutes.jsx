@@ -14,6 +14,7 @@ import StudentProfilePage from '../pages/Admin/StudentProfile';
 import DashboardPage from '../pages/Dashboard';
 import ProfilePage from '../pages/Profile';
 import StudentCoursesPage from '../pages/StudentCourses';
+import TestConfirmation from '../pages/TestConfirmation';
 import { ProtectedRoute } from './';
 
 const AppRoutes = ({
@@ -248,12 +249,21 @@ const AppRoutes = ({
           <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
             <StudentProfilePage
               user={user}
-              userRole={user?.role}
               onLogout={logout}
               students={students}
               turmas={turmas}
               modules={modules}
             />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Rota temporária para teste do ConfirmationDialog */}
+      <Route
+        path="/test-confirmation"
+        element={
+          <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.STUDENT]}>
+            <TestConfirmation />
           </ProtectedRoute>
         }
       />

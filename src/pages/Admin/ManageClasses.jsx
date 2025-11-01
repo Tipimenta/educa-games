@@ -1,18 +1,26 @@
 import { useState } from 'react';
 
+import AppLayout from '../../components/AppLayout';
 import Button from '../../components/Button';
-import Header from '../../components/Header';
-import { CheckIcon, PencilIcon, Trash2Icon, XIcon } from '../../components/Icons';
+import { CheckIcon, MailIcon, PencilIcon, Trash2Icon, XIcon } from '../../components/Icons';
 import Input from '../../components/Input';
-import Sidebar from '../../components/Sidebar';
+import PageTitle from '../../components/PageTitle';
+import { useAuth } from '../../hooks/useAuth';
 
-const ManageClassesPage = ({ user, userRole, onLogout, turmas, setTurmas }) => {
-  const [isSidebarCollapsed, setSidebarCollapsed] = useState(true);
+const ManageClassesPage = ({ user, turmas, setTurmas }) => {
+  const { logout } = useAuth();
 
   const [newClassName, setNewClassName] = useState('');
 
   const [editingId, setEditingId] = useState(null);
   const [editingName, setEditingName] = useState('');
+
+  const handleInviteClick = (turma) => {
+    // Placeholder: aguardando definição da rota de convite
+    // Mantemos apenas um log para não quebrar navegação
+    console.log('Convite para turma:', turma);
+    // Quando a rota estiver definida, poderemos navegar com useNavigate
+  };
 
   const handleAddClass = (e) => {
     e.preventDefault();
@@ -44,33 +52,21 @@ const ManageClassesPage = ({ user, userRole, onLogout, turmas, setTurmas }) => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100 font-sans">
-      <Sidebar
-        isCollapsed={isSidebarCollapsed}
-        onMouseEnter={() => setSidebarCollapsed(false)}
-        onMouseLeave={() => setSidebarCollapsed(true)}
-        userRole={userRole}
-      />
-      <div
-        className={`flex flex-1 flex-col transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'}`}
-      >
-        <Header
-          user={user}
-          toggleSidebar={() => setSidebarCollapsed(!isSidebarCollapsed)}
-          onLogout={onLogout}
-        />
-        <main className="flex-grow p-6">
-          <h2 className="mb-6 text-3xl font-bold text-gray-800">Gerir Turmas</h2>
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-            <div className="rounded-lg bg-white p-6 shadow-md">
+    <AppLayout user={user} onLogout={logout}>
+      <PageTitle>Gerir Turmas</PageTitle>
+          <div className="space-y-8">
+            <div className="rounded-lg bg-white p-4 shadow-md">
               <h3 className="mb-4 text-xl font-bold text-gray-800">Criar Nova Turma</h3>
-              <form onSubmit={handleAddClass}>
+              <form onSubmit={handleAddClass} className="flex items-center gap-3">
                 <Input
                   placeholder="Nome da Turma (ex: Bootcamp 2026)"
                   value={newClassName}
                   onChange={(e) => setNewClassName(e.target.value)}
+                  className="flex-grow"
                 />
-                <Button type="submit">Adicionar Turma</Button>
+                <Button type="submit" disabled={newClassName.trim() === ''} className="w-auto px-4">
+                  Adicionar Turma
+                </Button>
               </form>
             </div>
 
@@ -111,6 +107,12 @@ const ManageClassesPage = ({ user, userRole, onLogout, turmas, setTurmas }) => {
                           <span className="font-medium text-gray-700">{turma.name}</span>
                           <div className="flex items-center gap-4">
                             <button
+                              onClick={() => handleInviteClick(turma)}
+                              className="text-blue-600 hover:text-blue-800"
+                            >
+                              <MailIcon className="h-5 w-5" />
+                            </button>
+                            <button
                               onClick={() => handleEditClick(turma)}
                               className="text-blue-600 hover:text-blue-800"
                             >
@@ -133,9 +135,7 @@ const ManageClassesPage = ({ user, userRole, onLogout, turmas, setTurmas }) => {
               </ul>
             </div>
           </div>
-        </main>
-      </div>
-    </div>
+    </AppLayout>
   );
 };
 

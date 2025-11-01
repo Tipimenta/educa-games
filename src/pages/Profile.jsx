@@ -1,10 +1,10 @@
 import { useState } from 'react';
 
-import { Button, Header, Input, Sidebar } from '../components';
+import { Button, Input, PageTitle } from '../components';
+import AppLayout from '../components/AppLayout';
 import { useAuth } from '../hooks';
 
 const ProfilePage = ({ user }) => {
-  const [isSidebarCollapsed, setSidebarCollapsed] = useState(true);
   const { logout } = useAuth();
 
   const [userName, setUserName] = useState(user?.name || '');
@@ -15,17 +15,7 @@ const ProfilePage = ({ user }) => {
   const [birthDate, setBirthDate] = useState('');
   const [bio, setBio] = useState('');
 
-  const toggleSidebar = () => {
-    setSidebarCollapsed(!isSidebarCollapsed);
-  };
-
-  const handleMouseEnter = () => {
-    setSidebarCollapsed(false);
-  };
-
-  const handleMouseLeave = () => {
-    setSidebarCollapsed(true);
-  };
+  // Sidebar é gerenciada pelo AppLayout
 
   const handleImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -43,23 +33,8 @@ const ProfilePage = ({ user }) => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100 font-sans">
-      <Sidebar
-        isCollapsed={isSidebarCollapsed}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        userRole={user?.role}
-      />
-
-      <div
-        className={`flex flex-1 flex-col transition-all duration-300 ease-in-out ${
-          isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
-        }`}
-      >
-        <Header user={user} toggleSidebar={toggleSidebar} onLogout={logout} />
-
-        <main className="flex-grow p-6">
-          <h2 className="mb-6 text-3xl font-bold text-gray-800">Meu Perfil</h2>
+    <AppLayout user={user} onLogout={logout}>
+          <PageTitle>Meu Perfil</PageTitle>
 
           <div className="rounded-lg bg-white p-8 shadow-md">
             <form onSubmit={handleSubmit}>
@@ -130,9 +105,7 @@ const ProfilePage = ({ user }) => {
               </div>
             </form>
           </div>
-        </main>
-      </div>
-    </div>
+    </AppLayout>
   );
 };
 

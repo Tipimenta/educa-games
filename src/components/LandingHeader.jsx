@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 
+import logoSvg from '../assets/+EducaGames.svg';
+
 const LandingHeader = () => {
   return (
     <header className="bg-white shadow-sm">
@@ -8,7 +10,7 @@ const LandingHeader = () => {
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2">
-              <img src="/src/assets/+EducaGames.svg" alt="EducaGames" className="h-8 w-auto" />
+              <img src={logoSvg} alt="EducaGames" className="h-8 w-auto" />
             </Link>
           </div>
 

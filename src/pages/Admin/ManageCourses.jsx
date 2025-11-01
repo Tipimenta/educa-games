@@ -1,16 +1,15 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import AppLayout from '../../components/AppLayout';
 import Button from '../../components/Button';
-import Header from '../../components/Header';
 import { Trash2Icon } from '../../components/Icons';
 import Input from '../../components/Input';
 import Modal from '../../components/Modal';
-import Sidebar from '../../components/Sidebar';
+import PageTitle from '../../components/PageTitle';
 import { useAuth } from '../../hooks/useAuth';
 
-const ManageCoursesPage = ({ user, userRole, courses, setCourses, turmas }) => {
-  const [isSidebarCollapsed, setSidebarCollapsed] = useState(true);
+const ManageCoursesPage = ({ user, courses, setCourses, turmas }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newCourse, setNewCourse] = useState({ title: '', description: '', assignedTurmas: [] });
   const { logout } = useAuth();
@@ -42,61 +41,41 @@ const ManageCoursesPage = ({ user, userRole, courses, setCourses, turmas }) => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100 font-sans">
-      <Sidebar
-        isCollapsed={isSidebarCollapsed}
-        onMouseEnter={() => setSidebarCollapsed(false)}
-        onMouseLeave={() => setSidebarCollapsed(true)}
-        userRole={userRole}
-      />
-      <div
-        className={`flex flex-1 flex-col transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'}`}
-      >
-        <Header
-          user={user}
-          toggleSidebar={() => setSidebarCollapsed(!isSidebarCollapsed)}
-          onLogout={logout}
-        />
-        <main className="flex-grow p-6">
-          <div className="flex items-center justify-between">
-            <h2 className="mb-6 text-3xl font-bold text-gray-800">Gerir Cursos</h2>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {courses.map((course) => (
-              <div
-                key={course.id}
-                className="flex flex-col justify-between rounded-lg bg-white p-6 shadow-md"
+    <AppLayout user={user} onLogout={logout}>
+      <PageTitle>Gerir Cursos</PageTitle>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {courses.map((course) => (
+          <div
+            key={course.id}
+            className="flex flex-col justify-between rounded-lg bg-white p-6 shadow-md"
+          >
+            <div>
+              <h3 className="mb-2 text-xl font-bold text-gray-800">{course.title}</h3>
+              <p className="mb-4 text-sm text-gray-600">{course.description}</p>
+            </div>
+            <div className="flex items-center justify-between border-t pt-4">
+              <Link
+                to="/admin/manage-content"
+                state={{ courseId: course.id }}
+                className="text-sm font-semibold text-blue-600 hover:underline"
               >
-                <div>
-                  <h3 className="mb-2 text-xl font-bold text-gray-800">{course.title}</h3>
-                  <p className="mb-4 text-sm text-gray-600">{course.description}</p>
-                </div>
-                <div className="flex items-center justify-between border-t pt-4">
-                  <Link
-                    to="/admin/manage-content"
-                    state={{ courseId: course.id }}
-                    className="text-sm font-semibold text-blue-600 hover:underline"
-                  >
-                    Ver Módulos
-                  </Link>
-                  <button
-                    onClick={() => handleDeleteCourse(course.id)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <Trash2Icon className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-            ))}
+                Ver Módulos
+              </Link>
+              <button
+                onClick={() => handleDeleteCourse(course.id)}
+                className="text-red-500 hover:text-red-700"
+              >
+                <Trash2Icon className="h-5 w-5" />
+              </button>
+            </div>
           </div>
+        ))}
+      </div>
 
-          <div className="mt-8 flex justify-center">
-            <Button onClick={() => setIsModalOpen(true)} className="w-full px-6 sm:w-auto">
-              + Novo Curso
-            </Button>
-          </div>
-        </main>
+      <div className="mt-8 flex justify-center">
+        <Button onClick={() => setIsModalOpen(true)} className="w-full px-6 sm:w-auto">
+          + Novo Curso
+        </Button>
       </div>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Criar Novo Curso">
@@ -140,7 +119,7 @@ const ManageCoursesPage = ({ user, userRole, courses, setCourses, turmas }) => {
           <Button type="submit">Criar Curso</Button>
         </form>
       </Modal>
-    </div>
+    </AppLayout>
   );
 };
 
