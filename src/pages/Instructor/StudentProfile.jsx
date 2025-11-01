@@ -16,7 +16,7 @@ const StudentProfilePage = ({ user, onLogout, students, turmas, modules }) => {
     return (
       <div className="flex h-screen flex-col items-center justify-center gap-4">
         <p className="text-xl">Aluno não encontrado!</p>
-        <Link to="/admin/reports" className="text-blue-600 hover:underline">
+        <Link to="/instructor/reports" className="text-blue-600 hover:underline">
           Voltar para Relatórios
         </Link>
       </div>
@@ -26,7 +26,7 @@ const StudentProfilePage = ({ user, onLogout, students, turmas, modules }) => {
   return (
     <AppLayout user={user} onLogout={onLogout}>
       <Link
-        to="/admin/reports"
+        to="/instructor/reports"
         className="mb-4 flex items-center text-sm font-semibold text-blue-600 hover:underline"
       >
         <ChevronLeftIcon className="mr-1 h-5 w-5" />

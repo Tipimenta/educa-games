@@ -28,7 +28,7 @@ const ManageContentPage = ({ user, courses, modules, setModules }) => {
       <PageTitle>Gerir Módulos</PageTitle>
           {selectedCourseId && (
             <div className="mb-6 flex justify-center">
-              <Link to="/admin/module-editor" state={{ courseId: selectedCourseId }}>
+            <Link to="/instructor/module-editor" state={{ courseId: selectedCourseId }}>
                 <Button>+ Novo Módulo</Button>
               </Link>
             </div>
@@ -41,7 +41,7 @@ const ManageContentPage = ({ user, courses, modules, setModules }) => {
           ) : (
             <p className="mb-4 rounded-md bg-blue-50 p-4 text-blue-700">
               Selecione "Ver Módulos" a partir da{' '}
-              <Link to="/admin/manage-courses" className="font-bold underline">
+            <Link to="/instructor/manage-courses" className="font-bold underline">
                 página de Cursos
               </Link>{' '}
               para ver os módulos de um curso específico.
@@ -97,7 +97,7 @@ const ManageContentPage = ({ user, courses, modules, setModules }) => {
                       </td>
                       <td className="space-x-4 px-4 py-4">
                         <Link
-                          to={`/admin/module-editor/${module.id}`}
+                          to={`/instructor/module-editor/${module.id}`}
                           className="text-sm font-semibold text-blue-600 hover:underline"
                         >
                           Editar

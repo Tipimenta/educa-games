@@ -29,7 +29,7 @@ export const useAuth = () => {
           const normalizedRole = role.toLowerCase();
 
           if (normalizedRole === ROLES.INSTRUCTOR) {
-            navigate('/admin/manage-courses');
+            navigate('/instructor/manage-courses');
           } else if (normalizedRole === ROLES.STUDENT) {
             navigate('/dashboard');
           } else {

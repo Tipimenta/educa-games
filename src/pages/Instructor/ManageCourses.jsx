@@ -55,7 +55,7 @@ const ManageCoursesPage = ({ user, courses, setCourses, turmas }) => {
             </div>
             <div className="flex items-center justify-between border-t pt-4">
               <Link
-                to="/admin/manage-content"
+                to="/instructor/manage-content"
                 state={{ courseId: course.id }}
                 className="text-sm font-semibold text-blue-600 hover:underline"
               >

@@ -18,7 +18,7 @@ const ProtectedRoute = ({ allowedRoles, children }) => {
   if (!allowedRoles.includes(normalizedUserRole))
     return (
       <Navigate
-        to={normalizedUserRole === ROLES.INSTRUCTOR ? '/admin/manage-courses' : '/dashboard'}
+        to={normalizedUserRole === ROLES.INSTRUCTOR ? '/instructor/manage-courses' : '/dashboard'}
         replace
       />
     );

@@ -89,7 +89,7 @@ const ReportsPage = ({ user, _userRole, onLogout, turmas, students, modules }) =
                           <td className="px-4 py-4 font-bold text-gray-800">{index + 1}º</td>
                           <td className="px-4 py-4 font-medium text-gray-800">
                             <Link
-                              to={`/admin/student/${student.id}`}
+                              to={`/instructor/student/${student.id}`}
                               className="text-blue-600 hover:underline"
                             >
                               {student.name}

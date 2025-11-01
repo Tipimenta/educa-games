@@ -77,7 +77,7 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
             <>
               <li>
                 <NavLink
-                  to="/admin/manage-courses"
+                  to="/instructor/manage-courses"
                   className={({ isActive }) =>
                     `flex items-center py-2 pl-4 transition-colors duration-200 ${
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'
@@ -96,7 +96,7 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
               </li>
               <li>
                 <NavLink
-                  to="/admin/manage-content"
+                  to="/instructor/manage-content"
                   className={({ isActive }) =>
                     `flex items-center py-2 pl-4 transition-colors duration-200 ${
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'
@@ -115,7 +115,7 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
               </li>
               <li>
                 <NavLink
-                  to="/admin/manage-classes"
+                  to="/instructor/manage-classes"
                   className={({ isActive }) =>
                     `flex items-center py-2 pl-4 transition-colors duration-200 ${
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'
@@ -134,7 +134,7 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
               </li>
               <li>
                 <NavLink
-                  to="/admin/reports"
+                  to="/instructor/reports"
                   className={({ isActive }) =>
                     `flex items-center py-2 pl-4 transition-colors duration-200 ${
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'
@@ -153,7 +153,7 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
               </li>
               <li>
                 <NavLink
-                  to="/admin/manage-announcements"
+                  to="/instructor/manage-announcements"
                   className={({ isActive }) =>
                     `flex items-center py-2 pl-4 transition-colors duration-200 ${
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'

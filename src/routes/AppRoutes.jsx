@@ -4,14 +4,14 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { ROLES } from '../constants';
 import { AuthContext } from '../context';
 import { useAuth } from '../hooks';
-import ManageAnnouncementsPage from '../pages/Admin/ManageAnnouncements';
-import ManageClassesPage from '../pages/Admin/ManageClasses';
-import ManageContentPage from '../pages/Admin/ManageContent';
-import ManageCoursesPage from '../pages/Admin/ManageCourses';
-import ModuleEditor from '../pages/Admin/ModuleEditor';
-import ReportsPage from '../pages/Admin/Reports';
-import StudentProfilePage from '../pages/Admin/StudentProfile';
 import DashboardPage from '../pages/Dashboard';
+import ManageAnnouncementsPage from '../pages/Instructor/ManageAnnouncements';
+import ManageClassesPage from '../pages/Instructor/ManageClasses';
+import ManageContentPage from '../pages/Instructor/ManageContent';
+import ManageCoursesPage from '../pages/Instructor/ManageCourses';
+import ModuleEditor from '../pages/Instructor/ModuleEditor';
+import ReportsPage from '../pages/Instructor/Reports';
+import StudentProfilePage from '../pages/Instructor/StudentProfile';
 import ProfilePage from '../pages/Profile';
 import StudentCoursesPage from '../pages/StudentCourses';
 import TestConfirmation from '../pages/TestConfirmation';
@@ -134,7 +134,7 @@ const AppRoutes = ({
       />
 
       <Route
-        path="/admin/manage-classes"
+        path="/instructor/manage-classes"
         element={
           <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
             <ManageClassesPage
@@ -149,7 +149,7 @@ const AppRoutes = ({
       />
 
       <Route
-        path="/admin/manage-courses"
+        path="/instructor/manage-courses"
         element={
           <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
             <ManageCoursesPage
@@ -166,7 +166,7 @@ const AppRoutes = ({
       />
 
       <Route
-        path="/admin/manage-content"
+        path="/instructor/manage-content"
         element={
           <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
             <ManageContentPage
@@ -182,7 +182,7 @@ const AppRoutes = ({
       />
 
       <Route
-        path="/admin/module-editor/:moduleId"
+        path="/instructor/module-editor/:moduleId"
         element={
           <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
             <ModuleEditor
@@ -197,7 +197,7 @@ const AppRoutes = ({
       />
 
       <Route
-        path="/admin/module-editor"
+        path="/instructor/module-editor"
         element={
           <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
             <ModuleEditor
@@ -212,7 +212,7 @@ const AppRoutes = ({
       />
 
       <Route
-        path="/admin/manage-announcements"
+        path="/instructor/manage-announcements"
         element={
           <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
             <ManageAnnouncementsPage
@@ -228,7 +228,7 @@ const AppRoutes = ({
       />
 
       <Route
-        path="/admin/reports"
+        path="/instructor/reports"
         element={
           <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
             <ReportsPage
@@ -244,7 +244,7 @@ const AppRoutes = ({
       />
 
       <Route
-        path="/admin/student/:studentId"
+        path="/instructor/student/:studentId"
         element={
           <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
             <StudentProfilePage
@@ -262,7 +262,7 @@ const AppRoutes = ({
       <Route
         path="/test-confirmation"
         element={
-          <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.STUDENT]}>
+          <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR, ROLES.STUDENT]}>
             <TestConfirmation />
           </ProtectedRoute>
         }

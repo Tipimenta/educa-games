@@ -31,7 +31,7 @@ const ModuleEditor = ({ user, userRole, onLogout, modules, setModules }) => {
       }
     } else if (!courseId) {
       alert("Nenhum curso selecionado. Volte à página de Módulos e clique em 'Novo Módulo'.");
-      navigate('/admin/manage-content');
+      navigate('/instructor/manage-content');
     }
   }, [moduleId, modules, courseId, navigate]);
 
@@ -45,7 +45,7 @@ const ModuleEditor = ({ user, userRole, onLogout, modules, setModules }) => {
       const newModule = { ...currentModule, id: Date.now(), courseId: courseId };
       setModules([...modules, newModule]);
     }
-    navigate('/admin/manage-content', {
+    navigate('/instructor/manage-content', {
       state: { courseId: moduleId ? currentModule.courseId : courseId },
     });
   };
@@ -315,7 +315,7 @@ const ModuleEditor = ({ user, userRole, onLogout, modules, setModules }) => {
         />
         <main className={`flex-grow p-6 ${isSidebarCollapsed ? 'ml-12' : 'ml-48'}`}>
           <Link
-            to="/admin/manage-content"
+            to="/instructor/manage-content"
             state={{ courseId: moduleId ? currentModule.courseId : courseId }}
             className="mb-4 flex items-center text-sm font-semibold text-blue-600 hover:underline"
           >
@@ -332,7 +332,7 @@ const ModuleEditor = ({ user, userRole, onLogout, modules, setModules }) => {
             <div className="mt-8 flex justify-between border-t pt-6">
               <div>
                 <Link
-                  to="/admin/manage-content"
+                  to="/instructor/manage-content"
                   state={{ courseId: moduleId ? currentModule.courseId : courseId }}
                   className="rounded-lg border border-gray-300 bg-white px-6 py-3 text-center font-semibold text-gray-700 hover:bg-gray-100"
                 >
