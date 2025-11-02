@@ -134,3 +134,30 @@ export const initialAnnouncements = [
     assignedTurmas: [1],
   },
 ];
+
+// =====================
+// Instrutores e Convites (Mocks)
+// =====================
+export const initialActiveInstructors = [
+  { id: 1, name: 'Ingrid Silva', email: 'ingrid@exemplo.com' },
+  { id: 2, name: 'João Paulo', email: 'joao@exemplo.com' },
+  { id: 3, name: 'Marina Dev', email: 'marina@exemplo.com' },
+  { id: 8, name: 'Pedro Oliveira', email: 'pedro@exemplo.com' },
+  { id: 9, name: 'Lucia Santos', email: 'lucia@exemplo.com' },
+  { id: 10, name: 'Rafael Costa', email: 'rafael@exemplo.com' },
+  { id: 11, name: 'Fernanda Lima', email: 'fernanda@exemplo.com' },
+  { id: 12, name: 'Gabriel Souza', email: 'gabriel@exemplo.com' },
+  { id: 13, name: 'Camila Rocha', email: 'camila@exemplo.com' },
+  { id: 14, name: 'Bruno Alves', email: 'bruno@exemplo.com' },
+  { id: 15, name: 'Juliana Pereira', email: 'juliana@exemplo.com' },
+];
+
+export const initialInactiveInstructors = [
+  { id: 4, name: 'Carlos Santos', email: 'carlos@exemplo.com' },
+  { id: 5, name: 'Ana Costa', email: 'ana@exemplo.com' },
+];
+
+export const initialPendingInvites = [
+  { id: 6, email: 'novo@exemplo.com', sentAt: '2024-01-15', status: 'Pendente' },
+  { id: 7, email: 'outro@exemplo.com', sentAt: '2024-01-10', status: 'Pendente' },
+];

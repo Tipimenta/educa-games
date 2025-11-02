@@ -2,7 +2,7 @@ const API_BASE = '/api';
 
 const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true';
 const MOCK_USER_ROLE = (import.meta.env.VITE_MOCK_USER_ROLE || 'student').toLowerCase();
-const VALID_ROLES = ['student', 'instructor'];
+const VALID_ROLES = ['student', 'instructor', 'admin'];
 const RESOLVED_MOCK_ROLE = VALID_ROLES.includes(MOCK_USER_ROLE) ? MOCK_USER_ROLE : 'student';
 
 // Extração simples das mensagens vindas do backend (sem mapeamentos)
@@ -226,8 +226,14 @@ if (USE_MOCKS) {
     email: 'instrutor@email.com',
   };
 
+  const DEFAULT_ADMIN_SHAPE = {
+    name: 'Administrador Mock',
+    email: 'admin@email.com',
+  };
+
   const makeStudentUser = () => ({ id: 1, role: 'student', ...DEFAULT_STUDENT_SHAPE });
   const makeInstructorUser = () => ({ id: 900, role: 'instructor', ...DEFAULT_INSTRUCTOR_SHAPE });
+  const makeAdminUser = () => ({ id: 901, role: 'admin', ...DEFAULT_ADMIN_SHAPE });
 
   api = {
     auth: {
@@ -245,6 +251,11 @@ if (USE_MOCKS) {
         }
         if (normalized === DEFAULT_INSTRUCTOR_SHAPE.email.toLowerCase()) {
           SELECTED_MOCK_USER = makeInstructorUser();
+          return makeResponse({ message: 'ok' }, 200);
+        }
+
+        if (normalized === DEFAULT_ADMIN_SHAPE.email.toLowerCase()) {
+          SELECTED_MOCK_USER = makeAdminUser();
           return makeResponse({ message: 'ok' }, 200);
         }
 

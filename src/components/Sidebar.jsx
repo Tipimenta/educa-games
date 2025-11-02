@@ -15,8 +15,10 @@ import {
 const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
   return (
     <aside
-      className={`bg-primary fixed top-0 left-0 z-30 flex h-full flex-col text-white overflow-hidden transition-all duration-300 ease-in-out ${
-        isCollapsed ? 'w-12' : 'w-48'
+      className={`bg-primary fixed top-0 left-0 z-30 flex h-full flex-col overflow-hidden text-white transition-all duration-300 ease-in-out ${
+        isCollapsed
+          ? 'w-0 -translate-x-full lg:w-12 lg:translate-x-0'
+          : 'w-64 translate-x-0 lg:w-48'
       }`}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -29,7 +31,7 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
         )}
       </div>
       <nav className="flex-grow pt-0">
-        <ul>
+        <ul className="space-y-2">
           {userRole === ROLES.STUDENT && (
             <>
               <li>
@@ -41,7 +43,7 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
                     }`
                   }
                 >
-                  <LayoutDashboardIcon className="text-secondary h-5 w-5 mr-3 flex-shrink-0" />
+                  <LayoutDashboardIcon className="text-secondary mr-3 h-5 w-5 flex-shrink-0" />
                   <span
                     className={`whitespace-nowrap transition-opacity duration-200 ${
                       isCollapsed ? 'opacity-0' : 'opacity-100'
@@ -60,7 +62,7 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
                     }`
                   }
                 >
-                  <BookOpenIcon className="text-secondary h-5 w-5 mr-3 flex-shrink-0" />
+                  <BookOpenIcon className="text-secondary mr-3 h-5 w-5 flex-shrink-0" />
                   <span
                     className={`whitespace-nowrap transition-opacity duration-200 ${
                       isCollapsed ? 'opacity-0' : 'opacity-100'
@@ -84,7 +86,7 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
                     }`
                   }
                 >
-                  <LibraryIcon className="text-secondary h-5 w-5 mr-3 flex-shrink-0" />
+                  <LibraryIcon className="text-secondary mr-3 h-5 w-5 flex-shrink-0" />
                   <span
                     className={`whitespace-nowrap transition-opacity duration-200 ${
                       isCollapsed ? 'opacity-0' : 'opacity-100'
@@ -103,7 +105,7 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
                     }`
                   }
                 >
-                  <BookOpenIcon className="text-secondary h-5 w-5 mr-3 flex-shrink-0" />
+                  <BookOpenIcon className="text-secondary mr-3 h-5 w-5 flex-shrink-0" />
                   <span
                     className={`whitespace-nowrap transition-opacity duration-200 ${
                       isCollapsed ? 'opacity-0' : 'opacity-100'
@@ -122,7 +124,7 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
                     }`
                   }
                 >
-                  <UsersIcon className="text-secondary h-5 w-5 mr-3 flex-shrink-0" />
+                  <UsersIcon className="text-secondary mr-3 h-5 w-5 flex-shrink-0" />
                   <span
                     className={`whitespace-nowrap transition-opacity duration-200 ${
                       isCollapsed ? 'opacity-0' : 'opacity-100'
@@ -141,7 +143,7 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
                     }`
                   }
                 >
-                  <BarChartIcon className="text-secondary h-5 w-5 mr-3 flex-shrink-0" />
+                  <BarChartIcon className="text-secondary mr-3 h-5 w-5 flex-shrink-0" />
                   <span
                     className={`whitespace-nowrap transition-opacity duration-200 ${
                       isCollapsed ? 'opacity-0' : 'opacity-100'
@@ -160,13 +162,37 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
                     }`
                   }
                 >
-                  <MegaphoneIcon className="text-secondary h-5 w-5 mr-3 flex-shrink-0" />
+                  <MegaphoneIcon className="text-secondary mr-3 h-5 w-5 flex-shrink-0" />
                   <span
                     className={`whitespace-nowrap transition-opacity duration-200 ${
                       isCollapsed ? 'opacity-0' : 'opacity-100'
                     }`}
                   >
                     Avisos
+                  </span>
+                </NavLink>
+              </li>
+            </>
+          )}
+
+          {userRole === ROLES.ADMIN && (
+            <>
+              <li>
+                <NavLink
+                  to="/admin/manage-instructors"
+                  className={({ isActive }) =>
+                    `flex items-center py-2 pl-4 transition-colors duration-200 ${
+                      isActive ? 'bg-white/20' : 'hover:bg-white/10'
+                    }`
+                  }
+                >
+                  <UsersIcon className="text-secondary mr-3 h-5 w-5 flex-shrink-0" />
+                  <span
+                    className={`whitespace-nowrap transition-opacity duration-200 ${
+                      isCollapsed ? 'opacity-0' : 'opacity-100'
+                    }`}
+                  >
+                    Instrutores
                   </span>
                 </NavLink>
               </li>

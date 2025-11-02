@@ -6,7 +6,8 @@ const Input = ({
   className = '',
   ...props
 }) => {
-  const base = 'w-full rounded-lg border px-4 py-3 transition focus:ring-2 focus:outline-none';
+  const base =
+    'w-full rounded-lg border bg-white px-4 py-3 transition focus:ring-2 focus:outline-none';
   const border = error
     ? 'border-red-500 focus:ring-red-500'
     : 'border-gray-300 focus:ring-blue-500';

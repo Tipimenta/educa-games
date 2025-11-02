@@ -32,6 +32,8 @@ export const useAuth = () => {
             navigate('/instructor/manage-courses');
           } else if (normalizedRole === ROLES.STUDENT) {
             navigate('/dashboard');
+          } else if (normalizedRole === ROLES.ADMIN) {
+            navigate('/admin/manage-instructors');
           } else {
             navigate('/dashboard');
           }

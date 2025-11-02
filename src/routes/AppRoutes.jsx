@@ -4,6 +4,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { ROLES } from '../constants';
 import { AuthContext } from '../context';
 import { useAuth } from '../hooks';
+import ManageInstructorsPage from '../pages/Admin/ManageInstructors';
 import DashboardPage from '../pages/Dashboard';
 import ManageAnnouncementsPage from '../pages/Instructor/ManageAnnouncements';
 import ManageClassesPage from '../pages/Instructor/ManageClasses';
@@ -127,7 +128,7 @@ const AppRoutes = ({
       <Route
         path="/profile"
         element={
-          <ProtectedRoute allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR]}>
+          <ProtectedRoute allowedRoles={[ROLES.STUDENT, ROLES.INSTRUCTOR, ROLES.ADMIN]}>
             <ProfilePage user={user} />
           </ProtectedRoute>
         }
@@ -264,6 +265,16 @@ const AppRoutes = ({
         element={
           <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR, ROLES.STUDENT]}>
             <TestConfirmation />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Admin Routes */}
+      <Route
+        path="/admin/manage-instructors"
+        element={
+          <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+            <ManageInstructorsPage user={user} onLogout={logout} />
           </ProtectedRoute>
         }
       />

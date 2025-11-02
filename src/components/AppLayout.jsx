@@ -3,7 +3,7 @@ import { useState } from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
 
-export default function AppLayout({ user, onLogout, children }) {
+export default function AppLayout({ user, onLogout, children, containerClassName }) {
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(() => {
     try {
       const saved = localStorage.getItem('sidebarCollapsed');
@@ -42,7 +42,15 @@ export default function AppLayout({ user, onLogout, children }) {
         <div
           className={`flex flex-1 flex-col transition-[margin] duration-300 ease-in-out ${offsetClass}`}
         >
-          <main className="flex-grow p-6 pt-16">{children}</main>
+          <main className="flex-grow p-6 pt-16">
+            <div
+              className={`mx-auto w-full ${containerClassName || 'max-w-6xl'} ${
+                containerClassName === 'max-w-full' ? 'px-0' : 'px-4 sm:px-6 lg:px-8'
+              }`}
+            >
+              {children}
+            </div>
+          </main>
         </div>
       </div>
     </div>
