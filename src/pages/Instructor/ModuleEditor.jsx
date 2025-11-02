@@ -315,9 +315,9 @@ const ModuleEditor = () => {
           user={user}
           toggleSidebar={() => setSidebarCollapsed(!isSidebarCollapsed)}
           onLogout={logout}
-          leftPaddingClass={isSidebarCollapsed ? 'ml-12' : 'ml-48'}
+          leftPaddingClass={isSidebarCollapsed ? 'ml-12' : 'ml-40'}
         />
-        <main className={`flex-grow p-6 ${isSidebarCollapsed ? 'ml-12' : 'ml-48'}`}>
+        <main className={`flex-grow p-6 ${isSidebarCollapsed ? 'ml-12' : 'ml-40'}`}>
           <Link
             to="/instructor/manage-content"
             state={{ courseId: moduleId ? currentModule.courseId : courseId }}

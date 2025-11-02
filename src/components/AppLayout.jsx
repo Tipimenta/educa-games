@@ -8,7 +8,7 @@ export default function AppLayout({ user, onLogout, children, containerClassName
     true
   );
 
-  const offsetClass = isSidebarCollapsed ? 'lg:ml-12' : 'lg:ml-48';
+  const offsetClass = isSidebarCollapsed ? 'md:ml-12' : 'md:ml-48 lg:ml-40';
 
   return (
     <div className="min-h-screen bg-gray-100 font-sans">
@@ -17,6 +17,14 @@ export default function AppLayout({ user, onLogout, children, containerClassName
         toggleSidebar={() => setSidebarCollapsed((prev) => !prev)}
         onLogout={onLogout}
       />
+      {/* Overlay para mobile quando sidebar está aberta */}
+      {!isSidebarCollapsed && (
+        <div
+          className="fixed inset-0 z-20 bg-black/50 md:hidden"
+          onClick={() => setSidebarCollapsed(true)}
+          aria-hidden="true"
+        />
+      )}
       <div className="flex">
         <Sidebar
           isCollapsed={isSidebarCollapsed}

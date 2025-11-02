@@ -27,7 +27,7 @@ const Header = ({ user, toggleSidebar, onLogout, leftPaddingClass = '' }) => {
     <header
       className={`fixed top-0 right-0 z-20 flex h-16 items-center justify-between bg-white px-6 shadow-sm ${leftPaddingClass || 'left-0'}`}
     >
-      <button onClick={toggleSidebar} className="text-gray-600 hover:text-gray-800 lg:hidden">
+      <button onClick={toggleSidebar} className="text-gray-600 hover:text-gray-800 md:hidden">
         <MenuIcon />
       </button>
       <div className="flex-1"></div>

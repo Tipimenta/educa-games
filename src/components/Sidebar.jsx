@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 
-import PlusLogo from '../assets/+.svg';
-import FullLogo from '../assets/+EducaGames.svg';
+import PlusLogo from '../assets/+.svg?url';
+import FullLogo from '../assets/+EducaGames.svg?url';
 import { ROLES } from '../constants';
 import {
   BarChartIcon,
@@ -17,8 +17,8 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
     <aside
       className={`bg-primary fixed top-0 left-0 z-30 flex h-full flex-col overflow-hidden text-white transition-all duration-300 ease-in-out ${
         isCollapsed
-          ? 'w-0 -translate-x-full lg:w-12 lg:translate-x-0'
-          : 'w-64 translate-x-0 lg:w-48'
+          ? 'w-0 -translate-x-full md:w-12 md:translate-x-0'
+          : 'w-56 translate-x-0 md:w-48 lg:w-40'
       }`}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -30,7 +30,7 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
           <img src={FullLogo} alt="EducaGames" className="h-4" />
         )}
       </div>
-      <nav className="flex-grow pt-0">
+      <nav className="pt-2 pb-4">
         <ul className="space-y-2">
           {userRole === ROLES.STUDENT && (
             <>

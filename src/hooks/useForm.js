@@ -73,6 +73,16 @@ export const useForm = ({ initialValues = {}, schema, onSubmit }) => {
 
   const isFormValid = schema ? isValid(schema, values) : true;
 
+  const setTouchedField = (field, value = true) => {
+    if (typeof field === 'object') {
+      setTouched(field);
+    } else {
+      setTouched((prev) => ({ ...prev, [field]: value }));
+    }
+  };
+
+  const setAllErrors = (errs) => setErrors(errs);
+
   return {
     values,
     errors,
@@ -85,6 +95,7 @@ export const useForm = ({ initialValues = {}, schema, onSubmit }) => {
     reset,
     setFieldValue,
     setFieldError,
+    setTouched: setTouchedField,
+    setErrors: setAllErrors,
   };
 };
-
