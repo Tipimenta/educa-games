@@ -21,6 +21,7 @@ import {
   StudentsContext,
 } from '../../context';
 import { useAuth } from '../../hooks';
+import { useDashboardStats } from './hooks/useDashboardStats';
 
 const RankingIndicator = ({ change }) => {
   if (change > 0) {
@@ -52,31 +53,7 @@ const DashboardPage = () => {
   const { announcements } = useContext(AnnouncementsContext);
   const { logout } = useAuth();
 
-  const currentUserData = students.find((s) => s.id === user.id) || user;
-
-  const studentsInClass = students.filter((s) => s.classId === user.classId);
-
-  const currentRanking = [...studentsInClass].sort((a, b) => b.score - a.score);
-  const previousRanking = [...studentsInClass].sort(
-    (a, b) => (b.previousScore || 0) - (a.previousScore || 0)
-  );
-
-  const userRank = currentRanking.findIndex((s) => s.id === user.id) + 1;
-
-  const coursesForClass = courses.filter((c) => c.assignedClasses.includes(user.classId));
-  const courseIdsForClass = coursesForClass.map((c) => c.id);
-  const totalAssignedModules = modules.filter((m) => courseIdsForClass.includes(m.courseId));
-
-  const completedModulesCount = totalAssignedModules.filter((module) => {
-    const allLessonsDone = module.lessons.every((lesson) =>
-      user.progress.completedLessons.has(lesson.id)
-    );
-    const quizDone =
-      !module.quiz?.questions?.length > 0 || user.progress.finalizedQuizzes.has(module.id);
-    return allLessonsDone && quizDone;
-  }).length;
-
-  const totalModulesCount = totalAssignedModules.length;
+  const stats = useDashboardStats({ user, students, courses, modules });
 
   const filteredAnnouncements = (announcements || []).filter((ann) =>
     ann.assignedClasses.includes(user.classId)
@@ -90,18 +67,22 @@ const DashboardPage = () => {
           <DashboardCard
             icon={<TargetIcon />}
             title="Pontuação Total"
-            value={currentUserData.score}
+            value={stats.currentUserData.score}
           />
-          <DashboardCard icon={<BarChartIcon />} title="Classificação" value={`${userRank}º`} />
+          <DashboardCard
+            icon={<BarChartIcon />}
+            title="Classificação"
+            value={`${stats.userRank}º`}
+          />
           <DashboardCard
             icon={<FlameIcon />}
             title="Dias Seguidos"
-            value={currentUserData.loginStreak}
+            value={stats.currentUserData.loginStreak}
           />
           <DashboardCard
             icon={<CheckSquareIcon />}
             title="Módulos Concluídos"
-            value={`${completedModulesCount} de ${totalModulesCount}`}
+            value={`${stats.completedModulesCount} de ${stats.totalModulesCount}`}
           />
         </div>
 
@@ -127,9 +108,10 @@ const DashboardPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {currentRanking.map((student, index) => {
+                  {stats.currentRanking.map((student, index) => {
                     const currentRank = index + 1;
-                    const previousRank = previousRanking.findIndex((s) => s.id === student.id) + 1;
+                    const previousRank =
+                      stats.previousRanking.findIndex((s) => s.id === student.id) + 1;
                     const rankChange = previousRank > 0 ? previousRank - currentRank : 0;
                     return (
                       <tr

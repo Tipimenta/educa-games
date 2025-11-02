@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext } from 'react';
 
 import {
   ClassSelector,
@@ -13,8 +13,8 @@ import Button from '../../components/Button';
 import Input from '../../components/Input';
 import Modal from '../../components/Modal';
 import PageTitle from '../../components/PageTitle';
-import { AnnouncementsContext, AuthContext, ClassesContext, useConfirm } from '../../context';
-import { useAuth, useClassSelection } from '../../hooks';
+import { AnnouncementsContext, AuthContext, ClassesContext } from '../../context';
+import { useAuth, useClassSelection, useConfirmDelete, useModalForm } from '../../hooks';
 import { getClassNames } from '../../utils';
 
 const ManageAnnouncementsPage = () => {
@@ -22,76 +22,47 @@ const ManageAnnouncementsPage = () => {
   const { announcements, setAnnouncements } = useContext(AnnouncementsContext);
   const { classes } = useContext(ClassesContext);
   const { logout } = useAuth();
-  const { confirm } = useConfirm();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingAnnouncement, setEditingAnnouncement] = useState(null);
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
   const classSelection = useClassSelection([]);
 
-  const handleOpenCreateModal = () => {
-    setEditingAnnouncement(null);
-    setTitle('');
-    setContent('');
-    classSelection.reset();
-    setIsModalOpen(true);
-  };
+  const modalForm = useModalForm({
+    initialValues: { title: '', content: '' },
+    onReset: (item) => {
+      classSelection.reset(item?.assignedClasses || []);
+    },
+    onSubmit: (values, editingItem, closeModal) => {
+      if (values.title.trim() === '' || values.content.trim() === '') return;
 
-  const handleOpenEditModal = (announcement) => {
-    setEditingAnnouncement(announcement);
-    setTitle(announcement.title);
-    setContent(announcement.content);
-    classSelection.reset(announcement.assignedClasses || []);
-    setIsModalOpen(true);
-  };
+      if (editingItem) {
+        setAnnouncements(
+          announcements.map((ann) =>
+            ann.id === editingItem.id
+              ? { ...ann, ...values, assignedClasses: classSelection.selectedClasses }
+              : ann
+          )
+        );
+      } else {
+        const newAnnouncement = {
+          id: Date.now(),
+          title: values.title.trim(),
+          content: values.content.trim(),
+          assignedClasses: classSelection.selectedClasses,
+          date: new Date().toISOString().split('T')[0],
+        };
+        setAnnouncements([newAnnouncement, ...announcements]);
+      }
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingAnnouncement(null);
-    setTitle('');
-    setContent('');
-    classSelection.reset();
-  };
+      closeModal();
+    },
+  });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (title.trim() === '' || content.trim() === '') return;
-
-    if (editingAnnouncement) {
-      setAnnouncements(
-        announcements.map((ann) =>
-          ann.id === editingAnnouncement.id
-            ? { ...ann, title, content, assignedClasses: classSelection.selectedClasses }
-            : ann
-        )
-      );
-    } else {
-      const newAnnouncement = {
-        id: Date.now(),
-        title: title.trim(),
-        content: content.trim(),
-        assignedClasses: classSelection.selectedClasses,
-        date: new Date().toISOString().split('T')[0],
-      };
-      setAnnouncements([newAnnouncement, ...announcements]);
-    }
-
-    handleCloseModal();
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      await confirm({
-        title: 'Remover Aviso',
-        message: 'Tem a certeza que quer apagar este aviso?',
-        variant: 'danger',
-        actionType: 'delete',
-      });
+  const handleDelete = useConfirmDelete({
+    onDelete: (id) => {
       setAnnouncements(announcements.filter((ann) => ann.id !== id));
-    } catch {
-      // Usuário cancelou
-    }
-  };
+    },
+    title: 'Remover Aviso',
+    message: 'Tem a certeza que quer apagar este aviso?',
+    successMessage: 'Aviso removido com sucesso',
+  });
 
   return (
     <AppLayout user={user} onLogout={logout}>
@@ -118,14 +89,16 @@ const ManageAnnouncementsPage = () => {
                 </span>
                 <div className="flex items-center gap-4">
                   <button
-                    onClick={() => handleOpenEditModal(ann)}
+                    onClick={() => modalForm.openEditModal(ann)}
                     className="text-blue-600 hover:text-blue-800"
+                    aria-label={`Editar aviso ${ann.title}`}
                   >
                     <PencilIcon className="h-5 w-5" />
                   </button>
                   <button
                     onClick={() => handleDelete(ann.id)}
                     className="text-red-500 hover:text-red-700"
+                    aria-label={`Remover aviso ${ann.title}`}
                   >
                     <Trash2Icon className="h-5 w-5" />
                   </button>
@@ -137,32 +110,32 @@ const ManageAnnouncementsPage = () => {
       </div>
 
       <div className="mt-8 flex justify-center">
-        <Button onClick={handleOpenCreateModal} className="w-full px-6 sm:w-auto">
+        <Button onClick={modalForm.openCreateModal} className="w-full px-6 sm:w-auto">
           + Novo Aviso
         </Button>
       </div>
 
       <Modal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        title={editingAnnouncement ? 'Editar Aviso' : 'Criar Novo Aviso'}
+        isOpen={modalForm.isOpen}
+        onClose={modalForm.closeModal}
+        title={modalForm.editingItem ? 'Editar Aviso' : 'Criar Novo Aviso'}
       >
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={modalForm.handleSubmit}>
           <div className="mb-4">
             <Label htmlFor="announcement-title">Título</Label>
             <Input
               id="announcement-title"
               placeholder="Ex: Manutenção Programada"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              value={modalForm.formValues.title}
+              onChange={(e) => modalForm.updateFormValue('title', e.target.value)}
             />
           </div>
           <div className="mb-4">
             <Label htmlFor="announcement-content">Conteúdo do Aviso</Label>
             <Textarea
               id="announcement-content"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
+              value={modalForm.formValues.content}
+              onChange={(e) => modalForm.updateFormValue('content', e.target.value)}
               rows={4}
             />
           </div>
@@ -176,7 +149,7 @@ const ManageAnnouncementsPage = () => {
             />
           </div>
           <Button type="submit">
-            {editingAnnouncement ? 'Salvar Alterações' : 'Publicar Aviso'}
+            {modalForm.editingItem ? 'Salvar Alterações' : 'Publicar Aviso'}
           </Button>
         </form>
       </Modal>

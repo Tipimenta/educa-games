@@ -8,7 +8,7 @@ export default function AppLayout({ user, onLogout, children, containerClassName
     true
   );
 
-  const offsetClass = isSidebarCollapsed ? 'md:ml-12' : 'md:ml-48 lg:ml-40';
+  const offsetClass = isSidebarCollapsed ? 'md:ml-12' : 'md:ml-60 lg:ml-52';
 
   return (
     <div className="min-h-screen bg-gray-100 font-sans">
@@ -30,6 +30,13 @@ export default function AppLayout({ user, onLogout, children, containerClassName
           isCollapsed={isSidebarCollapsed}
           onMouseEnter={() => setSidebarCollapsed(false)}
           onMouseLeave={() => setSidebarCollapsed(true)}
+          onLinkClick={() => {
+            // Fechar sidebar no mobile quando clicar em um link
+            const isMobile = window.matchMedia('(max-width: 767px)').matches;
+            if (isMobile) {
+              setSidebarCollapsed(true);
+            }
+          }}
           userRole={user?.role}
         />
         <div

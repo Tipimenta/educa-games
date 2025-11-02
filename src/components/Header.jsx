@@ -27,7 +27,12 @@ const Header = ({ user, toggleSidebar, onLogout, leftPaddingClass = '' }) => {
     <header
       className={`fixed top-0 right-0 z-20 flex h-16 items-center justify-between bg-white px-6 shadow-sm ${leftPaddingClass || 'left-0'}`}
     >
-      <button onClick={toggleSidebar} className="text-gray-600 hover:text-gray-800 md:hidden">
+      <button
+        onClick={toggleSidebar}
+        className="text-gray-600 hover:text-gray-800 md:hidden"
+        aria-label="Abrir/Fechar menu"
+        aria-expanded="false"
+      >
         <MenuIcon />
       </button>
       <div className="flex-1"></div>
@@ -35,6 +40,8 @@ const Header = ({ user, toggleSidebar, onLogout, leftPaddingClass = '' }) => {
         <button
           onClick={() => setProfileOpen(!isProfileOpen)}
           className="flex items-center space-x-2"
+          aria-label="Menu do perfil"
+          aria-expanded={isProfileOpen}
         >
           <img
             className="h-10 w-10 rounded-full object-cover"

@@ -1,17 +1,15 @@
 import { useState } from 'react';
 
-import { useConfirm } from '../context';
 import {
   initialActiveInstructors,
   initialInactiveInstructors,
   initialPendingInvites,
 } from '../mocks/data';
 import { instructorService } from '../services';
-import { useToast } from './useToast';
+import { useConfirmAction } from './useConfirmAction';
 
 export const useInstructors = () => {
-  const { confirm } = useConfirm();
-  const { showToast } = useToast();
+  const { executeWithConfirmation } = useConfirmAction();
 
   const [activeInstructors, setActiveInstructors] = useState([...initialActiveInstructors]);
   const [inactiveInstructors, setInactiveInstructors] = useState([...initialInactiveInstructors]);
@@ -21,54 +19,56 @@ export const useInstructors = () => {
     const instructor = activeInstructors.find((i) => i.id === id);
     if (!instructor) return;
 
-    try {
-      await confirm({
+    await executeWithConfirmation({
+      confirmConfig: {
         title: 'Inativar Instrutor',
         message: `Tem certeza que deseja inativar ${instructor.name}?`,
         variant: 'warning',
         actionType: 'delete',
-      });
-
-      const result = instructorService.suspendInstructor(
-        activeInstructors,
-        inactiveInstructors,
-        id
-      );
-      if (result.success) {
-        setActiveInstructors(result.activeInstructors);
-        setInactiveInstructors(result.inactiveInstructors);
-        showToast({ message: `${instructor.name} foi inativado`, type: 'success' });
-      }
-    } catch {
-      // Usuário cancelou
-    }
+      },
+      action: () => {
+        const result = instructorService.suspendInstructor(
+          activeInstructors,
+          inactiveInstructors,
+          id
+        );
+        if (result.success) {
+          setActiveInstructors(result.activeInstructors);
+          setInactiveInstructors(result.inactiveInstructors);
+        }
+        return result;
+      },
+      successMessage: 'foi inativado',
+      itemName: instructor.name,
+    });
   };
 
   const reactivateInstructor = async (id) => {
     const instructor = inactiveInstructors.find((i) => i.id === id);
     if (!instructor) return;
 
-    try {
-      await confirm({
+    await executeWithConfirmation({
+      confirmConfig: {
         title: 'Reativar Instrutor',
         message: `Tem certeza que deseja reativar ${instructor.name}?`,
         variant: 'info',
         actionType: 'resend',
-      });
-
-      const result = instructorService.reactivateInstructor(
-        inactiveInstructors,
-        activeInstructors,
-        id
-      );
-      if (result.success) {
-        setActiveInstructors(result.activeInstructors);
-        setInactiveInstructors(result.inactiveInstructors);
-        showToast({ message: `${instructor.name} foi reativado`, type: 'success' });
-      }
-    } catch {
-      // Usuário cancelou
-    }
+      },
+      action: () => {
+        const result = instructorService.reactivateInstructor(
+          inactiveInstructors,
+          activeInstructors,
+          id
+        );
+        if (result.success) {
+          setActiveInstructors(result.activeInstructors);
+          setInactiveInstructors(result.inactiveInstructors);
+        }
+        return result;
+      },
+      successMessage: 'foi reativado',
+      itemName: instructor.name,
+    });
   };
 
   const removeInstructor = async (id, isActive = true) => {
@@ -76,70 +76,71 @@ export const useInstructors = () => {
     const instructor = instructors.find((i) => i.id === id);
     if (!instructor) return;
 
-    try {
-      await confirm({
+    await executeWithConfirmation({
+      confirmConfig: {
         title: 'Remover Instrutor',
         message: `Tem certeza que deseja remover ${instructor.name} permanentemente? Esta ação não pode ser desfeita.`,
         variant: 'danger',
         actionType: 'delete',
-      });
-
-      const result = instructorService.removeInstructor(instructors, id, isActive);
-      if (result.success) {
-        if (isActive) {
-          setActiveInstructors(result.instructors);
-        } else {
-          setInactiveInstructors(result.instructors);
+      },
+      action: () => {
+        const result = instructorService.removeInstructor(instructors, id, isActive);
+        if (result.success) {
+          if (isActive) {
+            setActiveInstructors(result.instructors);
+          } else {
+            setInactiveInstructors(result.instructors);
+          }
         }
-        showToast({ message: `${instructor.name} foi removido`, type: 'success' });
-      }
-    } catch {
-      // Usuário cancelou
-    }
+        return result;
+      },
+      successMessage: 'foi removido',
+      itemName: instructor.name,
+    });
   };
 
   const resendInvite = async (id) => {
     const invite = pendingInvites.find((i) => i.id === id);
     if (!invite) return;
 
-    try {
-      await confirm({
+    await executeWithConfirmation({
+      confirmConfig: {
         title: 'Reenviar Convite',
         message: `Deseja reenviar o convite para ${invite.email}?`,
         variant: 'info',
         actionType: 'resend',
-      });
-
-      const result = instructorService.resendInvite(pendingInvites, id);
-      if (result.success) {
-        setPendingInvites(result.invites);
-        showToast({ message: `Convite reenviado para ${invite.email}`, type: 'success' });
-      }
-    } catch {
-      // Usuário cancelou
-    }
+      },
+      action: () => {
+        const result = instructorService.resendInvite(pendingInvites, id);
+        if (result.success) {
+          setPendingInvites(result.invites);
+        }
+        return result;
+      },
+      successMessage: `Convite reenviado para ${invite.email}`,
+    });
   };
 
   const removeInvite = async (id) => {
     const invite = pendingInvites.find((i) => i.id === id);
     if (!invite) return;
 
-    try {
-      await confirm({
+    await executeWithConfirmation({
+      confirmConfig: {
         title: 'Remover Convite',
         message: `Tem certeza que deseja remover o convite para ${invite.email}?`,
         variant: 'danger',
         actionType: 'delete',
-      });
-
-      const result = instructorService.removeInvite(pendingInvites, id);
-      if (result.success) {
-        setPendingInvites(result.invites);
-        showToast({ message: `Convite removido`, type: 'success' });
-      }
-    } catch {
-      // Usuário cancelou
-    }
+      },
+      action: () => {
+        const result = instructorService.removeInvite(pendingInvites, id);
+        if (result.success) {
+          setPendingInvites(result.invites);
+        }
+        return result;
+      },
+      successMessage: 'Convite removido',
+    });
   };
 
   const sendNewInvite = (email) => {

@@ -8,59 +8,56 @@ import { Trash2Icon } from '../../components/Icons';
 import Input from '../../components/Input';
 import Modal from '../../components/Modal';
 import PageTitle from '../../components/PageTitle';
-import { AuthContext, ClassesContext, CoursesContext, useConfirm } from '../../context';
-import { useAuth, useClassSelection } from '../../hooks';
+import { AuthContext, ClassesContext, CoursesContext } from '../../context';
+import { useAuth, useClassSelection, useConfirmDelete, useModalForm } from '../../hooks';
 
 const ManageCoursesPage = () => {
   const { user } = useContext(AuthContext);
   const { courses, setCourses } = useContext(CoursesContext);
   const { classes } = useContext(ClassesContext);
   const { logout } = useAuth();
-  const { confirm } = useConfirm();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
   const classSelection = useClassSelection([]);
 
-  const handleAddCourse = (e) => {
-    e.preventDefault();
-    if (title.trim() === '') return;
-    setCourses([
-      ...courses,
-      {
-        id: Date.now(),
-        title: title.trim(),
-        description: description.trim(),
-        assignedClasses: classSelection.selectedClasses,
-      },
-    ]);
-    setIsModalOpen(false);
-    setTitle('');
-    setDescription('');
-    classSelection.reset();
-  };
+  const modalForm = useModalForm({
+    initialValues: { title: '', description: '' },
+    onReset: () => {
+      classSelection.reset();
+    },
+    onSubmit: (values, editingItem, closeModal) => {
+      if (values.title.trim() === '') return;
+      if (editingItem) {
+        setCourses(
+          courses.map((c) =>
+            c.id === editingItem.id
+              ? { ...c, ...values, assignedClasses: classSelection.selectedClasses }
+              : c
+          )
+        );
+      } else {
+        setCourses([
+          ...courses,
+          {
+            id: Date.now(),
+            title: values.title.trim(),
+            description: values.description.trim(),
+            assignedClasses: classSelection.selectedClasses,
+          },
+        ]);
+      }
+      closeModal();
+    },
+  });
 
-  const handleDeleteCourse = async (courseId) => {
-    try {
-      await confirm({
-        title: 'Remover Curso',
-        message:
-          'Tem a certeza que quer apagar este curso e todos os seus módulos associados? Esta ação não pode ser desfeita.',
-        variant: 'danger',
-        actionType: 'delete',
-      });
+  const handleDeleteCourse = useConfirmDelete({
+    onDelete: (courseId) => {
       setCourses(courses.filter((c) => c.id !== courseId));
-    } catch {
-      // Usuário cancelou
-    }
-  };
+    },
+    title: 'Remover Curso',
+    message:
+      'Tem a certeza que quer apagar este curso e todos os seus módulos associados? Esta ação não pode ser desfeita.',
+    successMessage: 'Curso removido com sucesso',
+  });
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setTitle('');
-    setDescription('');
-    classSelection.reset();
-  };
 
   return (
     <AppLayout user={user} onLogout={logout}>
@@ -95,28 +92,32 @@ const ManageCoursesPage = () => {
       </div>
 
       <div className="mt-8 flex justify-center">
-        <Button onClick={() => setIsModalOpen(true)} className="w-full px-6 sm:w-auto">
+        <Button onClick={modalForm.openCreateModal} className="w-full px-6 sm:w-auto">
           + Novo Curso
         </Button>
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={handleCloseModal} title="Criar Novo Curso">
-        <form onSubmit={handleAddCourse}>
+      <Modal
+        isOpen={modalForm.isOpen}
+        onClose={modalForm.closeModal}
+        title={modalForm.editingItem ? 'Editar Curso' : 'Criar Novo Curso'}
+      >
+        <form onSubmit={modalForm.handleSubmit}>
           <div className="mb-4">
             <Label htmlFor="course-title">Título do Curso</Label>
             <Input
               id="course-title"
               placeholder="Ex: Matemática Financeira"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              value={modalForm.formValues.title}
+              onChange={(e) => modalForm.updateFormValue('title', e.target.value)}
             />
           </div>
           <div className="mb-4">
             <Label htmlFor="course-description">Descrição</Label>
             <Textarea
               id="course-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              value={modalForm.formValues.description}
+              onChange={(e) => modalForm.updateFormValue('description', e.target.value)}
               rows={3}
             />
           </div>
@@ -129,7 +130,7 @@ const ManageCoursesPage = () => {
               namePrefix="course-class"
             />
           </div>
-          <Button type="submit">Criar Curso</Button>
+          <Button type="submit">{modalForm.editingItem ? 'Salvar Alterações' : 'Criar Curso'}</Button>
         </form>
       </Modal>
     </AppLayout>

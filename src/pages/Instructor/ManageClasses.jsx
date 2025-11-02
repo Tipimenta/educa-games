@@ -5,14 +5,13 @@ import AppLayout from '../../components/AppLayout';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 import PageTitle from '../../components/PageTitle';
-import { AuthContext, ClassesContext, useConfirm } from '../../context';
-import { useAuth } from '../../hooks';
+import { AuthContext, ClassesContext } from '../../context';
+import { useAuth, useConfirmDelete } from '../../hooks';
 
 const ManageClassesPage = () => {
   const { user } = useContext(AuthContext);
   const { classes, setClasses } = useContext(ClassesContext);
   const { logout } = useAuth();
-  const { confirm } = useConfirm();
 
   const [newClassName, setNewClassName] = useState('');
 
@@ -33,19 +32,14 @@ const ManageClassesPage = () => {
     setNewClassName('');
   };
 
-  const handleDeleteClass = async (classId) => {
-    try {
-      await confirm({
-        title: 'Remover Turma',
-        message: 'Tem a certeza que deseja apagar esta turma? Esta ação não pode ser desfeita.',
-        variant: 'danger',
-        actionType: 'delete',
-      });
+  const handleDeleteClass = useConfirmDelete({
+    onDelete: (classId) => {
       setClasses(classes.filter((c) => c.id !== classId));
-    } catch {
-      // Usuário cancelou
-    }
-  };
+    },
+    title: 'Remover Turma',
+    message: 'Tem a certeza que deseja apagar esta turma? Esta ação não pode ser desfeita.',
+    successMessage: 'Turma removida com sucesso',
+  });
 
   const handleEditClick = (classItem) => {
     setEditingId(classItem.id);
@@ -133,6 +127,7 @@ const ManageClassesPage = () => {
                         <button
                           onClick={() => handleDeleteClass(classItem.id)}
                           className="text-red-500 hover:text-red-700"
+                          aria-label={`Remover turma ${classItem.name}`}
                         >
                           <Trash2Icon className="h-5 w-5" />
                         </button>

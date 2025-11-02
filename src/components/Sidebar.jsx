@@ -12,16 +12,18 @@ import {
   UsersIcon,
 } from './Icons';
 
-const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
+const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole, onLinkClick = () => {} }) => {
   return (
     <aside
       className={`bg-primary fixed top-0 left-0 z-30 flex h-full flex-col overflow-hidden text-white transition-all duration-300 ease-in-out ${
         isCollapsed
           ? 'w-0 -translate-x-full md:w-12 md:translate-x-0'
-          : 'w-56 translate-x-0 md:w-48 lg:w-40'
+          : 'w-72 translate-x-0 md:w-60 lg:w-52'
       }`}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      role="navigation"
+      aria-label="Menu principal"
     >
       <div className="relative flex h-16 items-center justify-center bg-white">
         {isCollapsed ? (
@@ -35,13 +37,15 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
           {userRole === ROLES.STUDENT && (
             <>
               <li>
-                <NavLink
+                  <NavLink
                   to="/dashboard"
                   className={({ isActive }) =>
                     `flex items-center py-2 pl-4 transition-colors duration-200 ${
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'
                     }`
                   }
+                  onClick={onLinkClick}
+                  aria-label="Dashboard"
                 >
                   <LayoutDashboardIcon className="text-secondary mr-3 h-5 w-5 flex-shrink-0" />
                   <span
@@ -54,13 +58,15 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
                 </NavLink>
               </li>
               <li>
-                <NavLink
+                  <NavLink
                   to="/courses"
                   className={({ isActive }) =>
                     `flex items-center py-2 pl-4 transition-colors duration-200 ${
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'
                     }`
                   }
+                  onClick={onLinkClick}
+                  aria-label="Cursos"
                 >
                   <BookOpenIcon className="text-secondary mr-3 h-5 w-5 flex-shrink-0" />
                   <span
@@ -85,6 +91,8 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'
                     }`
                   }
+                  onClick={onLinkClick}
+                  aria-label="Cursos"
                 >
                   <LibraryIcon className="text-secondary mr-3 h-5 w-5 flex-shrink-0" />
                   <span
@@ -104,6 +112,8 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'
                     }`
                   }
+                  onClick={onLinkClick}
+                  aria-label="Módulos"
                 >
                   <BookOpenIcon className="text-secondary mr-3 h-5 w-5 flex-shrink-0" />
                   <span
@@ -123,6 +133,8 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'
                     }`
                   }
+                  onClick={onLinkClick}
+                  aria-label="Turmas"
                 >
                   <UsersIcon className="text-secondary mr-3 h-5 w-5 flex-shrink-0" />
                   <span
@@ -142,6 +154,8 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'
                     }`
                   }
+                  onClick={onLinkClick}
+                  aria-label="Demonstrativo"
                 >
                   <BarChartIcon className="text-secondary mr-3 h-5 w-5 flex-shrink-0" />
                   <span
@@ -161,6 +175,8 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'
                     }`
                   }
+                  onClick={onLinkClick}
+                  aria-label="Avisos"
                 >
                   <MegaphoneIcon className="text-secondary mr-3 h-5 w-5 flex-shrink-0" />
                   <span
@@ -185,6 +201,8 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole }) => {
                       isActive ? 'bg-white/20' : 'hover:bg-white/10'
                     }`
                   }
+                  onClick={onLinkClick}
+                  aria-label="Instrutores"
                 >
                   <UsersIcon className="text-secondary mr-3 h-5 w-5 flex-shrink-0" />
                   <span
