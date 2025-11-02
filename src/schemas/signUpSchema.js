@@ -30,7 +30,7 @@ export const createCadastroSchema = (isStudent) =>
         .min(1, 'Confirme sua senha')
         .max(128, 'Senha deve ter no máximo 128 caracteres'),
 
-      turma: isStudent ? z.string().min(1, 'Selecione uma turma') : z.string().optional(),
+      class: isStudent ? z.string().min(1, 'Selecione uma turma') : z.string().optional(),
     })
     .refine((data) => data.password === data.confirmPassword, {
       message: 'As senhas digitadas são diferentes',

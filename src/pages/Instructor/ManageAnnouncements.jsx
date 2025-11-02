@@ -1,52 +1,76 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 
+import {
+  ClassSelector,
+  FormattedDate,
+  Label,
+  PencilIcon,
+  Textarea,
+  Trash2Icon,
+} from '../../components';
 import AppLayout from '../../components/AppLayout';
 import Button from '../../components/Button';
-import { PencilIcon, Trash2Icon } from '../../components/Icons';
 import Input from '../../components/Input';
 import Modal from '../../components/Modal';
 import PageTitle from '../../components/PageTitle';
-import { useAuth } from '../../hooks/useAuth';
+import { AnnouncementsContext, AuthContext, ClassesContext, useConfirm } from '../../context';
+import { useAuth, useClassSelection } from '../../hooks';
+import { getClassNames } from '../../utils';
 
-const ManageAnnouncementsPage = ({ user, announcements, setAnnouncements, turmas }) => {
+const ManageAnnouncementsPage = () => {
+  const { user } = useContext(AuthContext);
+  const { announcements, setAnnouncements } = useContext(AnnouncementsContext);
+  const { classes } = useContext(ClassesContext);
   const { logout } = useAuth();
+  const { confirm } = useConfirm();
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const [editingAnnouncement, setEditingAnnouncement] = useState(null);
-
-  const [formState, setFormState] = useState({ title: '', content: '', assignedTurmas: [] });
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const classSelection = useClassSelection([]);
 
   const handleOpenCreateModal = () => {
     setEditingAnnouncement(null);
-    setFormState({ title: '', content: '', assignedTurmas: [] });
+    setTitle('');
+    setContent('');
+    classSelection.reset();
     setIsModalOpen(true);
   };
 
   const handleOpenEditModal = (announcement) => {
     setEditingAnnouncement(announcement);
-    setFormState({ ...announcement });
+    setTitle(announcement.title);
+    setContent(announcement.content);
+    classSelection.reset(announcement.assignedClasses || []);
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingAnnouncement(null);
+    setTitle('');
+    setContent('');
+    classSelection.reset();
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (formState.title.trim() === '' || formState.content.trim() === '') return;
+    if (title.trim() === '' || content.trim() === '') return;
 
     if (editingAnnouncement) {
       setAnnouncements(
         announcements.map((ann) =>
-          ann.id === editingAnnouncement.id ? { ...ann, ...formState } : ann
+          ann.id === editingAnnouncement.id
+            ? { ...ann, title, content, assignedClasses: classSelection.selectedClasses }
+            : ann
         )
       );
     } else {
       const newAnnouncement = {
-        ...formState,
         id: Date.now(),
+        title: title.trim(),
+        content: content.trim(),
+        assignedClasses: classSelection.selectedClasses,
         date: new Date().toISOString().split('T')[0],
       };
       setAnnouncements([newAnnouncement, ...announcements]);
@@ -55,25 +79,18 @@ const ManageAnnouncementsPage = ({ user, announcements, setAnnouncements, turmas
     handleCloseModal();
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm('Tem a certeza que quer apagar este aviso?')) {
+  const handleDelete = async (id) => {
+    try {
+      await confirm({
+        title: 'Remover Aviso',
+        message: 'Tem a certeza que quer apagar este aviso?',
+        variant: 'danger',
+        actionType: 'delete',
+      });
       setAnnouncements(announcements.filter((ann) => ann.id !== id));
+    } catch {
+      // Usuário cancelou
     }
-  };
-
-  const handleTurmaSelection = (turmaId) => {
-    const { assignedTurmas } = formState;
-    if (assignedTurmas.includes(turmaId)) {
-      setFormState({ ...formState, assignedTurmas: assignedTurmas.filter((id) => id !== turmaId) });
-    } else {
-      setFormState({ ...formState, assignedTurmas: [...assignedTurmas, turmaId] });
-    }
-  };
-
-  const getTurmaNames = (turmaIds) => {
-    if (!turmaIds || turmaIds.length === 0) return 'Nenhuma turma';
-    if (turmaIds.length === turmas.length) return 'Todas as turmas';
-    return turmaIds.map((id) => turmas.find((t) => t.id === id)?.name).join(', ');
   };
 
   return (
@@ -92,11 +109,12 @@ const ManageAnnouncementsPage = ({ user, announcements, setAnnouncements, turmas
             </div>
             <div>
               <div className="mb-4 text-xs text-gray-400">
-                <span className="font-semibold">Para:</span> {getTurmaNames(ann.assignedTurmas)}
+                <span className="font-semibold">Para:</span>{' '}
+                {getClassNames(ann.assignedClasses, classes)}
               </div>
               <div className="flex items-center justify-between border-t pt-4">
                 <span className="text-xs text-gray-500">
-                  {new Date(ann.date).toLocaleDateString('pt-BR')}
+                  <FormattedDate date={ann.date} />
                 </span>
                 <div className="flex items-center gap-4">
                   <button
@@ -131,42 +149,31 @@ const ManageAnnouncementsPage = ({ user, announcements, setAnnouncements, turmas
       >
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="mb-2 block text-sm font-bold text-gray-700">Título</label>
+            <Label htmlFor="announcement-title">Título</Label>
             <Input
+              id="announcement-title"
               placeholder="Ex: Manutenção Programada"
-              value={formState.title}
-              onChange={(e) => setFormState({ ...formState, title: e.target.value })}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
             />
           </div>
           <div className="mb-4">
-            <label className="mb-2 block text-sm font-bold text-gray-700">Conteúdo do Aviso</label>
-            <textarea
-              value={formState.content}
-              onChange={(e) => setFormState({ ...formState, content: e.target.value })}
-              className="w-full rounded-lg border border-gray-300 p-2"
-              rows="4"
-            ></textarea>
+            <Label htmlFor="announcement-content">Conteúdo do Aviso</Label>
+            <Textarea
+              id="announcement-content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              rows={4}
+            />
           </div>
           <div className="mb-6">
-            <label className="mb-2 block text-sm font-bold text-gray-700">
-              Direcionar para Turmas
-            </label>
-            <div className="space-y-2 rounded-lg border p-4">
-              {turmas.map((turma) => (
-                <div key={turma.id} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id={`turma-ann-${turma.id}`}
-                    checked={formState.assignedTurmas.includes(turma.id)}
-                    onChange={() => handleTurmaSelection(turma.id)}
-                    className="h-4 w-4 rounded"
-                  />
-                  <label htmlFor={`turma-ann-${turma.id}`} className="ml-3 text-sm text-gray-700">
-                    {turma.name}
-                  </label>
-                </div>
-              ))}
-            </div>
+            <Label>Direcionar para Turmas</Label>
+            <ClassSelector
+              classes={classes}
+              selectedClasses={classSelection.selectedClasses}
+              onChange={classSelection.setSelectedClasses}
+              namePrefix="announcement-class"
+            />
           </div>
           <Button type="submit">
             {editingAnnouncement ? 'Salvar Alterações' : 'Publicar Aviso'}

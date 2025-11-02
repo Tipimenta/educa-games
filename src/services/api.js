@@ -208,7 +208,7 @@ if (USE_MOCKS) {
   const DEFAULT_STUDENT_SHAPE = {
     name: 'Ana Coder',
     email: 'aluno@email.com',
-    turmaId: 1,
+    classId: 1,
     score: 190,
     previousScore: 150,
     loginStreak: 3,

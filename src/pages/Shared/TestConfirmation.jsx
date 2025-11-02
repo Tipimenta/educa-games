@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Button, ConfirmationDialog, PageTitle } from '../components';
+import { Button, ConfirmationDialog, PageTitle } from '../../components';
 
 const TestConfirmation = () => {
   const [dialogs, setDialogs] = useState({

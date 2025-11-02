@@ -1,13 +1,21 @@
+import { useContext } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
+import { ChevronLeftIcon, FormattedDate } from '../../components';
 import AppLayout from '../../components/AppLayout';
-import { ChevronLeftIcon } from '../../components/Icons';
+import { AuthContext, ClassesContext, ModulesContext, StudentsContext } from '../../context';
+import { useAuth } from '../../hooks';
 
-const StudentProfilePage = ({ user, onLogout, students, turmas, modules }) => {
+const StudentProfilePage = () => {
+  const { user } = useContext(AuthContext);
+  const { students } = useContext(StudentsContext);
+  const { classes } = useContext(ClassesContext);
+  const { modules } = useContext(ModulesContext);
+  const { logout } = useAuth();
   const { studentId } = useParams();
 
   const student = (students || []).find((s) => s.id === parseInt(studentId));
-  const turmaName = turmas.find((t) => t.id === student?.turmaId)?.name || 'Turma não encontrada';
+  const className = classes.find((c) => c.id === student?.classId)?.name || 'Turma não encontrada';
   const currentModuleTitle = modules.find((m) => m.id === student?.currentModuleId)?.title || 'N/A';
 
   // Sidebar é gerenciada pelo AppLayout
@@ -24,7 +32,7 @@ const StudentProfilePage = ({ user, onLogout, students, turmas, modules }) => {
   }
 
   return (
-    <AppLayout user={user} onLogout={onLogout}>
+    <AppLayout user={user} onLogout={logout}>
       <Link
         to="/instructor/reports"
         className="mb-4 flex items-center text-sm font-semibold text-blue-600 hover:underline"
@@ -45,7 +53,7 @@ const StudentProfilePage = ({ user, onLogout, students, turmas, modules }) => {
           <div className="w-full flex-1">
             <div className="mb-4">
               <h3 className="text-2xl font-bold text-gray-800">{student.name}</h3>
-              <p className="text-md text-gray-600">{turmaName}</p>
+              <p className="text-md text-gray-600">{className}</p>
             </div>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div className="font-semibold text-gray-700">Pontuação Total:</div>
@@ -56,7 +64,7 @@ const StudentProfilePage = ({ user, onLogout, students, turmas, modules }) => {
               <div>{student.loginStreak} dias</div>
               <div className="font-semibold text-gray-700">Último Acesso:</div>
               <div>
-                {new Date(student.lastLogin).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                <FormattedDate date={student.lastLogin} timeZone="UTC" />
               </div>
             </div>
           </div>

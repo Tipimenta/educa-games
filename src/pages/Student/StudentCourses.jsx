@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 
 import {
   ChevronLeftIcon,
@@ -10,12 +10,17 @@ import {
   PageTitle,
   Quiz,
   YoutubeIcon,
-} from '../components';
-import AppLayout from '../components/AppLayout';
-import { useAuth } from '../hooks/useAuth';
+} from '../../components';
+import AppLayout from '../../components/AppLayout';
+import { AuthContext, CoursesContext, ModulesContext } from '../../context';
+import { useAuth, useStudentProgress } from '../../hooks';
 
-const StudentCoursesPage = ({ user, courses, modules, updateStudentProgress }) => {
+const StudentCoursesPage = () => {
+  const { user } = useContext(AuthContext);
+  const { courses } = useContext(CoursesContext);
+  const { modules } = useContext(ModulesContext);
   const { logout } = useAuth();
+  const { updateStudentProgress } = useStudentProgress();
 
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [selectedModule, setSelectedModule] = useState(null);
@@ -26,7 +31,7 @@ const StudentCoursesPage = ({ user, courses, modules, updateStudentProgress }) =
   const [completedLessonsUI, setCompletedLessonsUI] = useState(new Set());
 
   const availableCourses = courses.filter(
-    (course) => course.assignedTurmas && course.assignedTurmas.includes(user?.turmaId)
+    (course) => course.assignedClasses && course.assignedClasses.includes(user?.classId)
   );
 
   const modulesForCourse = useMemo(() => {

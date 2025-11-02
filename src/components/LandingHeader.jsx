@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { HashLink } from 'react-router-hash-link';
 
 import logoSvg from '../assets/+EducaGames.svg';
 
@@ -32,12 +33,12 @@ const LandingHeader = () => {
             <Link to="/login" className="text-gray-600 transition-colors hover:text-gray-900">
               Entrar
             </Link>
-            <Link
-              to="/cadastro"
+            <HashLink
+              to="/#pricing"
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
             >
               Começar Grátis
-            </Link>
+            </HashLink>
           </div>
         </div>
       </div>

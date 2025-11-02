@@ -1,3 +1,5 @@
+import { useContext } from 'react';
+
 import {
   ArrowDownCircleIcon,
   ArrowUpCircleIcon,
@@ -5,12 +7,20 @@ import {
   CheckSquareIcon,
   DashboardCard,
   FlameIcon,
+  FormattedDate,
   MinusCircleIcon,
   TargetIcon,
-} from '../components';
-import AppLayout from '../components/AppLayout';
-import PageTitle from '../components/PageTitle';
-import { useAuth } from '../hooks';
+} from '../../components';
+import AppLayout from '../../components/AppLayout';
+import PageTitle from '../../components/PageTitle';
+import {
+  AnnouncementsContext,
+  AuthContext,
+  CoursesContext,
+  ModulesContext,
+  StudentsContext,
+} from '../../context';
+import { useAuth } from '../../hooks';
 
 const RankingIndicator = ({ change }) => {
   if (change > 0) {
@@ -34,23 +44,28 @@ const RankingIndicator = ({ change }) => {
   );
 };
 
-const DashboardPage = ({ user, students, courses, modules, announcements }) => {
+const DashboardPage = () => {
+  const { user } = useContext(AuthContext);
+  const { students } = useContext(StudentsContext);
+  const { courses } = useContext(CoursesContext);
+  const { modules } = useContext(ModulesContext);
+  const { announcements } = useContext(AnnouncementsContext);
   const { logout } = useAuth();
 
   const currentUserData = students.find((s) => s.id === user.id) || user;
 
-  const studentsInTurma = students.filter((s) => s.turmaId === user.turmaId);
+  const studentsInClass = students.filter((s) => s.classId === user.classId);
 
-  const currentRanking = [...studentsInTurma].sort((a, b) => b.score - a.score);
-  const previousRanking = [...studentsInTurma].sort(
+  const currentRanking = [...studentsInClass].sort((a, b) => b.score - a.score);
+  const previousRanking = [...studentsInClass].sort(
     (a, b) => (b.previousScore || 0) - (a.previousScore || 0)
   );
 
   const userRank = currentRanking.findIndex((s) => s.id === user.id) + 1;
 
-  const coursesForTurma = courses.filter((c) => c.assignedTurmas.includes(user.turmaId));
-  const courseIdsForTurma = coursesForTurma.map((c) => c.id);
-  const totalAssignedModules = modules.filter((m) => courseIdsForTurma.includes(m.courseId));
+  const coursesForClass = courses.filter((c) => c.assignedClasses.includes(user.classId));
+  const courseIdsForClass = coursesForClass.map((c) => c.id);
+  const totalAssignedModules = modules.filter((m) => courseIdsForClass.includes(m.courseId));
 
   const completedModulesCount = totalAssignedModules.filter((module) => {
     const allLessonsDone = module.lessons.every((lesson) =>
@@ -64,7 +79,7 @@ const DashboardPage = ({ user, students, courses, modules, announcements }) => {
   const totalModulesCount = totalAssignedModules.length;
 
   const filteredAnnouncements = (announcements || []).filter((ann) =>
-    ann.assignedTurmas.includes(user.turmaId)
+    ann.assignedClasses.includes(user.classId)
   );
 
   return (
@@ -159,7 +174,7 @@ const DashboardPage = ({ user, students, courses, modules, announcements }) => {
                     <p className="font-semibold text-gray-700">{ann.title}</p>
                     <p className="text-sm text-gray-500">{ann.content}</p>
                     <p className="mt-1 text-right text-xs text-gray-400">
-                      {new Date(ann.date).toLocaleDateString('pt-BR')}
+                      <FormattedDate date={ann.date} />
                     </p>
                   </li>
                 ))

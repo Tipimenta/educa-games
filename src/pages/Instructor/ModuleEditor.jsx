@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import Button from '../../components/Button';
@@ -7,8 +7,13 @@ import { ChevronLeftIcon, PlusCircleIcon, Trash2Icon } from '../../components/Ic
 import Input from '../../components/Input';
 import Sidebar from '../../components/Sidebar';
 import Stepper from '../../components/Stepper';
+import { AuthContext, ModulesContext } from '../../context';
+import { useAuth } from '../../hooks';
 
-const ModuleEditor = ({ user, userRole, onLogout, modules, setModules }) => {
+const ModuleEditor = () => {
+  const { user } = useContext(AuthContext);
+  const { modules, setModules } = useContext(ModulesContext);
+  const { logout } = useAuth();
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(true);
   const { moduleId } = useParams();
   const navigate = useNavigate();
@@ -304,13 +309,12 @@ const ModuleEditor = ({ user, userRole, onLogout, modules, setModules }) => {
         isCollapsed={isSidebarCollapsed}
         onMouseEnter={() => setSidebarCollapsed(false)}
         onMouseLeave={() => setSidebarCollapsed(true)}
-        userRole={userRole}
       />
       <div className={`flex flex-1 flex-col transition-all duration-300 ease-in-out`}>
         <Header
           user={user}
           toggleSidebar={() => setSidebarCollapsed(!isSidebarCollapsed)}
-          onLogout={onLogout}
+          onLogout={logout}
           leftPaddingClass={isSidebarCollapsed ? 'ml-12' : 'ml-48'}
         />
         <main className={`flex-grow p-6 ${isSidebarCollapsed ? 'ml-12' : 'ml-48'}`}>

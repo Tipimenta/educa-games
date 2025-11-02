@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import { createContext, useEffect, useRef, useState } from 'react';
 
 import { UnauthorizedError } from '../lib/errors';
@@ -10,7 +9,7 @@ export const AuthContext = createContext({
   setUser: () => {},
 });
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const hasCheckedRef = useRef(false);
@@ -35,7 +34,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const path = window.location?.pathname || '';
-    const publicPaths = ['/login', '/cadastro', '/recuperar-senha', '/redefinir-senha'];
+    const publicPaths = ['/login', '/signup', '/forgot-password', '/reset-password'];
     if (publicPaths.some((p) => path.startsWith(p))) {
       setLoading(false);
       return;
@@ -45,8 +44,4 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return <AuthContext.Provider value={{ user, setUser, loading }}>{children}</AuthContext.Provider>;
-};
-
-AuthProvider.propTypes = {
-  children: PropTypes.node.isRequired,
-};
+}

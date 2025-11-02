@@ -1,6 +1,6 @@
 export default function PageTitle({ children }) {
   return (
-    <div className="mb-6 text-center mt-6">
+    <div className="mb-6 mt-6 text-center">
       <h2 className="text-primary inline-block text-3xl font-bold tracking-tight">
         {children}
 

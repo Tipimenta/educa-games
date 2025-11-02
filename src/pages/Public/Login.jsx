@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { HashLink } from 'react-router-hash-link';
 
-import { AuthLayout, Button, ErrorMessage, Input, PasswordInput } from '../components';
-import { useAuth } from '../hooks';
-import { isValid, loginSchema, validateAll, validateSingleField } from '../schemas';
+import { AuthLayout, Button, ErrorMessage, Input, PasswordInput } from '../../components';
+import { useAuth } from '../../hooks';
+import { isValid, loginSchema, validateAll, validateSingleField } from '../../schemas';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -30,7 +31,7 @@ const LoginPage = () => {
   };
 
   const errorMessages = errorMessage ? errorMessage.split('\n') : [];
-  
+
   const isFormValid = isValid(loginSchema, { email, password });
 
   return (
@@ -119,7 +120,7 @@ const LoginPage = () => {
       </form>
 
       <div className="mt-6 text-center">
-        <Link to="/recuperar-senha" className="text-secondary text-sm hover:underline">
+        <Link to="/forgot-password" className="text-secondary text-sm hover:underline">
           Esqueceu a senha?
         </Link>
       </div>
@@ -148,9 +149,25 @@ const LoginPage = () => {
                 Quer oferecer cursos gamificados?
               </p>
               <p className="mt-1 text-xs text-gray-500">
-                <Link to="/" className="text-secondary hover:underline">
+                <HashLink
+                  to="/#pricing"
+                  scroll={(el) => {
+                    setTimeout(() => {
+                      if (el) {
+                        const headerOffset = 80;
+                        const elementPosition = el.getBoundingClientRect().top;
+                        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                        window.scrollTo({
+                          top: offsetPosition,
+                          behavior: 'smooth',
+                        });
+                      }
+                    }, 100);
+                  }}
+                  className="text-secondary hover:underline"
+                >
                   Fale conosco
-                </Link>
+                </HashLink>
               </p>
             </div>
           </div>

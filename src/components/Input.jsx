@@ -1,11 +1,11 @@
-const Input = ({
+export default function Input({
   type = 'text',
   placeholder,
   readOnly = false,
   error = false,
   className = '',
   ...props
-}) => {
+}) {
   const base =
     'w-full rounded-lg border bg-white px-4 py-3 transition focus:ring-2 focus:outline-none';
   const border = error
@@ -22,6 +22,4 @@ const Input = ({
       {...props}
     />
   );
-};
-
-export default Input;
+}

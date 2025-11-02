@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { HashLink } from 'react-router-hash-link';
 
 import { ArrowRightIcon, PlayIcon } from '../components/Icons';
 
@@ -16,13 +16,13 @@ const HeroSection = () => {
             de forma divertida e eficaz com o EducaGames.
           </p>
           <div className="animate-bounce-in flex flex-col justify-center gap-4 sm:flex-row">
-            <Link
-              to="/cadastro"
+            <HashLink
+              to="/#pricing"
               className="flex transform items-center justify-center rounded-lg bg-blue-600 px-8 py-4 text-lg font-semibold text-white transition-all duration-300 hover:scale-105 hover:bg-blue-700 hover:shadow-lg"
             >
               Começar Agora
               <ArrowRightIcon className="ml-2 h-5 w-5" />
-            </Link>
+            </HashLink>
             <button className="flex transform items-center justify-center rounded-lg border border-gray-300 px-8 py-4 text-lg font-semibold text-gray-700 transition-all duration-300 hover:scale-105 hover:bg-gray-50 hover:shadow-lg">
               <PlayIcon className="mr-2 h-5 w-5" />
               Ver Demonstração

@@ -1,8 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom';
 
-import { AuthLayout, Button, Input } from '../components';
+import { AuthLayout, Button, Input } from '../../components';
 
-const RedefinirSenhaPage = () => {
+const ResetPasswordPage = () => {
   const navigate = useNavigate();
 
   const handleReset = (e) => {
@@ -27,4 +27,4 @@ const RedefinirSenhaPage = () => {
   );
 };
 
-export default RedefinirSenhaPage;
+export default ResetPasswordPage;

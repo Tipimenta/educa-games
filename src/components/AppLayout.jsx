@@ -1,17 +1,12 @@
-import { useState } from 'react';
-
+import { useLocalStorageBoolean } from '../hooks/useLocalStorage';
 import Header from './Header';
 import Sidebar from './Sidebar';
 
 export default function AppLayout({ user, onLogout, children, containerClassName }) {
-  const [isSidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    try {
-      const saved = localStorage.getItem('sidebarCollapsed');
-      return saved !== null ? saved === 'true' : true;
-    } catch {
-      return true;
-    }
-  });
+  const [isSidebarCollapsed, setSidebarCollapsed] = useLocalStorageBoolean(
+    'sidebarCollapsed',
+    true
+  );
 
   const offsetClass = isSidebarCollapsed ? 'lg:ml-12' : 'lg:ml-48';
 
@@ -19,24 +14,14 @@ export default function AppLayout({ user, onLogout, children, containerClassName
     <div className="min-h-screen bg-gray-100 font-sans">
       <Header
         user={user}
-        toggleSidebar={() => {
-          const next = !isSidebarCollapsed;
-          setSidebarCollapsed(next);
-          localStorage.setItem('sidebarCollapsed', String(next));
-        }}
+        toggleSidebar={() => setSidebarCollapsed((prev) => !prev)}
         onLogout={onLogout}
       />
       <div className="flex">
         <Sidebar
           isCollapsed={isSidebarCollapsed}
-          onMouseEnter={() => {
-            setSidebarCollapsed(false);
-            localStorage.setItem('sidebarCollapsed', 'false');
-          }}
-          onMouseLeave={() => {
-            setSidebarCollapsed(true);
-            localStorage.setItem('sidebarCollapsed', 'true');
-          }}
+          onMouseEnter={() => setSidebarCollapsed(false)}
+          onMouseLeave={() => setSidebarCollapsed(true)}
           userRole={user?.role}
         />
         <div

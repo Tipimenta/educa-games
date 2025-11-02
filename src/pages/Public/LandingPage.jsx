@@ -1,11 +1,11 @@
-import logoSvg from '../assets/+EducaGames.svg';
+import logoSvg from '../../assets/+EducaGames.svg';
 import {
   FeaturesSection,
   HeroSection,
   LandingHeader,
   PricingSection,
   TestimonialsSection,
-} from '../components';
+} from '../../components';
 
 const LandingPage = () => {
   return (

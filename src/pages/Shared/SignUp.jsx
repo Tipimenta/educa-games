@@ -1,14 +1,16 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
-import { AuthLayout, Button, ErrorMessage, Input, PasswordInput } from '../components';
-import { ROLES } from '../constants';
-import { useToast } from '../hooks';
-import { NetworkError, UnauthorizedError, ValidationError } from '../lib/errors';
-import { createCadastroSchema, isValid, validateAll, validateSingleField } from '../schemas';
-import { api, isCorsError, presentError } from '../services';
+import { AuthLayout, Button, ErrorMessage, Input, PasswordInput } from '../../components';
+import { ROLES } from '../../constants';
+import { ClassesContext } from '../../context';
+import { useToast } from '../../hooks';
+import { NetworkError, UnauthorizedError, ValidationError } from '../../lib/errors';
+import { createCadastroSchema, isValid, validateAll, validateSingleField } from '../../schemas';
+import { api, isCorsError, presentError } from '../../services';
 
-const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
+const SignUpPage = ({ userRole = ROLES.STUDENT }) => {
+  const { classes } = useContext(ClassesContext);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { showToast } = useToast();
@@ -23,7 +25,7 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
     email: '',
     password: '',
     confirmPassword: '',
-    turma: '',
+    class: '',
   });
 
   const [errors, setErrors] = useState({});
@@ -320,12 +322,12 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
             {(inviteData ? inviteData.role === ROLES.STUDENT : userRole === ROLES.STUDENT) && (
               <div>
                 <select
-                  name="turma"
-                  value={formData.turma}
+                  name="class"
+                  value={formData.class}
                   onChange={handleInputChange}
                   required
                   className={`w-full appearance-none rounded-lg border bg-white px-4 py-3 focus:ring-2 focus:outline-none ${
-                    errors.turma
+                    errors.class
                       ? 'border-red-500 focus:ring-red-500'
                       : 'border-gray-300 focus:ring-blue-500'
                   }`}
@@ -333,14 +335,14 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
                   <option value="" disabled>
                     Selecione sua turma
                   </option>
-                  {turmas.map((turma) => (
-                    <option key={turma.id} value={turma.name}>
-                      {turma.name}
+                  {classes.map((classItem) => (
+                    <option key={classItem.id} value={classItem.name}>
+                      {classItem.name}
                     </option>
                   ))}
                 </select>
-                {errors.turma && (
-                  <p className="mt-1 pl-1 text-left text-sm text-red-600">{errors.turma}</p>
+                {errors.class && (
+                  <p className="mt-1 pl-1 text-left text-sm text-red-600">{errors.class}</p>
                 )}
               </div>
             )}
@@ -369,4 +371,4 @@ const CadastroPage = ({ turmas, userRole = ROLES.STUDENT }) => {
   );
 };
 
-export default CadastroPage;
+export default SignUpPage;

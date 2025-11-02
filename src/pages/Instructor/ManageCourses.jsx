@@ -1,43 +1,65 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import { ClassSelector, Label, Textarea } from '../../components';
 import AppLayout from '../../components/AppLayout';
 import Button from '../../components/Button';
 import { Trash2Icon } from '../../components/Icons';
 import Input from '../../components/Input';
 import Modal from '../../components/Modal';
 import PageTitle from '../../components/PageTitle';
-import { useAuth } from '../../hooks/useAuth';
+import { AuthContext, ClassesContext, CoursesContext, useConfirm } from '../../context';
+import { useAuth, useClassSelection } from '../../hooks';
 
-const ManageCoursesPage = ({ user, courses, setCourses, turmas }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newCourse, setNewCourse] = useState({ title: '', description: '', assignedTurmas: [] });
+const ManageCoursesPage = () => {
+  const { user } = useContext(AuthContext);
+  const { courses, setCourses } = useContext(CoursesContext);
+  const { classes } = useContext(ClassesContext);
   const { logout } = useAuth();
+  const { confirm } = useConfirm();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const classSelection = useClassSelection([]);
 
   const handleAddCourse = (e) => {
     e.preventDefault();
-    if (newCourse.title.trim() === '') return;
-    setCourses([...courses, { ...newCourse, id: Date.now() }]);
+    if (title.trim() === '') return;
+    setCourses([
+      ...courses,
+      {
+        id: Date.now(),
+        title: title.trim(),
+        description: description.trim(),
+        assignedClasses: classSelection.selectedClasses,
+      },
+    ]);
     setIsModalOpen(false);
-    setNewCourse({ title: '', description: '', assignedTurmas: [] });
+    setTitle('');
+    setDescription('');
+    classSelection.reset();
   };
 
-  const handleDeleteCourse = (courseId) => {
-    if (
-      window.confirm('Tem a certeza que quer apagar este curso e todos os seus módulos associados?')
-    ) {
+  const handleDeleteCourse = async (courseId) => {
+    try {
+      await confirm({
+        title: 'Remover Curso',
+        message:
+          'Tem a certeza que quer apagar este curso e todos os seus módulos associados? Esta ação não pode ser desfeita.',
+        variant: 'danger',
+        actionType: 'delete',
+      });
       setCourses(courses.filter((c) => c.id !== courseId));
+    } catch {
+      // Usuário cancelou
     }
   };
 
-  const handleTurmaSelection = (turmaId) => {
-    const { assignedTurmas } = newCourse;
-    const isSelected = assignedTurmas.includes(turmaId);
-    if (isSelected) {
-      setNewCourse({ ...newCourse, assignedTurmas: assignedTurmas.filter((id) => id !== turmaId) });
-    } else {
-      setNewCourse({ ...newCourse, assignedTurmas: [...assignedTurmas, turmaId] });
-    }
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setTitle('');
+    setDescription('');
+    classSelection.reset();
   };
 
   return (
@@ -78,43 +100,34 @@ const ManageCoursesPage = ({ user, courses, setCourses, turmas }) => {
         </Button>
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Criar Novo Curso">
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal} title="Criar Novo Curso">
         <form onSubmit={handleAddCourse}>
           <div className="mb-4">
-            <label className="mb-2 block text-sm font-bold text-gray-700">Título do Curso</label>
+            <Label htmlFor="course-title">Título do Curso</Label>
             <Input
+              id="course-title"
               placeholder="Ex: Matemática Financeira"
-              value={newCourse.title}
-              onChange={(e) => setNewCourse({ ...newCourse, title: e.target.value })}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
             />
           </div>
           <div className="mb-4">
-            <label className="mb-2 block text-sm font-bold text-gray-700">Descrição</label>
-            <textarea
-              value={newCourse.description}
-              onChange={(e) => setNewCourse({ ...newCourse, description: e.target.value })}
-              className="w-full rounded-lg border border-gray-300 p-2"
-              rows="3"
-            ></textarea>
+            <Label htmlFor="course-description">Descrição</Label>
+            <Textarea
+              id="course-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+            />
           </div>
           <div className="mb-6">
-            <label className="mb-2 block text-sm font-bold text-gray-700">Vincular às Turmas</label>
-            <div className="space-y-2 rounded-lg border p-4">
-              {turmas.map((turma) => (
-                <div key={turma.id} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id={`turma-${turma.id}`}
-                    checked={newCourse.assignedTurmas.includes(turma.id)}
-                    onChange={() => handleTurmaSelection(turma.id)}
-                    className="h-4 w-4 rounded"
-                  />
-                  <label htmlFor={`turma-${turma.id}`} className="ml-3 text-sm text-gray-700">
-                    {turma.name}
-                  </label>
-                </div>
-              ))}
-            </div>
+            <Label>Vincular às Turmas</Label>
+            <ClassSelector
+              classes={classes}
+              selectedClasses={classSelection.selectedClasses}
+              onChange={classSelection.setSelectedClasses}
+              namePrefix="course-class"
+            />
           </div>
           <Button type="submit">Criar Curso</Button>
         </form>

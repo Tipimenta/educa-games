@@ -1,3 +1,4 @@
-export * from './cadastroSchema';
+export * from './emailSchema';
 export * from './helpers';
 export * from './loginSchema';
+export * from './signUpSchema';

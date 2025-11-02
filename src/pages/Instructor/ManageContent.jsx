@@ -1,12 +1,19 @@
+import { useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 import AppLayout from '../../components/AppLayout';
 import Button from '../../components/Button';
 import PageTitle from '../../components/PageTitle';
-import { useAuth } from '../../hooks/useAuth';
+import { AuthContext, CoursesContext, ModulesContext } from '../../context';
+import { useConfirm } from '../../context';
+import { useAuth } from '../../hooks';
 
-const ManageContentPage = ({ user, courses, modules, setModules }) => {
+const ManageContentPage = () => {
+  const { user } = useContext(AuthContext);
+  const { courses } = useContext(CoursesContext);
+  const { modules, setModules } = useContext(ModulesContext);
   const { logout } = useAuth();
+  const { confirm } = useConfirm();
   const location = useLocation();
 
   const selectedCourseId = location.state?.courseId;
@@ -17,9 +24,17 @@ const ManageContentPage = ({ user, courses, modules, setModules }) => {
   const getCourseTitle = (courseId) =>
     courses.find((c) => c.id === courseId)?.title || 'Curso não encontrado';
 
-  const handleDeleteModule = (moduleId) => {
-    if (window.confirm('Tem a certeza que quer apagar este módulo e todo o seu conteúdo?')) {
+  const handleDeleteModule = async (moduleId) => {
+    try {
+      await confirm({
+        title: 'Remover Módulo',
+        message: 'Tem a certeza que quer apagar este módulo e todo o seu conteúdo? Esta ação não pode ser desfeita.',
+        variant: 'danger',
+        actionType: 'delete',
+      });
       setModules(modules.filter((module) => module.id !== moduleId));
+    } catch {
+      // Usuário cancelou
     }
   };
 

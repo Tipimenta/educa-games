@@ -1,5 +1,3 @@
-import { Info, Send, Trash2 } from 'lucide-react';
-
 import Button from './Button';
 import Modal from './Modal';
 
@@ -20,7 +18,6 @@ const ConfirmationDialog = ({
     switch (actionType) {
       case 'delete':
         return {
-          icon: Trash2,
           defaultTitle: 'Confirmar Exclusão',
           defaultMessage:
             'Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita.',
@@ -29,7 +26,6 @@ const ConfirmationDialog = ({
         };
       case 'resend':
         return {
-          icon: Send,
           defaultTitle: 'Reenviar',
           defaultMessage: 'Deseja reenviar este item?',
           defaultConfirmText: 'Reenviar',
@@ -37,7 +33,6 @@ const ConfirmationDialog = ({
         };
       default:
         return {
-          icon: Info,
           defaultTitle: 'Confirmar Ação',
           defaultMessage: 'Deseja continuar com esta ação?',
           defaultConfirmText: 'Confirmar',
@@ -47,7 +42,6 @@ const ConfirmationDialog = ({
   };
 
   const actionConfig = getActionConfig();
-  const IconComponent = actionConfig.icon;
 
   // Configurações visuais baseadas na variante
   const getVariantStyles = () => {
@@ -56,26 +50,18 @@ const ConfirmationDialog = ({
     switch (finalVariant) {
       case 'danger':
         return {
-          iconColor: 'text-red-600',
-          iconBg: 'bg-red-100',
           confirmButton: 'bg-red-600 hover:bg-red-700 text-white',
         };
       case 'warning':
         return {
-          iconColor: 'text-yellow-600',
-          iconBg: 'bg-yellow-100',
           confirmButton: 'bg-yellow-600 hover:bg-yellow-700 text-white',
         };
       case 'info':
         return {
-          iconColor: 'text-blue-600',
-          iconBg: 'bg-blue-100',
           confirmButton: 'bg-blue-600 hover:bg-blue-700 text-white',
         };
       default:
         return {
-          iconColor: 'text-gray-600',
-          iconBg: 'bg-gray-100',
           confirmButton: 'bg-gray-600 hover:bg-gray-700 text-white',
         };
     }
@@ -90,15 +76,8 @@ const ConfirmationDialog = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="sm">
+    <Modal isOpen={isOpen} onClose={onClose} showCloseButton={false}>
       <div className="p-6">
-        {/* Ícone */}
-        <div
-          className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full ${styles.iconBg} mb-4`}
-        >
-          <IconComponent className={`h-6 w-6 ${styles.iconColor}`} />
-        </div>
-
         {/* Título */}
         <h3 className="mb-2 text-center text-lg font-semibold text-gray-900">
           {title || actionConfig.defaultTitle}

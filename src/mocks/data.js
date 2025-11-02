@@ -1,4 +1,4 @@
-export const initialTurmas = [
+export const initialClasses = [
   { id: 1, name: 'Bootcamp Full Stack 2025' },
   { id: 2, name: 'Turma de Estágio 2025' },
 ];
@@ -8,13 +8,13 @@ export const initialCourses = [
     id: 1,
     title: 'Frontend com React',
     description: 'Construa interfaces web modernas e reativas.',
-    assignedTurmas: [1, 2],
+    assignedClasses: [1, 2],
   },
   {
     id: 2,
     title: 'Backend com Node.js',
     description: 'Desenvolva APIs robustas e escaláveis.',
-    assignedTurmas: [1],
+    assignedClasses: [1],
   },
 ];
 
@@ -84,7 +84,7 @@ export const initialStudents = [
     id: 1,
     name: 'Ana Coder',
     email: 'aluno@email.com',
-    turmaId: 1,
+    classId: 1,
     score: 190,
     previousScore: 150,
     loginStreak: 3,
@@ -96,7 +96,7 @@ export const initialStudents = [
     id: 2,
     name: 'Bruno Dev',
     email: 'bruno@email.com',
-    turmaId: 1,
+    classId: 1,
     score: 170,
     previousScore: 180,
     loginStreak: 1,
@@ -108,7 +108,7 @@ export const initialStudents = [
     id: 3,
     name: 'Carla Script',
     email: 'carla@email.com',
-    turmaId: 2,
+    classId: 2,
     score: 25,
     previousScore: 25,
     loginStreak: 2,
@@ -124,14 +124,14 @@ export const initialAnnouncements = [
     title: 'Manutenção Programada',
     content: 'A plataforma estará em manutenção no próximo sábado das 10h às 11h.',
     date: '2025-10-08',
-    assignedTurmas: [1, 2],
+    assignedClasses: [1, 2],
   },
   {
     id: 2,
     title: 'Novo Módulo Disponível!',
     content: 'O Módulo 2 de React já está disponível para a turma do Bootcamp.',
     date: '2025-10-07',
-    assignedTurmas: [1],
+    assignedClasses: [1],
   },
 ];
 
@@ -158,6 +158,18 @@ export const initialInactiveInstructors = [
 ];
 
 export const initialPendingInvites = [
-  { id: 6, email: 'novo@exemplo.com', sentAt: '2024-01-15', status: 'Pendente' },
-  { id: 7, email: 'outro@exemplo.com', sentAt: '2024-01-10', status: 'Pendente' },
+  {
+    id: 6,
+    email: 'novo@exemplo.com',
+    sentAt: '2024-01-15',
+    expiresAt: '2024-01-22',
+    status: 'Pendente',
+  },
+  {
+    id: 7,
+    email: 'outro@exemplo.com',
+    sentAt: '2024-01-10',
+    expiresAt: '2024-01-17',
+    status: 'Pendente',
+  },
 ];

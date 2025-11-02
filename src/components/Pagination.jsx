@@ -1,9 +1,12 @@
 const PageButton = ({ children, onClick, disabled = false, active = false }) => {
   const base = 'px-3 py-2 min-h-[32px] border border-gray-300 rounded-md text-sm transition-colors';
-  const state = disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50 text-gray-700';
-  const activeCls = active ? 'bg-blue-600 text-white font-medium border-blue-600' : '';
+  const state = disabled
+    ? 'opacity-50 cursor-not-allowed'
+    : active
+      ? 'bg-blue-600 text-white font-medium border-blue-600 hover:bg-blue-700'
+      : 'hover:bg-gray-50 text-gray-700';
   return (
-    <button className={`${base} ${state} ${activeCls}`} onClick={onClick} disabled={disabled}>
+    <button className={`${base} ${state}`} onClick={onClick} disabled={disabled}>
       {children}
     </button>
   );
