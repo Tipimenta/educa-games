@@ -85,6 +85,27 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole, onLinkClic
             <>
               <li>
                 <NavLink
+                  to="/instructor/manage-classes"
+                  className={({ isActive }) =>
+                    `flex items-center py-2 pl-4 transition-colors duration-200 ${
+                      isActive ? 'bg-white/20' : 'hover:bg-white/10'
+                    }`
+                  }
+                  onClick={onLinkClick}
+                  aria-label="Turmas"
+                >
+                  <UsersIcon className="text-secondary mr-3 h-5 w-5 flex-shrink-0" />
+                  <span
+                    className={`whitespace-nowrap transition-opacity duration-200 ${
+                      isCollapsed ? 'opacity-0' : 'opacity-100'
+                    }`}
+                  >
+                    Turmas
+                  </span>
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
                   to="/instructor/manage-courses"
                   className={({ isActive }) =>
                     `flex items-center py-2 pl-4 transition-colors duration-200 ${
@@ -122,27 +143,6 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave, userRole, onLinkClic
                     }`}
                   >
                     Módulos
-                  </span>
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/instructor/manage-classes"
-                  className={({ isActive }) =>
-                    `flex items-center py-2 pl-4 transition-colors duration-200 ${
-                      isActive ? 'bg-white/20' : 'hover:bg-white/10'
-                    }`
-                  }
-                  onClick={onLinkClick}
-                  aria-label="Turmas"
-                >
-                  <UsersIcon className="text-secondary mr-3 h-5 w-5 flex-shrink-0" />
-                  <span
-                    className={`whitespace-nowrap transition-opacity duration-200 ${
-                      isCollapsed ? 'opacity-0' : 'opacity-100'
-                    }`}
-                  >
-                    Turmas
                   </span>
                 </NavLink>
               </li>

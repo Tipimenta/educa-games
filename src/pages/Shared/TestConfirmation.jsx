@@ -21,7 +21,6 @@ const TestConfirmation = () => {
 
   const handleConfirm = async (action) => {
     console.log(`Ação confirmada: ${action}`);
-    // Simular loading
     await new Promise((resolve) => setTimeout(resolve, 1000));
     alert(`Ação "${action}" executada com sucesso!`);
   };
@@ -101,23 +100,18 @@ const TestConfirmation = () => {
           </div>
         </div>
 
-        {/* Exemplo de uso */}
         <div className="mt-8 rounded-lg bg-gray-50 p-6">
           <h3 className="mb-4 font-semibold">Como usar:</h3>
           <pre className="overflow-x-auto rounded border bg-white p-4 text-sm">
             {`import { ConfirmationDialog } from '../components';
 
-// Estado para controlar o diálogo
 const [showDialog, setShowDialog] = useState(false);
 
-// Função de confirmação
 const handleDelete = async () => {
-  // Sua lógica aqui
   console.log('Item excluído');
   setShowDialog(false);
 };
 
-// Renderizar o componente
 <ConfirmationDialog
   isOpen={showDialog}
   onClose={() => setShowDialog(false)}

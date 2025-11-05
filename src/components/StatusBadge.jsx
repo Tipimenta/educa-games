@@ -1,3 +1,5 @@
+import { translateStatus } from '../lib/utils';
+
 export default function StatusBadge({ status, variant = 'default' }) {
   const getVariantStyles = () => {
     switch (variant) {
@@ -16,11 +18,13 @@ export default function StatusBadge({ status, variant = 'default' }) {
     }
   };
 
+  const translatedStatus = translateStatus(status);
+
   return (
     <span
       className={`inline-flex rounded-full px-3 py-1.5 text-xs font-semibold ${getVariantStyles()}`}
     >
-      {status}
+      {translatedStatus}
     </span>
   );
 }

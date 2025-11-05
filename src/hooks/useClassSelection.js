@@ -1,10 +1,5 @@
 import { useState } from 'react';
 
-/**
- * Hook para gerenciar seleção múltipla de turmas
- * @param {Array} initialSelection - Array inicial de IDs de turmas selecionadas
- * @returns {Object} - Estado da seleção e manipuladores
- */
 export const useClassSelection = (initialSelection = []) => {
   const [selectedClasses, setSelectedClasses] = useState(initialSelection);
 

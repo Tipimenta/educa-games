@@ -135,9 +135,6 @@ export const initialAnnouncements = [
   },
 ];
 
-// =====================
-// Instrutores e Convites (Mocks)
-// =====================
 export const initialActiveInstructors = [
   { id: 1, name: 'Ingrid Silva', email: 'ingrid@exemplo.com' },
   { id: 2, name: 'João Paulo', email: 'joao@exemplo.com' },

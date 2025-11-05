@@ -2,8 +2,7 @@ import { Link } from 'react-router-dom';
 
 import { AuthLayout, Button, ErrorMessage, Input, PasswordInput } from '../../components';
 import { ROLES } from '../../constants';
-import { useInviteValidation } from './hooks/useInviteValidation';
-import { useSignUpForm } from './hooks/useSignUpForm';
+import { useInviteValidation, useSignUpForm } from './hooks';
 
 const SignUpPage = ({ userRole = ROLES.STUDENT }) => {
   const invite = useInviteValidation();
@@ -79,8 +78,13 @@ const SignUpPage = ({ userRole = ROLES.STUDENT }) => {
             placeholder="Digite seu e-mail"
             value={form.values.email}
             onChange={(e) => form.handleChange('email', e.target.value)}
-            onBlur={() => form.handleBlur('email')}
-            readOnly={invite.inviteData && invite.inviteData.email}
+            onBlur={() => {
+              if (!invite.inviteData?.email) {
+                form.handleBlur('email');
+              }
+            }}
+            readOnly={!!invite.inviteData?.email}
+            autoComplete="email"
             required
             error={Boolean(form.errors.email)}
           />
@@ -94,6 +98,7 @@ const SignUpPage = ({ userRole = ROLES.STUDENT }) => {
             value={form.values.password}
             onChange={(e) => form.handleChange('password', e.target.value)}
             onBlur={() => form.handleBlur('password')}
+            autoComplete="new-password"
             required
             error={Boolean(form.errors.password)}
           />
@@ -107,15 +112,17 @@ const SignUpPage = ({ userRole = ROLES.STUDENT }) => {
             value={form.values.confirmPassword}
             onChange={(e) => form.handleChange('confirmPassword', e.target.value)}
             onBlur={() => form.handleBlur('confirmPassword')}
+            autoComplete="new-password"
             required
             error={Boolean(form.errors.confirmPassword)}
           />
           <ErrorMessage message={form.touched.confirmPassword ? form.errors.confirmPassword : ''} />
         </div>
 
-        {(invite.inviteData
-          ? invite.inviteData.role === ROLES.STUDENT
-          : userRole === ROLES.STUDENT) && (
+        {(() => {
+          if (!invite.inviteData) return userRole === ROLES.STUDENT;
+          return invite.inviteData.role === ROLES.STUDENT;
+        })() && (
           <div>
             <select
               name="class"

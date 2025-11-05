@@ -1,13 +1,3 @@
-/**
- * Funções utilitárias para formatação de datas
- */
-
-/**
- * Formata uma string de data ou objeto Date para o formato brasileiro (dd/mm/yyyy)
- * @param {string|Date} date - String de data (YYYY-MM-DD) ou objeto Date
- * @param {Object} options - Opções do Intl.DateTimeFormat
- * @returns {string} String de data formatada
- */
 export const formatDate = (date, options = {}) => {
   if (!date) return '-';
 
@@ -27,12 +17,6 @@ export const formatDate = (date, options = {}) => {
   }
 };
 
-/**
- * Formata uma string de data para o formato brasileiro com tratamento de fuso horário
- * @param {string} dateString - String de data (YYYY-MM-DD)
- * @param {string} timeZone - Fuso horário (padrão: UTC)
- * @returns {string} String de data formatada
- */
 export const formatDateWithTimezone = (dateString, timeZone = 'UTC') => {
   if (!dateString) return '-';
 
@@ -50,11 +34,6 @@ export const formatDateWithTimezone = (dateString, timeZone = 'UTC') => {
   }
 };
 
-/**
- * Obtém string de tempo relativo (ex: "há 2 dias", "em 3 dias")
- * @param {string|Date} date - String de data ou objeto Date
- * @returns {string} String de tempo relativo
- */
 export const getRelativeTime = (date) => {
   if (!date) return '-';
 

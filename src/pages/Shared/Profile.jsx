@@ -1,23 +1,33 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 
-import { Button, Input, PageTitle } from '../../components';
-import AppLayout from '../../components/AppLayout';
+import { Button, EmptyState, Input, PageTitle } from '../../components';
+import { AppLayout } from '../../components';
 import { AuthContext } from '../../context';
 import { useAuth } from '../../hooks';
 
 const ProfilePage = () => {
-  const { user } = useContext(AuthContext);
+  const { user, loading: userLoading } = useContext(AuthContext);
   const { logout } = useAuth();
 
   const [userName, setUserName] = useState(user?.name || '');
-
   const [profileImage, setProfileImage] = useState(
-    `https://placehold.co/100x100/E2E8F0/4A5568?text=${user?.name?.charAt(0).toUpperCase() || 'U'}`
+    user?.profileImage ||
+      `https://placehold.co/100x100/E2E8F0/4A5568?text=${user?.name?.charAt(0).toUpperCase() || 'U'}`
   );
-  const [birthDate, setBirthDate] = useState('');
-  const [bio, setBio] = useState('');
+  const [birthDate, setBirthDate] = useState(user?.birthDate || '');
+  const [bio, setBio] = useState(user?.bio || '');
 
-  // Sidebar é gerenciada pelo AppLayout
+  useEffect(() => {
+    if (user) {
+      setUserName(user.name || '');
+      setProfileImage(
+        user.profileImage ||
+          `https://placehold.co/100x100/E2E8F0/4A5568?text=${user?.name?.charAt(0).toUpperCase() || 'U'}`
+      );
+      setBirthDate(user.birthDate || '');
+      setBio(user.bio || '');
+    }
+  }, [user]);
 
   const handleImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -33,6 +43,28 @@ const ProfilePage = () => {
     e.preventDefault();
     alert('Perfil atualizado com sucesso!');
   };
+
+  if (userLoading) {
+    return (
+      <AppLayout user={user} onLogout={logout}>
+        <div className="text-center">
+          <p className="text-gray-600">Carregando perfil...</p>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!user) {
+    return (
+      <AppLayout user={user} onLogout={logout}>
+        <EmptyState
+          message="Perfil não encontrado"
+          description="Não foi possível carregar os dados do seu perfil. Tente fazer login novamente."
+          className="mt-4"
+        />
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout user={user} onLogout={logout}>
@@ -63,6 +95,19 @@ const ProfilePage = () => {
             </div>
 
             <div className="w-full flex-1">
+              <div className="mb-4">
+                <label className="mb-2 block text-sm font-bold text-gray-700" htmlFor="email">
+                  E-mail
+                </label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Seu e-mail"
+                  value={user?.email || ''}
+                  readOnly
+                  className="bg-gray-100"
+                />
+              </div>
               <div className="mb-4">
                 <label className="mb-2 block text-sm font-bold text-gray-700" htmlFor="name">
                   Nome

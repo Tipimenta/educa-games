@@ -1,10 +1,7 @@
 import { useConfirm } from '../context';
+import { presentError } from '../services';
 import { useToast } from './useToast';
 
-/**
- * Hook para padronizar confirmação + ação + toast
- * Mais genérico que useConfirmDelete, permite diferentes variantes
- */
 export const useConfirmAction = () => {
   const { confirm } = useConfirm();
   const { showToast } = useToast();
@@ -23,8 +20,16 @@ export const useConfirmAction = () => {
       }
 
       return result;
-    } catch {
-      // Usuário cancelou - não fazer nada
+    } catch (err) {
+      const status = err?.status || 500;
+      const errData = err?.data || err;
+      presentError({
+        status,
+        errData,
+        setInline: () => {},
+        showToast,
+      });
+      throw err;
     }
   };
 

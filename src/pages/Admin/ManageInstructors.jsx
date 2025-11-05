@@ -1,8 +1,9 @@
-import { useContext, useState } from 'react';
+import { useContext, useCallback, useMemo, useState } from 'react';
 
 import {
   Button,
   DataTable,
+  EmptyState,
   ErrorMessage,
   Input,
   Label,
@@ -22,18 +23,30 @@ const ManageInstructorsPage = () => {
   const { user } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState('active');
 
-  const { logout, tableFilters, inviteModal, actions } = useManageInstructorsPage(activeTab);
+  const { logout, tableFilters, inviteModal, actions, isLoading, handleSearchChange, handlePageSizeChange, searchInputValue } = useManageInstructorsPage(activeTab);
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     tableFilters.handlePageChange(1);
   };
 
-  const handlePageSizeChange = (size) => {
-    tableFilters.handlePageSizeChange(size);
-  };
+  const renderRow = useCallback(
+    (item) => <InstructorTableRow key={item.id} item={item} tab={activeTab} actions={actions} />,
+    [activeTab, actions]
+  );
 
-  const renderRow = (item) => <InstructorTableRow item={item} tab={activeTab} actions={actions} />;
+  if (isLoading) {
+    return (
+      <AppLayout user={user} onLogout={logout} containerClassName="max-w-full">
+        <div className="px-6">
+          <PageTitle>Gerenciar Instrutores</PageTitle>
+          <div className="text-center">
+            <p className="text-gray-600">Carregando dados...</p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout user={user} onLogout={logout} containerClassName="max-w-full">
@@ -45,9 +58,10 @@ const ManageInstructorsPage = () => {
         <div className="mx-auto mb-6 flex max-w-[95%] flex-col justify-between gap-4 sm:flex-row">
           <div className="flex flex-1 flex-col gap-4 sm:flex-row">
             <SearchInput
+              key={`search-${activeTab}`}
               placeholder="Pesquisar instrutores por nome ou e-mail"
-              value={tableFilters.searchTerm}
-              onChange={tableFilters.handleSearchChange}
+              value={searchInputValue}
+              onChange={handleSearchChange}
             />
             <PageSizeSelector value={tableFilters.pageSize} onChange={handlePageSizeChange} />
           </div>
@@ -58,20 +72,39 @@ const ManageInstructorsPage = () => {
           )}
         </div>
 
-        <DataTable
-          columns={getInstructorColumns(activeTab)}
-          data={tableFilters.paginatedData.data}
-          currentSort={tableFilters.sort}
-          onSort={tableFilters.handleSort}
-          currentPage={tableFilters.currentPage}
-          totalItems={tableFilters.paginatedData.totalItems}
-          pageSize={tableFilters.pageSize}
-          onPageChange={tableFilters.handlePageChange}
-          hasSearch={!!tableFilters.searchTerm}
-          renderRow={renderRow}
-        />
+        {tableFilters.paginatedData.data.length === 0 ? (
+          <EmptyState
+            message={
+              activeTab === 'invites'
+                ? 'Nenhum convite encontrado'
+                : activeTab === 'active'
+                  ? 'Nenhum instrutor ativo encontrado'
+                  : 'Nenhum instrutor inativo encontrado'
+            }
+            description={
+              activeTab === 'invites'
+                ? 'Comece enviando seu primeiro convite para novos instrutores.'
+                : activeTab === 'active'
+                  ? 'Não há instrutores ativos no momento.'
+                  : 'Não há instrutores inativos no momento.'
+            }
+            className="mx-auto mt-4 max-w-[95%]"
+          />
+        ) : (
+          <DataTable
+            columns={getInstructorColumns(activeTab)}
+            data={tableFilters.paginatedData.data}
+            currentSort={tableFilters.sort}
+            onSort={tableFilters.handleSort}
+            currentPage={tableFilters.currentPage}
+            totalItems={tableFilters.paginatedData.totalItems}
+            pageSize={tableFilters.pageSize}
+            onPageChange={tableFilters.handlePageChange}
+            hasSearch={!!searchInputValue}
+            renderRow={renderRow}
+          />
+        )}
 
-        {/* Modal de Novo Convite */}
         <Modal
           isOpen={inviteModal.isOpen}
           onClose={inviteModal.closeModal}
@@ -105,10 +138,10 @@ const ManageInstructorsPage = () => {
               </Button>
               <Button
                 onClick={inviteModal.handleSendInvite}
-                disabled={!inviteModal.isEmailValid()}
+                disabled={!inviteModal.isEmailValid() || inviteModal.isLoading}
                 className="w-auto bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Enviar Convite
+                {inviteModal.isLoading ? 'Enviando...' : 'Enviar Convite'}
               </Button>
             </div>
           </div>

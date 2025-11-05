@@ -1,17 +1,34 @@
 import { useContext, useState } from 'react';
 
-import { CheckIcon, MailIcon, PencilIcon, Trash2Icon, XIcon } from '../../components';
-import AppLayout from '../../components/AppLayout';
-import Button from '../../components/Button';
-import Input from '../../components/Input';
-import PageTitle from '../../components/PageTitle';
-import { AuthContext, ClassesContext } from '../../context';
-import { useAuth, useConfirmDelete } from '../../hooks';
+import {
+  AppLayout,
+  Button,
+  CheckIcon,
+  EmptyState,
+  Input,
+  MailIcon,
+  PageTitle,
+  PencilIcon,
+  Trash2Icon,
+  XIcon,
+} from '../../components';
+import { AuthContext } from '../../context';
+import {
+  useAuth,
+  useClassrooms,
+  useConfirmDelete,
+  useCreateClassroom,
+  useDeleteClassroom,
+  useUpdateClassroom,
+} from '../../hooks';
 
 const ManageClassesPage = () => {
   const { user } = useContext(AuthContext);
-  const { classes, setClasses } = useContext(ClassesContext);
   const { logout } = useAuth();
+  const { data: classes = [], isLoading: isLoadingClasses } = useClassrooms();
+  const createClassroomMutation = useCreateClassroom();
+  const updateClassroomMutation = useUpdateClassroom();
+  const deleteClassroomMutation = useDeleteClassroom();
 
   const [newClassName, setNewClassName] = useState('');
 
@@ -19,22 +36,19 @@ const ManageClassesPage = () => {
   const [editingName, setEditingName] = useState('');
 
   const handleInviteClick = (classItem) => {
-    // Placeholder: aguardando definição da rota de convite
-    // Mantemos apenas um log para não quebrar navegação
     console.log('Convite para turma:', classItem);
-    // Quando a rota estiver definida, poderemos navegar com useNavigate
   };
 
-  const handleAddClass = (e) => {
+  const handleAddClass = async (e) => {
     e.preventDefault();
     if (newClassName.trim() === '') return;
-    setClasses([...classes, { id: Date.now(), name: newClassName.trim() }]);
+    await createClassroomMutation.mutateAsync({ name: newClassName.trim() });
     setNewClassName('');
   };
 
   const handleDeleteClass = useConfirmDelete({
-    onDelete: (classId) => {
-      setClasses(classes.filter((c) => c.id !== classId));
+    onDelete: async (classId) => {
+      await deleteClassroomMutation.mutateAsync(classId);
     },
     title: 'Remover Turma',
     message: 'Tem a certeza que deseja apagar esta turma? Esta ação não pode ser desfeita.',
@@ -51,36 +65,69 @@ const ManageClassesPage = () => {
     setEditingName('');
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (editingName.trim() === '') return;
-    setClasses(classes.map((c) => (c.id === editingId ? { ...c, name: editingName } : c)));
+    await updateClassroomMutation.mutateAsync({
+      id: editingId,
+      data: { name: editingName },
+    });
     handleCancelEdit();
   };
+
+  if (isLoadingClasses) {
+    return (
+      <AppLayout user={user} onLogout={logout}>
+        <PageTitle>Gerir Turmas</PageTitle>
+        <div className="text-center">
+          <p className="text-gray-600">Carregando turmas...</p>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout user={user} onLogout={logout}>
       <PageTitle>Gerir Turmas</PageTitle>
-      <div className="space-y-8">
-        <div className="rounded-lg bg-white p-4 shadow-md">
-          <h3 className="mb-4 text-xl font-bold text-gray-800">Criar Nova Turma</h3>
-          <form onSubmit={handleAddClass} className="flex items-center gap-3">
-            <Input
-              placeholder="Nome da Turma (ex: Bootcamp 2026)"
-              value={newClassName}
-              onChange={(e) => setNewClassName(e.target.value)}
-              className="flex-grow"
-            />
-            <Button type="submit" disabled={newClassName.trim() === ''} className="w-auto px-4">
-              Adicionar Turma
-            </Button>
-          </form>
-        </div>
+      {classes.length === 0 ? (
+        <EmptyState
+          message="Nenhuma turma encontrada"
+          description="Comece criando sua primeira turma para organizar seus alunos."
+          action={
+            <form onSubmit={handleAddClass} className="flex flex-col gap-3 sm:flex-row">
+              <Input
+                placeholder="Nome da Turma (ex: Bootcamp 2026)"
+                value={newClassName}
+                onChange={(e) => setNewClassName(e.target.value)}
+                className="flex-grow"
+              />
+              <Button type="submit" disabled={newClassName.trim() === ''} className="w-auto px-6">
+                Adicionar Turma
+              </Button>
+            </form>
+          }
+          className="mt-4"
+        />
+      ) : (
+        <div className="mt-6 space-y-8">
+          <div className="rounded-lg bg-white p-4 shadow-md">
+            <h3 className="mb-4 text-xl font-bold text-gray-800">Criar Nova Turma</h3>
+            <form onSubmit={handleAddClass} className="flex items-center gap-3">
+              <Input
+                placeholder="Nome da Turma (ex: Bootcamp 2026)"
+                value={newClassName}
+                onChange={(e) => setNewClassName(e.target.value)}
+                className="flex-grow"
+              />
+              <Button type="submit" disabled={newClassName.trim() === ''} className="w-auto px-4">
+                Adicionar Turma
+              </Button>
+            </form>
+          </div>
 
-        <div className="rounded-lg bg-white p-6 shadow-md">
-          <h3 className="mb-4 text-xl font-bold text-gray-800">Turmas Existentes</h3>
-          <ul className="space-y-2">
-            {classes.length > 0 ? (
-              classes.map((classItem) => (
+          <div className="rounded-lg bg-white p-6 shadow-md">
+            <h3 className="mb-4 text-xl font-bold text-gray-800">Turmas Existentes</h3>
+            <ul className="space-y-2">
+              {classes.map((classItem) => (
                 <li
                   key={classItem.id}
                   className="flex h-[58px] items-center justify-between rounded-md bg-gray-50 p-3"
@@ -135,15 +182,11 @@ const ManageClassesPage = () => {
                     </>
                   )}
                 </li>
-              ))
-            ) : (
-              <li className="py-4 text-center text-sm text-gray-500">
-                Nenhuma turma criada ainda.
-              </li>
-            )}
-          </ul>
+              ))}
+            </ul>
+          </div>
         </div>
-      </div>
+      )}
     </AppLayout>
   );
 };

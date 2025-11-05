@@ -1,56 +1,71 @@
-import { useContext, useState } from 'react';
+import { useContext } from 'react';
 import { Link } from 'react-router-dom';
 
-import { ClassSelector, Label, Textarea } from '../../components';
-import AppLayout from '../../components/AppLayout';
-import Button from '../../components/Button';
-import { Trash2Icon } from '../../components/Icons';
-import Input from '../../components/Input';
-import Modal from '../../components/Modal';
-import PageTitle from '../../components/PageTitle';
-import { AuthContext, ClassesContext, CoursesContext } from '../../context';
-import { useAuth, useClassSelection, useConfirmDelete, useModalForm } from '../../hooks';
+import {
+  AppLayout,
+  Button,
+  ClassSelector,
+  EmptyState,
+  Input,
+  Label,
+  Modal,
+  PageTitle,
+  Textarea,
+  Trash2Icon,
+} from '../../components';
+import { AuthContext } from '../../context';
+import {
+  useAuth,
+  useClassrooms,
+  useClassSelection,
+  useConfirmDelete,
+  useCourses,
+  useCreateCourse,
+  useDeleteCourse,
+  useModalForm,
+  useUpdateCourse,
+} from '../../hooks';
 
 const ManageCoursesPage = () => {
   const { user } = useContext(AuthContext);
-  const { courses, setCourses } = useContext(CoursesContext);
-  const { classes } = useContext(ClassesContext);
   const { logout } = useAuth();
+  const { data: courses = [], isLoading: isLoadingCourses } = useCourses();
+  const createCourseMutation = useCreateCourse();
+  const updateCourseMutation = useUpdateCourse();
+  const deleteCourseMutation = useDeleteCourse();
   const classSelection = useClassSelection([]);
+  const { data: classes = [], refetch: refetchClassrooms } = useClassrooms({
+    enabled: false, // Só carregar quando o modal abrir
+  });
 
   const modalForm = useModalForm({
     initialValues: { title: '', description: '' },
     onReset: () => {
       classSelection.reset();
     },
-    onSubmit: (values, editingItem, closeModal) => {
+    onSubmit: async (values, editingItem, closeModal) => {
       if (values.title.trim() === '') return;
       if (editingItem) {
-        setCourses(
-          courses.map((c) =>
-            c.id === editingItem.id
-              ? { ...c, ...values, assignedClasses: classSelection.selectedClasses }
-              : c
-          )
-        );
-      } else {
-        setCourses([
-          ...courses,
-          {
-            id: Date.now(),
-            title: values.title.trim(),
-            description: values.description.trim(),
+        await updateCourseMutation.mutateAsync({
+          id: editingItem.id,
+          data: {
+            ...values,
             assignedClasses: classSelection.selectedClasses,
           },
-        ]);
+        });
+      } else {
+        await createCourseMutation.mutateAsync({
+          ...values,
+          assignedClasses: classSelection.selectedClasses,
+        });
       }
       closeModal();
     },
   });
 
   const handleDeleteCourse = useConfirmDelete({
-    onDelete: (courseId) => {
-      setCourses(courses.filter((c) => c.id !== courseId));
+    onDelete: async (courseId) => {
+      await deleteCourseMutation.mutateAsync(courseId);
     },
     title: 'Remover Curso',
     message:
@@ -58,12 +73,41 @@ const ManageCoursesPage = () => {
     successMessage: 'Curso removido com sucesso',
   });
 
+  if (isLoadingCourses) {
+    return (
+      <AppLayout user={user} onLogout={logout}>
+        <PageTitle>Gerir Cursos</PageTitle>
+        <div className="text-center">
+          <p className="text-gray-600">Carregando cursos...</p>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout user={user} onLogout={logout}>
       <PageTitle>Gerir Cursos</PageTitle>
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {courses.map((course) => (
+
+      {courses.length === 0 ? (
+        <EmptyState
+          message="Nenhum curso encontrado"
+          description="Comece criando seu primeiro curso para organizar seus módulos e conteúdos."
+          action={
+            <Button
+              onClick={() => {
+                refetchClassrooms();
+                modalForm.openCreateModal();
+              }}
+              className="w-auto px-6"
+            >
+              + Novo Curso
+            </Button>
+          }
+          className="mt-4"
+        />
+      ) : (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {courses.map((course) => (
           <div
             key={course.id}
             className="flex flex-col justify-between rounded-lg bg-white p-6 shadow-md"
@@ -89,13 +133,22 @@ const ManageCoursesPage = () => {
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
-      <div className="mt-8 flex justify-center">
-        <Button onClick={modalForm.openCreateModal} className="w-full px-6 sm:w-auto">
-          + Novo Curso
-        </Button>
-      </div>
+      {courses.length > 0 && (
+        <div className="mt-8 flex justify-center">
+          <Button
+            onClick={() => {
+              refetchClassrooms();
+              modalForm.openCreateModal();
+            }}
+            className="w-full px-6 sm:w-auto"
+          >
+            + Novo Curso
+          </Button>
+        </div>
+      )}
 
       <Modal
         isOpen={modalForm.isOpen}
@@ -130,7 +183,9 @@ const ManageCoursesPage = () => {
               namePrefix="course-class"
             />
           </div>
-          <Button type="submit">{modalForm.editingItem ? 'Salvar Alterações' : 'Criar Curso'}</Button>
+          <Button type="submit">
+            {modalForm.editingItem ? 'Salvar Alterações' : 'Criar Curso'}
+          </Button>
         </form>
       </Modal>
     </AppLayout>

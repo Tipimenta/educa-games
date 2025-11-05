@@ -37,5 +37,4 @@ export const createCadastroSchema = (isStudent) =>
       path: ['confirmPassword'],
     });
 
-// Schema padrão para fluxos sem turma obrigatória
 export const cadastroSchema = createCadastroSchema(false);

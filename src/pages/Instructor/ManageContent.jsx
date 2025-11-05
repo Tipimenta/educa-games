@@ -1,36 +1,43 @@
 import { useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-import AppLayout from '../../components/AppLayout';
-import Button from '../../components/Button';
-import PageTitle from '../../components/PageTitle';
-import { AuthContext, CoursesContext, ModulesContext } from '../../context';
-import { useAuth, useConfirmDelete } from '../../hooks';
+import { AppLayout, Button, EmptyState, PageTitle } from '../../components';
+import { AuthContext } from '../../context';
+import { useAuth, useConfirmDelete, useCourses, useDeleteModule, useModules } from '../../hooks';
 
 const ManageContentPage = () => {
   const { user } = useContext(AuthContext);
-  const { courses } = useContext(CoursesContext);
-  const { modules, setModules } = useContext(ModulesContext);
   const { logout } = useAuth();
   const location = useLocation();
 
   const selectedCourseId = location.state?.courseId;
-  const filteredModules = selectedCourseId
-    ? modules.filter((m) => m.courseId === selectedCourseId)
-    : modules;
+  const { data: courses = [], isLoading: isLoadingCourses } = useCourses();
+  const { data: modules = [], isLoading: isLoadingModules } = useModules(selectedCourseId);
+  const deleteModuleMutation = useDeleteModule();
 
   const getCourseTitle = (courseId) =>
     courses.find((c) => c.id === courseId)?.title || 'Curso não encontrado';
 
   const handleDeleteModule = useConfirmDelete({
-    onDelete: (moduleId) => {
-      setModules(modules.filter((module) => module.id !== moduleId));
+    onDelete: async (moduleId) => {
+      await deleteModuleMutation.mutateAsync(moduleId);
     },
     title: 'Remover Módulo',
     message:
       'Tem a certeza que quer apagar este módulo e todo o seu conteúdo? Esta ação não pode ser desfeita.',
     successMessage: 'Módulo removido com sucesso',
   });
+
+  if (isLoadingCourses || isLoadingModules) {
+    return (
+      <AppLayout user={user} onLogout={logout}>
+        <PageTitle>Gerir Módulos</PageTitle>
+        <div className="text-center">
+          <p className="text-gray-600">Carregando módulos...</p>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout user={user} onLogout={logout}>
@@ -48,41 +55,53 @@ const ManageContentPage = () => {
           Módulos do Curso: {getCourseTitle(selectedCourseId)}
         </h3>
       ) : (
-        <p className="mb-4 rounded-md bg-blue-50 p-4 text-blue-700">
-          Selecione "Ver Módulos" a partir da{' '}
-          <Link to="/instructor/manage-courses" className="font-bold underline">
-            página de Cursos
-          </Link>{' '}
-          para ver os módulos de um curso específico.
-        </p>
+        modules.length > 0 && (
+          <p className="mb-4 rounded-md bg-blue-50 p-4 text-blue-700">
+            Selecione "Ver Módulos" a partir da{' '}
+            <Link to="/instructor/manage-courses" className="font-bold underline">
+              página de Cursos
+            </Link>{' '}
+            para ver os módulos de um curso específico.
+          </p>
+        )
       )}
 
-      <div className="rounded-lg bg-white p-6 shadow-md">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b">
-                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                  Título do Módulo
-                </th>
-                {!selectedCourseId && (
+      {modules.length === 0 ? (
+        <EmptyState
+          message="Nenhum módulo encontrado"
+          description={
+            selectedCourseId
+              ? 'Comece criando seu primeiro módulo para este curso.'
+              : 'Selecione um curso para ver seus módulos ou crie um novo módulo.'
+          }
+        />
+      ) : (
+        <div className="rounded-lg bg-white p-6 shadow-md">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b">
                   <th className="px-4 py-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                    Curso
+                    Título do Módulo
                   </th>
-                )}
-                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                  Aulas
-                </th>
-                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                  Questionário
-                </th>
-                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                  Ações
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredModules.map((module) => (
+                  {!selectedCourseId && (
+                    <th className="px-4 py-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
+                      Curso
+                    </th>
+                  )}
+                  <th className="px-4 py-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
+                    Aulas
+                  </th>
+                  <th className="px-4 py-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
+                    Questionário
+                  </th>
+                  <th className="px-4 py-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
+                    Ações
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {modules.map((module) => (
                 <tr key={module.id} className="border-b last:border-b-0 hover:bg-gray-50">
                   <td className="px-4 py-4 font-medium text-gray-800">{module.title}</td>
                   {!selectedCourseId && (
@@ -119,11 +138,12 @@ const ManageContentPage = () => {
                     </button>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
     </AppLayout>
   );
 };

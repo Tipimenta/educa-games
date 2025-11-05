@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 
 import { ROLES } from '../constants';
 import { AuthContext } from '../context';
-import { api, presentError } from '../services';
+import { presentError } from '../services';
+import { useAuthUser, useLogin, useLogout, useRegister } from './useAuthQuery';
 import { useToast } from './useToast';
 
 export const useAuth = () => {
@@ -12,76 +13,62 @@ export const useAuth = () => {
   const { setUser } = useContext(AuthContext);
   const { showToast } = useToast();
 
+  const loginMutation = useLogin();
+  const logoutMutation = useLogout();
+  const registerMutation = useRegister();
+  const { refetch: refetchUser } = useAuthUser({ enabled: false });
+
   const login = async (email, password) => {
     setErrorMessage('');
     try {
-      const res = await api.auth.login(email, password);
+      await loginMutation.mutateAsync({ email, password });
+      const result = await refetchUser();
+      const user = result.data;
 
-      const clonedRes = res.clone();
+      if (user && (user.id || user.userId)) {
+        const normalizedUser = user.userId && !user.id ? { ...user, id: user.userId } : user;
+        setUser(normalizedUser);
+        const role = normalizedUser.role;
+        const normalizedRole = role.toLowerCase();
 
-      if (res.ok) {
-        const userData = await api.auth.getMe();
-
-        if (userData && userData.data) {
-          setUser(userData.data);
-          const role = userData.data.role;
-
-          const normalizedRole = role.toLowerCase();
-
-          if (normalizedRole === ROLES.INSTRUCTOR) {
-            navigate('/instructor/manage-courses');
-          } else if (normalizedRole === ROLES.STUDENT) {
-            navigate('/dashboard');
-          } else if (normalizedRole === ROLES.ADMIN) {
-            navigate('/admin/manage-instructors');
-          } else {
-            navigate('/dashboard');
-          }
+        if (normalizedRole === ROLES.INSTRUCTOR) {
+          navigate('/instructor/manage-classes');
+        } else if (normalizedRole === ROLES.STUDENT) {
+          navigate('/dashboard');
+        } else if (normalizedRole === ROLES.ADMIN) {
+          navigate('/admin/manage-instructors');
         } else {
-          setErrorMessage('Login bem-sucedido, mas não foi possível obter os dados do usuário.');
-          setUser(null);
-          navigate('/login');
+          navigate('/dashboard');
         }
       } else {
-        const contentType = res.headers.get('Content-Type');
-        let errData = {};
-        if (contentType && contentType.includes('application/json')) {
-          errData = await clonedRes.json().catch(() => ({}));
-        } else {
-          const errorText = await clonedRes.text();
-          errData = { message: errorText || 'Erro desconhecido do servidor.' };
-        }
-
-        presentError({ status: res.status, errData, setInline: setErrorMessage, showToast });
+        setErrorMessage('Login bem-sucedido, mas não foi possível obter os dados do usuário.');
+        setUser(null);
+        navigate('/login');
       }
     } catch (err) {
-      let userFriendlyMessage =
-        'Não foi possível conectar ao servidor. Tente novamente em alguns instantes.';
+      const status = err?.status || 500;
+      const errData = err?.data || { message: err?.message || 'Erro ao fazer login' };
 
-      if (err.message) {
-        const errorMsg = err.message.toLowerCase();
-        if (errorMsg.includes('cors') || errorMsg.includes('cross-origin')) {
-          userFriendlyMessage =
-            'Não foi possível conectar ao servidor. Tente novamente em alguns instantes.';
-        } else if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
-          userFriendlyMessage = 'Problema de conexão. Verifique sua internet e tente novamente.';
-        } else if (errorMsg.includes('timeout')) {
-          userFriendlyMessage = 'A conexão demorou muito para responder. Tente novamente.';
-        }
+      if (status >= 400 && status < 500) {
+        presentError({ status, errData, setInline: setErrorMessage, showToast });
+      } else {
+        showToast({
+          message: 'Não foi possível conectar ao servidor. Tente novamente em alguns instantes.',
+          type: 'error',
+        });
+        setErrorMessage('');
       }
-
-      showToast({ message: userFriendlyMessage, type: 'error' });
-      setErrorMessage('');
       console.error('Erro de login:', err);
     }
   };
 
   const logout = async () => {
     try {
-      await api.auth.logout();
+      setUser(null);
+      await logoutMutation.mutateAsync();
+      navigate('/login');
     } catch (err) {
       console.error('Erro no logout:', err);
-    } finally {
       setUser(null);
       navigate('/login');
     }
@@ -90,26 +77,17 @@ export const useAuth = () => {
   const register = async (userData) => {
     setErrorMessage('');
     try {
-      const res = await api.auth.register(userData);
-
-      if (res && typeof res.ok === 'boolean') {
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data);
-          navigate('/dashboard');
-        } else {
-          const errData = await res.json().catch(() => ({}));
-          presentError({ status: res.status, errData, setInline: setErrorMessage, showToast });
-        }
-      } else {
-        setUser(res);
-        navigate('/dashboard');
-      }
+      const result = await registerMutation.mutateAsync(userData);
+      setUser(result);
+      navigate('/dashboard');
     } catch (err) {
-      if (err?.status) {
+      const status = err?.status || 500;
+      const errData = err?.data || {};
+
+      if (status >= 400 && status < 500) {
         presentError({
-          status: err.status,
-          errData: err.data || {},
+          status,
+          errData,
           setInline: setErrorMessage,
           showToast,
         });

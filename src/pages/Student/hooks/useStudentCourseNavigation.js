@@ -1,8 +1,5 @@
 import { useMemo, useState } from 'react';
 
-/**
- * Hook para gerenciar navegação entre cursos e módulos
- */
 export const useStudentCourseNavigation = ({ courses, modules, user }) => {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [selectedModule, setSelectedModule] = useState(null);

@@ -1,11 +1,4 @@
-/**
- * Service for instructor-related business logic
- */
-
 export const instructorService = {
-  /**
-   * Suspends (deactivates) an instructor
-   */
   suspendInstructor: (instructors, inactiveInstructors, instructorId) => {
     const instructor = instructors.find((i) => i.id === instructorId);
     if (!instructor) return { success: false, error: 'Instrutor não encontrado' };
@@ -20,9 +13,6 @@ export const instructorService = {
     };
   },
 
-  /**
-   * Reactivates an instructor
-   */
   reactivateInstructor: (inactiveInstructors, activeInstructors, instructorId) => {
     const instructor = inactiveInstructors.find((i) => i.id === instructorId);
     if (!instructor) return { success: false, error: 'Instrutor não encontrado' };
@@ -37,9 +27,6 @@ export const instructorService = {
     };
   },
 
-  /**
-   * Removes an instructor permanently
-   */
   removeInstructor: (instructors, instructorId, isActive = true) => {
     const instructor = instructors.find((i) => i.id === instructorId);
     if (!instructor) return { success: false, error: 'Instrutor não encontrado' };
@@ -53,13 +40,10 @@ export const instructorService = {
     };
   },
 
-  /**
-   * Creates a new invite
-   */
   createInvite: (email) => {
     const sentAt = new Date();
     const expiresAt = new Date(sentAt);
-    expiresAt.setDate(expiresAt.getDate() + 7); // Expira em 7 dias
+    expiresAt.setDate(expiresAt.getDate() + 7);
 
     return {
       id: Date.now(),
@@ -70,16 +54,13 @@ export const instructorService = {
     };
   },
 
-  /**
-   * Resends an invite
-   */
   resendInvite: (invites, inviteId) => {
     const invite = invites.find((i) => i.id === inviteId);
     if (!invite) return { success: false, error: 'Convite não encontrado' };
 
     const sentAt = new Date();
     const expiresAt = new Date(sentAt);
-    expiresAt.setDate(expiresAt.getDate() + 7); // Expira em 7 dias
+    expiresAt.setDate(expiresAt.getDate() + 7);
 
     const updatedInvites = invites.map((i) =>
       i.id === inviteId
@@ -98,9 +79,6 @@ export const instructorService = {
     };
   },
 
-  /**
-   * Removes an invite
-   */
   removeInvite: (invites, inviteId) => {
     const invite = invites.find((i) => i.id === inviteId);
     if (!invite) return { success: false, error: 'Convite não encontrado' };

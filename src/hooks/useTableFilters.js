@@ -17,7 +17,6 @@ export const useTableFilters = ({
     const lowerSearch = searchTerm.toLowerCase();
     return data.filter((item) => {
       if (searchFields.length === 0) {
-        // Se não especificar campos, busca em todos os valores string
         return Object.values(item).some((value) => {
           if (typeof value === 'string') {
             return value.toLowerCase().includes(lowerSearch);

@@ -4,6 +4,7 @@ Frontend do projeto EducaGames, baseado em React + Vite com Tailwind.
 
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black&style=for-the-badge)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white&style=for-the-badge)](https://vitejs.dev)
+[![React Query](https://img.shields.io/badge/React%20Query-5-FF4154?logo=reactquery&logoColor=white&style=for-the-badge)](https://tanstack.com/query)
 [![Zod](https://img.shields.io/badge/Zod-4-2F2F2F?logo=semanticweb&logoColor=white&style=for-the-badge)](https://zod.dev)
 
 ## Pré-requisitos
@@ -87,13 +88,47 @@ npm run dev
 │   ├── main.jsx
 │   ├── mocks\
 │   ├── pages\
+│   ├── providers\
 │   ├── routes\
 │   ├── schemas\
-│   └── services\
+│   ├── services\
+│   └── utils\
 └── vite.config.js
 ```
 
 Nota rápida sobre imports: há alias `@` para `src/*` (ver `jsconfig.json`). Prefira importar via diretórios, ex.: `import { Button } from '@/components'`.
+
+## Arquitetura de Dados
+
+O projeto utiliza **React Query (TanStack Query)** para gerenciamento de estado de servidor, cache e mutations.
+
+### Padrões de Código
+
+- **Serviços (`src/services/`)**: Centraliza todas as chamadas de API usando Axios. Cada entidade possui seu próprio serviço (ex: `users.js`, `courses.js`, `invites.js`).
+- **Hooks customizados (`src/hooks/`)**: Encapsulam lógica de React Query para consumo de dados. Exemplos: `useUsers()`, `useCourses()`, `useClassrooms()`, `useInvites()`.
+- **Componentes**: Nenhum componente deve usar `fetch`/`axios`/`useEffect` diretamente para carregar dados. Use apenas hooks customizados.
+- **Mutations**: Todas as mutações (create, update, delete) invalidam o cache automaticamente usando `queryClient.invalidateQueries()`.
+
+### Exemplo de Uso
+
+```javascript
+// ❌ NÃO fazer isso em componentes
+useEffect(() => {
+  fetch('/api/users').then(...)
+}, [])
+
+// ✅ Fazer isso
+import { useUsers } from '@/hooks';
+const { data, isLoading, error } = useUsers();
+```
+
+### Configuração do React Query
+
+O `QueryClient` está configurado em `src/App.jsx` com:
+
+- `staleTime`: 5 minutos
+- `refetchOnWindowFocus`: false
+- `retry`: 1 para queries, 0 para mutations
 
 ## Proxy e Mocks
 

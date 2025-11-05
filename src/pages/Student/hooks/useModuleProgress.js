@@ -1,23 +1,18 @@
 import { useMemo, useState } from 'react';
 
-/**
- * Hook para gerenciar progresso do módulo atual
- */
 export const useModuleProgress = ({ selectedModule, user }) => {
   const [completedLessonsUI, setCompletedLessonsUI] = useState(new Set());
 
   const completedLessons = useMemo(() => new Set(completedLessonsUI), [completedLessonsUI]);
 
   const lessonProgress = useMemo(() => {
-    if (!selectedModule || !selectedModule.lessons || selectedModule.lessons.length === 0)
-      return 0;
+    if (!selectedModule || !selectedModule.lessons || selectedModule.lessons.length === 0) return 0;
     return (completedLessons.size / selectedModule.lessons.length) * 100;
   }, [completedLessons, selectedModule]);
 
   const allLessonsCompleted = useMemo(() => lessonProgress >= 100, [lessonProgress]);
 
-  const isQuizFinalized =
-    selectedModule && user.progress.finalizedQuizzes.has(selectedModule.id);
+  const isQuizFinalized = selectedModule && user.progress.finalizedQuizzes.has(selectedModule.id);
 
   const initializeProgress = (module) => {
     if (!module) return;
@@ -38,4 +33,3 @@ export const useModuleProgress = ({ selectedModule, user }) => {
     initializeProgress,
   };
 };
-

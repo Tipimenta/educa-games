@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { isValid, validateAll, validateSingleField } from '../schemas/helpers';
 
@@ -7,21 +7,61 @@ export const useForm = ({ initialValues = {}, schema, onSubmit }) => {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const initialValuesRef = useRef(initialValues);
+  const isInitialMountRef = useRef(true);
 
-  const handleChange = (field, value) => {
-    setValues((prev) => ({ ...prev, [field]: value }));
-
-    // Validação em tempo real apenas para campos que foram tocados
-    if (touched[field] && schema) {
-      const error = validateSingleField(schema, { ...values, [field]: value }, field);
-      setErrors((prev) => ({ ...prev, [field]: error || '' }));
+  useEffect(() => {
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+      return;
     }
-  };
+
+    const hasChanged = JSON.stringify(initialValuesRef.current) !== JSON.stringify(initialValues);
+    if (hasChanged) {
+      initialValuesRef.current = initialValues;
+      setValues((prev) => {
+        const updated = { ...prev };
+        let hasChanges = false;
+        Object.keys(initialValues).forEach((key) => {
+          if (initialValues[key] !== prev[key] && !touched[key]) {
+            updated[key] = initialValues[key];
+            hasChanges = true;
+          }
+        });
+        return hasChanges ? updated : prev;
+      });
+    }
+  }, [initialValues, touched]);
+
+  const touchedRef = useRef(touched);
+  const valuesRef = useRef(values);
+  const schemaRef = useRef(schema);
+
+  touchedRef.current = touched;
+  valuesRef.current = values;
+  schemaRef.current = schema;
+
+  const handleChange = useCallback((field, value) => {
+    setValues((prev) => {
+      const newValues = { ...prev, [field]: value };
+      valuesRef.current = newValues;
+
+      if (touchedRef.current[field] && schemaRef.current) {
+        const error = validateSingleField(
+          schemaRef.current,
+          { ...touchedRef.current, ...newValues, [field]: value },
+          field
+        );
+        setErrors((prevErrors) => ({ ...prevErrors, [field]: error || '' }));
+      }
+
+      return newValues;
+    });
+  }, []);
 
   const handleBlur = (field) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
 
-    // Validar campo ao perder foco
     if (schema) {
       const error = validateSingleField(schema, values, field);
       setErrors((prev) => ({ ...prev, [field]: error || '' }));
@@ -31,11 +71,9 @@ export const useForm = ({ initialValues = {}, schema, onSubmit }) => {
   const handleSubmit = async (e) => {
     e?.preventDefault();
 
-    // Marcar todos os campos como tocados
     const allTouched = Object.keys(values).reduce((acc, key) => ({ ...acc, [key]: true }), {});
     setTouched(allTouched);
 
-    // Validar todos os campos
     if (schema) {
       const validationErrors = validateAll(schema, values);
       setErrors(validationErrors);
@@ -45,7 +83,6 @@ export const useForm = ({ initialValues = {}, schema, onSubmit }) => {
       }
     }
 
-    // Executar submit
     if (onSubmit) {
       setIsSubmitting(true);
       try {
@@ -63,23 +100,26 @@ export const useForm = ({ initialValues = {}, schema, onSubmit }) => {
     setIsSubmitting(false);
   };
 
-  const setFieldValue = (field, value) => {
-    handleChange(field, value);
-  };
+  const setFieldValue = useCallback(
+    (field, value) => {
+      handleChange(field, value);
+    },
+    [handleChange]
+  );
 
-  const setFieldError = (field, error) => {
+  const setFieldError = useCallback((field, error) => {
     setErrors((prev) => ({ ...prev, [field]: error }));
-  };
+  }, []);
 
   const isFormValid = schema ? isValid(schema, values) : true;
 
-  const setTouchedField = (field, value = true) => {
+  const setTouchedField = useCallback((field, value = true) => {
     if (typeof field === 'object') {
       setTouched(field);
     } else {
       setTouched((prev) => ({ ...prev, [field]: value }));
     }
-  };
+  }, []);
 
   const setAllErrors = (errs) => setErrors(errs);
 

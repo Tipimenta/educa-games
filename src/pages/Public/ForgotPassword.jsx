@@ -23,7 +23,6 @@ export default function ForgotPasswordPage() {
 
     setLoading(true);
     try {
-      // TODO: Implementar chamada à API
       await new Promise((resolve) => setTimeout(resolve, 1000));
       showToast({
         message: 'O link de recuperação de senha foi enviado com sucesso!',

@@ -1,35 +1,38 @@
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { ROLES } from '../../../constants';
 import { ClassesContext } from '../../../context';
 import { useToast } from '../../../hooks';
+import { useCompleteSignup } from '../../../hooks/useAuthQuery';
 import { useForm } from '../../../hooks/useForm';
 import { NetworkError, ValidationError } from '../../../lib/errors';
 import { createCadastroSchema, validateAll } from '../../../schemas';
-import { api, isCorsError, presentError } from '../../../services';
+import { isCorsError, presentError } from '../../../services';
 
 export const useSignUpForm = ({ userRole = ROLES.STUDENT, inviteData, inviteToken }) => {
   const { classes } = useContext(ClassesContext);
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const completeSignupMutation = useCompleteSignup();
 
   const schema = useMemo(() => {
     return createCadastroSchema((inviteData ? inviteData.role : userRole) === ROLES.STUDENT);
   }, [inviteData, userRole]);
 
+  const [submitError, setSubmitError] = useState('');
+  const lastInviteEmailRef = useRef(null);
+
   const initialValues = useMemo(
     () => ({
       name: '',
-      email: '',
+      email: inviteData?.email || '',
       password: '',
       confirmPassword: '',
       class: '',
     }),
-    []
+    [inviteData?.email]
   );
-
-  const [submitError, setSubmitError] = useState('');
 
   const form = useForm({
     initialValues,
@@ -42,9 +45,9 @@ export const useSignUpForm = ({ userRole = ROLES.STUDENT, inviteData, inviteToke
           invite: inviteToken,
         };
 
-        const successData = await api.auth.completeSignup(payload);
+        const message = await completeSignupMutation.mutateAsync(payload);
         showToast({
-          message: successData.message || 'Cadastro realizado com sucesso! Redirecionando...',
+          message: message || 'Cadastro realizado com sucesso! Redirecionando...',
           type: 'success',
           duration: 2000,
         });
@@ -57,21 +60,21 @@ export const useSignUpForm = ({ userRole = ROLES.STUDENT, inviteData, inviteToke
     },
   });
 
-  // Atualizar email quando inviteData mudar
+  const { setTouched, setFieldError } = form;
   useEffect(() => {
-    if (inviteData?.email && form.values.email !== inviteData.email) {
-      form.setFieldValue('email', inviteData.email);
+    const inviteEmail = inviteData?.email;
+    if (inviteEmail && inviteEmail !== lastInviteEmailRef.current) {
+      lastInviteEmailRef.current = inviteEmail;
+      setTouched('email', true);
+      setFieldError('email', '');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inviteData?.email]);
+  }, [inviteData?.email, setTouched, setFieldError]);
 
   const handleSignup = async (e) => {
     e.preventDefault();
 
-    // Validar antes de chamar handleSubmit do form
     const errors = validateAll(schema, form.values);
     if (Object.keys(errors).length > 0) {
-      // Marcar todos como touched
       Object.keys(form.values).forEach((key) => {
         form.handleBlur(key);
       });

@@ -1,8 +1,5 @@
 import { useMemo } from 'react';
 
-/**
- * Hook para calcular estatísticas do dashboard do estudante
- */
 export const useDashboardStats = ({ user, students, courses, modules }) => {
   const currentUserData = useMemo(() => {
     return students.find((s) => s.id === user.id) || user;

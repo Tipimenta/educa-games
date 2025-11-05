@@ -1,16 +1,11 @@
 import { useContext, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import Button from '../../components/Button';
-import Header from '../../components/Header';
-import { ChevronLeftIcon } from '../../components/Icons';
-import Input from '../../components/Input';
-import Sidebar from '../../components/Sidebar';
-import Stepper from '../../components/Stepper';
+import { Button, ChevronLeftIcon, Header, Input, Sidebar, Stepper } from '../../components';
 import { AuthContext, ModulesContext } from '../../context';
 import { useAuth, useToast } from '../../hooks';
-import LessonEditor from './components/LessonEditor';
-import QuizEditor from './components/QuizEditor';
+import { contentService } from '../../services';
+import { LessonEditor, QuizEditor } from './components';
 
 const ModuleEditor = () => {
   const { user } = useContext(AuthContext);
@@ -53,7 +48,7 @@ const ModuleEditor = () => {
     if (moduleId) {
       setModules(modules.map((m) => (m.id === parseInt(moduleId) ? currentModule : m)));
     } else {
-      const newModule = { ...currentModule, id: Date.now(), courseId: courseId };
+      const newModule = contentService.createModule(courseId, currentModule);
       setModules([...modules, newModule]);
     }
     navigate('/instructor/manage-content', {
@@ -66,7 +61,7 @@ const ModuleEditor = () => {
   };
 
   const addLesson = () => {
-    const newLesson = { id: Date.now(), title: '', points: 5, description: '', resources: [] };
+    const newLesson = contentService.createLesson();
     handleModuleChange('lessons', [...currentModule.lessons, newLesson]);
   };
   const removeLesson = (index) => {
@@ -80,7 +75,7 @@ const ModuleEditor = () => {
   };
   const addResource = (lessonIndex, type) => {
     const newLessons = [...currentModule.lessons];
-    const newResource = { id: Date.now(), type, content: '' };
+    const newResource = contentService.createResource(type);
     newLessons[lessonIndex].resources.push(newResource);
     handleModuleChange('lessons', newLessons);
   };
@@ -108,13 +103,7 @@ const ModuleEditor = () => {
     handleModuleChange('quiz', { questions: newQuestions });
   };
   const addQuestion = () => {
-    const newQuestion = {
-      id: Date.now(),
-      text: '',
-      options: ['', ''],
-      correctAnswer: '',
-      points: 10,
-    };
+    const newQuestion = contentService.createQuizQuestion();
     handleModuleChange('quiz', { questions: [...currentModule.quiz.questions, newQuestion] });
   };
   const removeQuestion = (qIndex) => {

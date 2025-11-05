@@ -11,7 +11,6 @@ import {
 import AppLayout from '../../components/AppLayout';
 import { AuthContext, CoursesContext, ModulesContext } from '../../context';
 import { useAuth, useStudentProgress } from '../../hooks';
-
 import ModuleContentViewer from './components/ModuleContentViewer';
 import ModuleSidebar from './components/ModuleSidebar';
 import { useModuleProgress } from './hooks/useModuleProgress';
@@ -33,7 +32,6 @@ const StudentCoursesPage = () => {
     user,
   });
 
-  // Inicializar progresso quando um módulo for selecionado
   useEffect(() => {
     if (navigation.selectedModule) {
       progress.initializeProgress(navigation.selectedModule);

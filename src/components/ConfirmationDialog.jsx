@@ -13,7 +13,6 @@ const ConfirmationDialog = ({
   actionType = 'delete', // 'delete', 'resend', 'custom'
   isLoading = false,
 }) => {
-  // Configurações baseadas no tipo de ação
   const getActionConfig = () => {
     switch (actionType) {
       case 'delete':
@@ -43,7 +42,6 @@ const ConfirmationDialog = ({
 
   const actionConfig = getActionConfig();
 
-  // Configurações visuais baseadas na variante
   const getVariantStyles = () => {
     const finalVariant = variant || actionConfig.variant;
 

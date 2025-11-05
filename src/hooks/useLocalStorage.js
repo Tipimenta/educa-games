@@ -1,11 +1,5 @@
 import { useState } from 'react';
 
-/**
- * Hook para gerenciar estado no localStorage
- * @param {string} key - Chave do localStorage
- * @param {any} initialValue - Valor inicial se a chave não existir
- * @returns {[any, function]} - Valor atual e função para atualizar
- */
 export const useLocalStorage = (key, initialValue) => {
   const [storedValue, setStoredValue] = useState(() => {
     try {
@@ -30,12 +24,6 @@ export const useLocalStorage = (key, initialValue) => {
   return [storedValue, setValue];
 };
 
-/**
- * Hook para gerenciar estado booleano no localStorage
- * @param {string} key - Chave do localStorage
- * @param {boolean} initialValue - Valor inicial se a chave não existir
- * @returns {[boolean, function]} - Valor atual e função para atualizar
- */
 export const useLocalStorageBoolean = (key, initialValue = false) => {
   const [value, setValue] = useLocalStorage(key, initialValue);
 

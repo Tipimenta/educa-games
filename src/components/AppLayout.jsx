@@ -17,7 +17,6 @@ export default function AppLayout({ user, onLogout, children, containerClassName
         toggleSidebar={() => setSidebarCollapsed((prev) => !prev)}
         onLogout={onLogout}
       />
-      {/* Overlay para mobile quando sidebar está aberta */}
       {!isSidebarCollapsed && (
         <div
           className="fixed inset-0 z-20 bg-black/50 md:hidden"
@@ -31,13 +30,12 @@ export default function AppLayout({ user, onLogout, children, containerClassName
           onMouseEnter={() => setSidebarCollapsed(false)}
           onMouseLeave={() => setSidebarCollapsed(true)}
           onLinkClick={() => {
-            // Fechar sidebar no mobile quando clicar em um link
             const isMobile = window.matchMedia('(max-width: 767px)').matches;
             if (isMobile) {
               setSidebarCollapsed(true);
             }
           }}
-          userRole={user?.role}
+          userRole={user?.role?.toLowerCase()}
         />
         <div
           className={`flex flex-1 flex-col transition-[margin] duration-300 ease-in-out ${offsetClass}`}

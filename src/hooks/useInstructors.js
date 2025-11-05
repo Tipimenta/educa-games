@@ -7,9 +7,11 @@ import {
 } from '../mocks/data';
 import { instructorService } from '../services';
 import { useConfirmAction } from './useConfirmAction';
+import { useSendInvite } from './useInvites';
 
 export const useInstructors = () => {
   const { executeWithConfirmation } = useConfirmAction();
+  const sendInviteMutation = useSendInvite();
 
   const [activeInstructors, setActiveInstructors] = useState([...initialActiveInstructors]);
   const [inactiveInstructors, setInactiveInstructors] = useState([...initialInactiveInstructors]);
@@ -143,9 +145,12 @@ export const useInstructors = () => {
     });
   };
 
-  const sendNewInvite = (email) => {
+  const sendNewInvite = async (email) => {
+    await sendInviteMutation.mutateAsync(email);
     const newInvite = instructorService.createInvite(email);
     setPendingInvites((prev) => [...prev, newInvite]);
+
+    return { success: true };
   };
 
   return {

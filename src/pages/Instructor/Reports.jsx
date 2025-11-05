@@ -1,41 +1,59 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { FormattedDate, PageTitle } from '../../components';
-import AppLayout from '../../components/AppLayout';
-import { AuthContext, ClassesContext, ModulesContext, StudentsContext } from '../../context';
-import { useAuth } from '../../hooks';
+import { AppLayout, EmptyState, FormattedDate, PageTitle } from '../../components';
+import { AuthContext } from '../../context';
+import { useAuth, useClassrooms, useModules, useStudents } from '../../hooks';
 
 const ReportsPage = () => {
   const { user } = useContext(AuthContext);
-  const { classes } = useContext(ClassesContext);
-  const { students } = useContext(StudentsContext);
-  const { modules } = useContext(ModulesContext);
   const { logout } = useAuth();
-  const [selectedClass, setSelectedClass] = useState(
-    classes && classes.length > 0 ? classes[0].name : ''
-  );
+  const { data: classes = [], isLoading: isLoadingClasses } = useClassrooms();
+  const { data: students = [], isLoading: isLoadingStudents } = useStudents();
+  const { data: modules = [], isLoading: isLoadingModules } = useModules();
+
+  const [selectedClass, setSelectedClass] = useState('');
 
   useEffect(() => {
-    if ((!selectedClass || !classes.some((c) => c.name === selectedClass)) && classes?.length > 0) {
+    if (classes.length > 0 && (!selectedClass || !classes.some((c) => c.name === selectedClass))) {
       setSelectedClass(classes[0].name);
     }
   }, [classes, selectedClass]);
 
-  const filteredAndSortedStudents = (students || [])
-    .filter((student) => {
-      const studentClass = classes.find((c) => c.id === student.classId);
-      return studentClass?.name === selectedClass;
-    })
-    .sort((a, b) => b.score - a.score);
+  const filteredAndSortedStudents = useMemo(() => {
+    if (!selectedClass || !classes.length || !students.length) return [];
+    const selectedClassObj = classes.find((c) => c.name === selectedClass);
+    if (!selectedClassObj) return [];
+    return students
+      .filter((student) => student.classId === selectedClassObj.id)
+      .sort((a, b) => (b.score || 0) - (a.score || 0));
+  }, [students, classes, selectedClass]);
+
+  const isLoading = isLoadingClasses || isLoadingStudents || isLoadingModules;
+
+  if (isLoading) {
+    return (
+      <AppLayout user={user} onLogout={logout}>
+        <PageTitle>Demonstrativo de Alunos</PageTitle>
+        <div className="text-center">
+          <p className="text-gray-600">Carregando dados...</p>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout user={user} onLogout={logout}>
-      <main className="flex-grow p-6">
-        <div className="mx-auto max-w-7xl">
-          <PageTitle>Demonstrativo de Alunos</PageTitle>
+      <PageTitle>Demonstrativo de Alunos</PageTitle>
 
-          <div className="rounded-lg bg-white p-6 shadow-md">
+      {classes.length === 0 ? (
+        <EmptyState
+          message="Nenhuma turma encontrada"
+          description="Crie turmas para ver o demonstrativo de alunos."
+          className="mt-4"
+        />
+      ) : (
+        <div className="rounded-lg bg-white p-6 shadow-md">
             <div className="mb-6 flex items-center justify-between">
               <h3 className="text-xl font-bold text-gray-800">
                 Ranking e Progresso - {selectedClass || 'Nenhuma turma selecionada'}
@@ -128,8 +146,7 @@ const ReportsPage = () => {
               </table>
             </div>
           </div>
-        </div>
-      </main>
+        )}
     </AppLayout>
   );
 };

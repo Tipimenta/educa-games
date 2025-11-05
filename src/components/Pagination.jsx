@@ -13,7 +13,6 @@ const PageButton = ({ children, onClick, disabled = false, active = false }) => 
 };
 
 const buildPageRange = (totalPages, currentPage) => {
-  // Large layout: show first, last, current +/-1 with ellipses when needed
   const pages = new Set([1, totalPages, currentPage]);
   if (currentPage - 1 >= 1) pages.add(currentPage - 1);
   if (currentPage + 1 <= totalPages) pages.add(currentPage + 1);
@@ -40,7 +39,6 @@ export default function Pagination({ currentPage, totalItems, pageSize, onPageCh
 
   return (
     <div className="mt-1 border-t border-gray-200 px-3 py-1">
-      {/* Large screens: full controls aligned right */}
       <div className="hidden w-full items-center justify-end gap-2 lg:flex">
         <div className="mr-auto text-sm text-gray-700">
           Mostrando {from}–{to} de {totalItems} registros
@@ -68,12 +66,10 @@ export default function Pagination({ currentPage, totalItems, pageSize, onPageCh
         </PageButton>
       </div>
 
-      {/* Medium screens: fewer numbers, centered */}
       <div className="hidden w-full items-center justify-center gap-2 sm:flex lg:hidden">
         <PageButton onClick={goPrev} disabled={currentPage === 1}>
           Anterior
         </PageButton>
-        {/* Show 1, current, last with ellipses when needed */}
         <PageButton onClick={() => onPageChange(1)} active={currentPage === 1}>
           1
         </PageButton>
@@ -94,7 +90,6 @@ export default function Pagination({ currentPage, totalItems, pageSize, onPageCh
         </PageButton>
       </div>
 
-      {/* Small screens: show only arrows and summary */}
       <div className="flex w-full items-center justify-center gap-3 text-sm sm:hidden">
         <PageButton onClick={goPrev} disabled={currentPage === 1}>
           &lt;

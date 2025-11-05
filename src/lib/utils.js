@@ -1,24 +1,20 @@
 import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-variants';
+import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
-// Normalização simples para comparar status vindos do backend sem depender de maiúsculas/minúsculas
 export function normalizeStatus(status) {
   if (status == null) return '';
   return String(status).trim().toLowerCase();
 }
 
-// Comparação de status case-insensitive
 export function equalsStatus(a, b) {
   return normalizeStatus(a) === normalizeStatus(b);
 }
 
-// Tradução para português dos status comuns e de convites
 const STATUS_PT = {
-  // Convites
   'não_enviado': 'Não enviado',
   'nao_enviado': 'Não enviado',
   'not_sent': 'Não enviado',
@@ -29,8 +25,6 @@ const STATUS_PT = {
   'accepted': 'Aceito',
   'expirado': 'Expirado',
   'expired': 'Expirado',
-
-  // Genéricos
   'pending': 'Pendente',
   'pendente': 'Pendente',
   'active': 'Ativo',

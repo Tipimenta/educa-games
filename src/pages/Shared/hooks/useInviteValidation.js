@@ -1,84 +1,81 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { useToast } from '../../../hooks';
-import { NetworkError, UnauthorizedError, ValidationError } from '../../../lib/errors';
-import { api, presentError } from '../../../services';
+import { useValidateInvite } from '../../../hooks/useAuthQuery';
+import { presentError } from '../../../services';
 
 export const useInviteValidation = () => {
   const [searchParams] = useSearchParams();
   const { showToast } = useToast();
-
-  const [inviteToken, setInviteToken] = useState(null);
-  const [inviteData, setInviteData] = useState(null);
-  const [isLoadingInvite, setIsLoadingInvite] = useState(false);
+  const lastTokenRef = useRef(null);
   const [inviteError, setInviteError] = useState('');
 
-  const validateInvite = useCallback(
-    async (token) => {
-      setIsLoadingInvite(true);
-      setInviteError('');
-      try {
-        const response_data = await api.auth.validateInvite(token);
-
-        const inviteInfo = response_data?.data;
-        const backendMessage = response_data?.message;
-
-        if (!inviteInfo || !inviteInfo.email) {
-          setInviteData(null);
-          setInviteError(backendMessage || 'Convite inválido ou expirado.');
-          return null;
-        }
-
-        setInviteData(inviteInfo);
-        setInviteError('');
-        return inviteInfo;
-      } catch (error) {
-        if (error instanceof NetworkError) {
-          showToast({ message: 'Erro ao se comunicar com o servidor', type: 'error' });
-          setInviteError('');
-        } else if (error instanceof UnauthorizedError) {
-          setInviteError('Sessão expirada. Faça login novamente.');
-        } else if (error instanceof ValidationError || error?.status) {
-          presentError({
-            status: error.status || 400,
-            errData: error.data || { message: error.message },
-            setInline: (msg) => setInviteError(msg),
-            showToast,
-          });
-        } else {
-          showToast({ message: 'Erro ao se comunicar com o servidor', type: 'error' });
-          setInviteError('');
-        }
-        return null;
-      } finally {
-        setIsLoadingInvite(false);
-      }
-    },
-    [showToast]
+  const token = useMemo(
+    () => searchParams.get('token') || searchParams.get('invite'),
+    [searchParams]
   );
 
+  const {
+    data: normalized,
+    isLoading: isLoadingInvite,
+    mutate: validateInvite,
+  } = useValidateInvite({
+    onError: (err) => {
+      const status = err?.status || 500;
+      const errData = err?.data || { message: err?.message };
+
+      if (status >= 500) {
+        showToast({ message: 'Erro ao se comunicar com o servidor', type: 'error' });
+        setInviteError('');
+      } else if (status === 401) {
+        setInviteError('Sessão expirada. Faça login novamente.');
+      } else {
+        presentError({
+          status,
+          errData,
+          setInline: (msg) => setInviteError(msg),
+          showToast,
+        });
+      }
+    },
+  });
+
   useEffect(() => {
-    const token = searchParams.get('token') || searchParams.get('invite');
-
-    if (!window.__lastInviteTokenRef) {
-      window.__lastInviteTokenRef = { value: null };
-    }
-    const last = window.__lastInviteTokenRef;
-
-    if (token && token !== last.value) {
-      last.value = token;
-      setInviteToken(token);
-      validateInvite(token);
-    } else if (!token) {
+    if (token) {
+      if (token !== lastTokenRef.current) {
+        lastTokenRef.current = token;
+        setInviteError('');
+        validateInvite(token);
+      } else if (!normalized && !isLoadingInvite) {
+        validateInvite(token);
+      }
+    } else {
       setInviteError(
         'Acesso negado. Esta página só pode ser acessada através de um convite válido.'
       );
     }
-  }, [searchParams, validateInvite]);
+  }, [token, validateInvite, normalized, isLoadingInvite]);
+
+  const inviteData = useMemo(() => {
+    if (!normalized) return null;
+    const inviteInfo = normalized?.invite;
+    if (!inviteInfo || !inviteInfo.email) {
+      const backendMessage = normalized?.message;
+      if (backendMessage && !inviteError) {
+        setInviteError(backendMessage || 'Convite inválido ou expirado.');
+      }
+      return null;
+    }
+    const normalizedRole = inviteInfo.role?.toLowerCase() || inviteInfo.role;
+    return {
+      email: inviteInfo.email,
+      role: normalizedRole,
+    };
+  }, [normalized, inviteError]);
 
   return {
-    inviteToken,
+    inviteToken: token,
     inviteData,
     isLoadingInvite,
     inviteError,

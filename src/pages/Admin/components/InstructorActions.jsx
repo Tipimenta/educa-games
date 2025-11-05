@@ -17,7 +17,7 @@ const InstructorActions = ({ tab, item, actions }) => {
         />
         <ActionButton
           icon={Trash2}
-          onClick={() => removeInstructor(item.id, true)}
+          onClick={() => removeInstructor(item.id)}
           title="Excluir instrutor"
           variant="delete"
         />
@@ -36,7 +36,7 @@ const InstructorActions = ({ tab, item, actions }) => {
         />
         <ActionButton
           icon={Trash2}
-          onClick={() => removeInstructor(item.id, false)}
+          onClick={() => removeInstructor(item.id)}
           title="Excluir instrutor"
           variant="delete"
         />
