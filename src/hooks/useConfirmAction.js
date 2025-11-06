@@ -1,5 +1,5 @@
-import { useConfirm } from '../context';
-import { presentError } from '../services';
+import { useConfirm, UserCancelledError } from '../context';
+import { extractErrorMessage, presentError } from '../services';
 import { useToast } from './useToast';
 
 export const useConfirmAction = () => {
@@ -21,14 +21,27 @@ export const useConfirmAction = () => {
 
       return result;
     } catch (err) {
-      const status = err?.status || 500;
-      const errData = err?.data || err;
-      presentError({
-        status,
-        errData,
-        setInline: () => {},
-        showToast,
-      });
+      if (err instanceof UserCancelledError) {
+        return;
+      }
+
+      const status = err?.status || err?.response?.status || err?.error?.status || 500;
+      const errData = err?.data || err?.response?.data || err?.error?.data || err || {};
+
+      // Para erros 400-499, mostrar toast com a mensagem do erro
+      if (status >= 400 && status < 500) {
+        const msg = extractErrorMessage(errData);
+        showToast({ message: msg || 'Erro ao processar a solicitação', type: 'error' });
+      } else {
+        // Para outros erros, usar presentError que já trata 500+ e outros casos
+        presentError({
+          status,
+          errData,
+          setInline: () => {},
+          showToast,
+        });
+      }
+
       throw err;
     }
   };

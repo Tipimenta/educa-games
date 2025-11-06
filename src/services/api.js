@@ -10,7 +10,7 @@ import {
   initialStudents,
 } from '../mocks/data';
 
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true';
 const MOCK_USER_ROLE = (import.meta.env.VITE_MOCK_USER_ROLE || 'student').toLowerCase();

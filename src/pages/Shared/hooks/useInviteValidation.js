@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 
 import { useToast } from '../../../hooks';
 import { useValidateInvite } from '../../../hooks/useAuthQuery';
-import { presentError } from '../../../services';
+import { extractErrorMessage, presentError } from '../../../services';
 
 export const useInviteValidation = () => {
   const [searchParams] = useSearchParams();
@@ -24,12 +24,16 @@ export const useInviteValidation = () => {
     onError: (err) => {
       const status = err?.status || 500;
       const errData = err?.data || { message: err?.message };
+      const errorMessage = errData?.message || err?.message || '';
 
       if (status >= 500) {
         showToast({ message: 'Erro ao se comunicar com o servidor', type: 'error' });
         setInviteError('');
       } else if (status === 401) {
         setInviteError('Sessão expirada. Faça login novamente.');
+      } else if (status === 409 && errorMessage.toLowerCase().includes('convite')) {
+        const backendMessage = extractErrorMessage(errData);
+        setInviteError(backendMessage);
       } else {
         presentError({
           status,

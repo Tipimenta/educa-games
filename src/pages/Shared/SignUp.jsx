@@ -23,14 +23,22 @@ const SignUpPage = ({ userRole = ROLES.STUDENT }) => {
   }
 
   if (invite.inviteError) {
+    // Para erro de convite inválido ou já utilizado (status 409), sempre mostra "Acesso Restrito" e botão de login
+    const isInviteError = invite.inviteError.toLowerCase().includes('convite');
+    const showRestrictedAccess = isInviteError || !invite.inviteToken;
+
     return (
       <AuthLayout>
         <div className="text-center">
           <h2 className="mb-4 text-xl font-bold text-red-600">
-            {invite.inviteToken ? 'Convite Inválido' : 'Acesso Restrito'}
+            {showRestrictedAccess ? 'Acesso Restrito' : 'Convite Inválido'}
           </h2>
-          <p className="text-gray-600">{invite.inviteError}</p>
-          {!invite.inviteToken && (
+          <p className="text-gray-600">
+            {isInviteError
+              ? 'Acesso negado. Esta página só pode ser acessada através de um convite válido.'
+              : invite.inviteError}
+          </p>
+          {showRestrictedAccess && (
             <div className="mt-6">
               <Link
                 to="/login"

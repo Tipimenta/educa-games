@@ -2,6 +2,14 @@ import { createContext, useContext, useState } from 'react';
 
 import ConfirmationDialog from '../components/ConfirmationDialog';
 
+// Classe de erro específica para cancelamento pelo usuário
+export class UserCancelledError extends Error {
+  constructor() {
+    super('Cancelado pelo usuário');
+    this.name = 'UserCancelledError';
+  }
+}
+
 export const ConfirmContext = createContext({
   confirm: () => Promise.reject(new Error('ConfirmContext não encontrado')),
 });
@@ -31,7 +39,7 @@ export function ConfirmProvider({ children }) {
         },
         onCancel: () => {
           setConfirmState((prev) => ({ ...prev, isOpen: false }));
-          reject(new Error('Cancelado pelo usuário'));
+          reject(new UserCancelledError());
         },
       });
     });

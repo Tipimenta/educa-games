@@ -41,7 +41,8 @@ export const useManageInstructorsPage = (activeTab) => {
   }, [inputValue]);
 
   const backendPage = currentPage - 1;
-  const sortBy = sort.column === 'name' ? 'name' : sort.column === 'expiresAt' ? 'expiresAt' : 'email';
+  const sortBy =
+    sort.column === 'name' ? 'name' : sort.column === 'expiresAt' ? 'expiresAt' : 'email';
   const sortDir = sort.direction.toUpperCase();
 
   const activeInstructorsQuery = useInstructors({
@@ -87,9 +88,15 @@ export const useManageInstructorsPage = (activeTab) => {
   }, [activeTab, activeInstructorsQuery, inactiveInstructorsQuery, invitesQuery]);
 
   const isLoading = currentQuery?.isLoading || false;
-  const data = currentQuery?.data?.content ?? [];
-  const totalElements = currentQuery?.data?.totalElements ?? 0;
-  const totalPages = currentQuery?.data?.totalPages ?? 0;
+
+  const { data, totalElements, totalPages } = useMemo(
+    () => ({
+      data: currentQuery?.data?.content ?? [],
+      totalElements: currentQuery?.data?.totalElements ?? 0,
+      totalPages: currentQuery?.data?.totalPages ?? 0,
+    }),
+    [currentQuery]
+  );
 
   const suspendMutation = useSuspendUser();
   const reactivateMutation = useReactivateUser();
@@ -121,7 +128,8 @@ export const useManageInstructorsPage = (activeTab) => {
       await deleteInstructorMutation.mutateAsync(id);
     },
     title: 'Remover Instrutor',
-    message: 'Tem certeza que deseja remover este instrutor permanentemente? Esta ação não pode ser desfeita.',
+    message:
+      'Tem certeza que deseja remover este instrutor permanentemente? Esta ação não pode ser desfeita.',
     successMessage: 'Instrutor removido com sucesso',
   });
 

@@ -11,7 +11,14 @@ export const invitesService = {
     return response;
   },
 
-  list: async ({ page = 0, size = 10, search = '', sortBy = 'email', sortDir = 'ASC', classroomId = null }) => {
+  list: async ({
+    page = 0,
+    size = 10,
+    search = '',
+    sortBy = 'email',
+    sortDir = 'ASC',
+    classroomId = null,
+  }) => {
     const params = new URLSearchParams({
       page: String(page),
       size: String(size),
@@ -38,7 +45,7 @@ export const invitesService = {
   },
 
   resend: async (id) => {
-    const response = await axiosInstance.post(`/invites/${id}/resend`);
+    const response = await axiosInstance.post('/invite/resend', { id });
     return response;
   },
 
