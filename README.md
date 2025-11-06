@@ -4,6 +4,7 @@ Frontend do projeto EducaGames, baseado em React + Vite com Tailwind.
 
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black&style=for-the-badge)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white&style=for-the-badge)](https://vitejs.dev)
+[![React Query](https://img.shields.io/badge/React%20Query-5-FF4154?logo=reactquery&logoColor=white&style=for-the-badge)](https://tanstack.com/query)
 [![Zod](https://img.shields.io/badge/Zod-4-2F2F2F?logo=semanticweb&logoColor=white&style=for-the-badge)](https://zod.dev)
 
 ## Pré-requisitos
@@ -28,9 +29,12 @@ Frontend do projeto EducaGames, baseado em React + Vite com Tailwind.
 
 3. Configure o ambiente:
    - Copie `.env.example` para `.env` e ajuste conforme necessário.
-   - Variáveis disponíveis:
-     - `VITE_API_PROXY_TARGET`: URL do backend para proxy (`/api`).
-     - `VITE_DEV_SERVER_PORT`: porta do dev server (default: 5172).
+   - **Variáveis obrigatórias:**
+     - `VITE_API_BASE_URL`: URL base da API (obrigatória)
+       - Produção: `VITE_API_BASE_URL`
+       - Desenvolvimento: `VITE_API_BASE_URL`
+   - **Variáveis opcionais:**
+     - `VITE_DEV_SERVER_PORT`: porta do dev server (default: 5173).
      - `VITE_USE_MOCKS`: `true/false` para habilitar mocks no `src/services/api.js`.
 
 ## Executando o Projeto
@@ -40,7 +44,7 @@ npm run dev
 # ou yarn dev
 ```
 
-- Por padrão roda em `http://localhost:5172`.
+- Por padrão roda em `http://localhost:5173`.
 - Se você definir `VITE_DEV_SERVER_PORT`, a porta muda (verifique o output do terminal).
 
 ## Scripts Disponíveis
@@ -87,18 +91,53 @@ npm run dev
 │   ├── main.jsx
 │   ├── mocks\
 │   ├── pages\
+│   ├── providers\
 │   ├── routes\
 │   ├── schemas\
-│   └── services\
+│   ├── services\
+│   └── utils\
 └── vite.config.js
 ```
 
 Nota rápida sobre imports: há alias `@` para `src/*` (ver `jsconfig.json`). Prefira importar via diretórios, ex.: `import { Button } from '@/components'`.
 
-## Proxy e Mocks
+## Arquitetura de Dados
 
-- Proxy `/api` é configurado em `vite.config.js` via `VITE_API_PROXY_TARGET`.
+O projeto utiliza **React Query (TanStack Query)** para gerenciamento de estado de servidor, cache e mutations.
+
+### Padrões de Código
+
+- **Serviços (`src/services/`)**: Centraliza todas as chamadas de API usando Axios. Cada entidade possui seu próprio serviço (ex: `users.js`, `courses.js`, `invites.js`).
+- **Hooks customizados (`src/hooks/`)**: Encapsulam lógica de React Query para consumo de dados. Exemplos: `useUsers()`, `useCourses()`, `useClassrooms()`, `useInvites()`.
+- **Componentes**: Nenhum componente deve usar `fetch`/`axios`/`useEffect` diretamente para carregar dados. Use apenas hooks customizados.
+- **Mutations**: Todas as mutações (create, update, delete) invalidam o cache automaticamente usando `queryClient.invalidateQueries()`.
+
+### Exemplo de Uso
+
+```javascript
+// ❌ NÃO fazer isso em componentes
+useEffect(() => {
+  fetch(`${import.meta.env.VITE_API_BASE_URL}/users`).then(...)
+}, [])
+
+// ✅ Fazer isso
+import { useUsers } from '@/hooks';
+const { data, isLoading, error } = useUsers();
+```
+
+### Configuração do React Query
+
+O `QueryClient` está configurado em `src/App.jsx` com:
+
+- `staleTime`: 5 minutos
+- `refetchOnWindowFocus`: false
+- `retry`: 1 para queries, 0 para mutations
+
+## Configuração da API e Mocks
+
+- A URL base da API é configurada via `VITE_API_BASE_URL` em `src/services/api.js` (variável obrigatória).
 - `VITE_USE_MOCKS=true` habilita respostas mock para autenticação em `src/services/api.js`.
+- **Importante:** Configure CORS no backend para aceitar requisições do frontend em desenvolvimento (ex: `http://localhost:5173`).
 
 ## Contribuição
 

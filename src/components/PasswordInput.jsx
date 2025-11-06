@@ -31,6 +31,7 @@ const PasswordInput = ({
         value={value}
         onChange={onChange}
         required={required}
+        autoComplete={props.autoComplete || 'off'}
         className={`${base} ${border} ${className}`}
         {...props}
       />

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 import { LogOutIcon, MenuIcon } from '../components';
 
-const Header = ({ user, toggleSidebar, onLogout }) => {
+const Header = ({ user, toggleSidebar, onLogout, leftPaddingClass = '' }) => {
   const [isProfileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
 
@@ -24,8 +24,15 @@ const Header = ({ user, toggleSidebar, onLogout }) => {
   const initial = user?.role === 'instructor' ? 'I' : user?.name?.charAt(0).toUpperCase() || 'U';
 
   return (
-    <header className="flex h-16 flex-shrink-0 items-center justify-between bg-white px-6 shadow-sm">
-      <button onClick={toggleSidebar} className="text-gray-600 hover:text-gray-800 lg:hidden">
+    <header
+      className={`fixed top-0 right-0 z-20 flex h-16 items-center justify-between bg-white px-6 shadow-sm ${leftPaddingClass || 'left-0'}`}
+    >
+      <button
+        onClick={toggleSidebar}
+        className="text-gray-600 hover:text-gray-800 md:hidden"
+        aria-label="Abrir/Fechar menu"
+        aria-expanded="false"
+      >
         <MenuIcon />
       </button>
       <div className="flex-1"></div>
@@ -33,6 +40,8 @@ const Header = ({ user, toggleSidebar, onLogout }) => {
         <button
           onClick={() => setProfileOpen(!isProfileOpen)}
           className="flex items-center space-x-2"
+          aria-label="Menu do perfil"
+          aria-expanded={isProfileOpen}
         >
           <img
             className="h-10 w-10 rounded-full object-cover"

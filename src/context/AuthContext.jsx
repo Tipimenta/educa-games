@@ -1,8 +1,7 @@
-import PropTypes from 'prop-types';
-import { createContext, useEffect, useRef, useState } from 'react';
+import { createContext, useEffect, useMemo, useRef,useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
-import { UnauthorizedError } from '../lib/errors';
-import { api } from '../services/api';
+import { useAuthUser } from '../hooks/useAuthQuery';
 
 export const AuthContext = createContext({
   user: null,
@@ -10,43 +9,53 @@ export const AuthContext = createContext({
   setUser: () => {},
 });
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const hasCheckedRef = useRef(false);
+export function AuthProvider({ children }) {
+  const location = useLocation();
+  const [explicitUser, setExplicitUser] = useState(null);
+  const isLoggingOutRef = useRef(false);
+
+  const isPublicPath = useMemo(() => {
+    const publicPaths = ['/', '/login', '/signup', '/forgot-password', '/reset-password'];
+    const pathname = location.pathname;
+    return publicPaths.some((p) => pathname === p || (p !== '/' && pathname.startsWith(p)));
+  }, [location.pathname]);
+
+  const shouldFetchUser = !isPublicPath && !isLoggingOutRef.current;
+
+  const {
+    data: queryUser,
+    isLoading: loading,
+    refetch,
+  } = useAuthUser({
+    enabled: shouldFetchUser,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const user = explicitUser !== null ? explicitUser : queryUser;
+
+  const setUser = (newUser) => {
+    if (newUser === null) {
+      isLoggingOutRef.current = true;
+      setExplicitUser(null);
+    } else {
+      isLoggingOutRef.current = false;
+      setExplicitUser(newUser);
+      if (!isPublicPath) {
+        refetch();
+      }
+    }
+  };
 
   useEffect(() => {
-    if (hasCheckedRef.current) return;
-    hasCheckedRef.current = true;
-
-    const checkSession = async () => {
-      try {
-        const response = await api.auth.getMe();
-        setUser(response.data);
-      } catch (error) {
-        if (error instanceof UnauthorizedError || error?.status === 401) {
-          setUser(null);
-        } else {
-          console.error('Erro ao verificar sessão:', error);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const path = window.location?.pathname || '';
-    const publicPaths = ['/login', '/cadastro', '/recuperar-senha', '/redefinir-senha'];
-    if (publicPaths.some((p) => path.startsWith(p))) {
-      setLoading(false);
-      return;
+    if (isPublicPath) {
+      isLoggingOutRef.current = false;
     }
+  }, [isPublicPath]);
 
-    checkSession();
-  }, []);
-
-  return <AuthContext.Provider value={{ user, setUser, loading }}>{children}</AuthContext.Provider>;
-};
-
-AuthProvider.propTypes = {
-  children: PropTypes.node.isRequired,
-};
+  return (
+    <AuthContext.Provider value={{ user, setUser, loading: isPublicPath ? false : loading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}

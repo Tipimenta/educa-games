@@ -1,58 +1,46 @@
-import { useState } from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
-import { AuthProvider, ToastProvider } from './context';
-import {
-  initialAnnouncements,
-  initialCourses,
-  initialModules,
-  initialStudents,
-  initialTurmas,
-} from './mocks/data';
-import CadastroPage from './pages/Cadastro';
-import LoginPage from './pages/Login';
-import RecuperarSenhaPage from './pages/RecuperarSenha';
-import RedefinirSenhaPage from './pages/RedefinirSenha';
+import ErrorBoundary from './components/ErrorBoundary';
+import ForgotPasswordPage from './pages/Public/ForgotPassword';
+import LandingPage from './pages/Public/LandingPage';
+import LoginPage from './pages/Public/Login';
+import ResetPasswordPage from './pages/Public/ResetPassword';
+import SignUpPage from './pages/Shared/SignUp';
+import { AppProviders } from './providers';
 import { AppRoutes } from './routes';
 
-function App() {
-  const [students, setStudents] = useState(initialStudents);
-  const [courses, setCourses] = useState(initialCourses);
-  const [modules, setModules] = useState(initialModules);
-  const [turmas, setTurmas] = useState(initialTurmas);
-  const [announcements, setAnnouncements] = useState(initialAnnouncements);
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutos
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+    mutations: {
+      retry: 0,
+    },
+  },
+});
 
+function App() {
   return (
-    <ToastProvider>
-      <AuthProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Navigate to="/login" />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/cadastro" element={<CadastroPage turmas={turmas} />} />
-            <Route path="/recuperar-senha" element={<RecuperarSenhaPage />} />
-            <Route path="/redefinir-senha" element={<RedefinirSenhaPage />} />
-            <Route
-              path="/*"
-              element={
-                <AppRoutes
-                  students={students}
-                  setStudents={setStudents}
-                  courses={courses}
-                  setCourses={setCourses}
-                  modules={modules}
-                  setModules={setModules}
-                  turmas={turmas}
-                  setTurmas={setTurmas}
-                  announcements={announcements}
-                  setAnnouncements={setAnnouncements}
-                />
-              }
-            />
-          </Routes>
+          <AppProviders>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignUpPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/*" element={<AppRoutes />} />
+            </Routes>
+          </AppProviders>
         </BrowserRouter>
-      </AuthProvider>
-    </ToastProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
