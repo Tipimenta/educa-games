@@ -285,8 +285,26 @@ export const presentError = ({ status, errData, setInline, showToast }) => {
 const extractData = (response) => response?.data ?? response;
 const extractInvite = (response) => {
   const invite = response?.data ?? response;
+  if (!invite?.email) {
+    return {
+      invite: null,
+      message: response?.message ?? null,
+    };
+  }
+  const inviteData = {
+    email: invite.email,
+    role: invite.role?.toLowerCase() || invite.role,
+  };
+  // Inclui className quando disponível (para convites de estudante)
+  if (invite.className) {
+    inviteData.className = invite.className;
+  }
+  // Inclui requiresSignup quando disponível
+  if (invite.requiresSignup !== undefined) {
+    inviteData.requiresSignup = invite.requiresSignup;
+  }
   return {
-    invite: invite?.email ? invite : null,
+    invite: inviteData,
     message: response?.message ?? null,
   };
 };

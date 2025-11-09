@@ -1,9 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { LogOutIcon, MenuIcon } from '../components';
+import { AuthContext } from '../context';
+import { ROLES } from '../constants';
 
 const Header = ({ user, toggleSidebar, onLogout, leftPaddingClass = '' }) => {
+  const { openClassSelection } = useContext(AuthContext);
   const [isProfileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
 
@@ -22,10 +25,32 @@ const Header = ({ user, toggleSidebar, onLogout, leftPaddingClass = '' }) => {
   };
 
   const initial = user?.role === 'instructor' ? 'I' : user?.name?.charAt(0).toUpperCase() || 'U';
+  
+  // Verifica se é estudante com múltiplas turmas
+  const isStudent = user?.role?.toLowerCase() === ROLES.STUDENT;
+  const hasMultipleClasses = user?.classes && Array.isArray(user.classes) && user.classes.length > 1;
+  const currentClassName = user?.classes?.find((c) => c.id === user?.classId)?.className;
+
+  let leftClass = 'left-0';
+  if (leftPaddingClass) {
+    const classes = leftPaddingClass.split(' ');
+    const convertedClasses = classes.map((cls) => {
+      if (cls.startsWith('md:ml-')) {
+        const value = cls.replace('md:ml-', '');
+        return `md:left-${value}`;
+      }
+      if (cls.startsWith('lg:ml-')) {
+        const value = cls.replace('lg:ml-', '');
+        return `lg:left-${value}`;
+      }
+      return cls;
+    });
+    leftClass = `left-0 ${convertedClasses.join(' ')}`;
+  }
 
   return (
     <header
-      className={`fixed top-0 right-0 z-20 flex h-16 items-center justify-between bg-white px-6 shadow-sm ${leftPaddingClass || 'left-0'}`}
+      className={`fixed top-0 right-0 z-20 flex h-16 items-center justify-between bg-white px-6 shadow-sm transition-[left] duration-300 ease-in-out ${leftClass}`}
     >
       <button
         onClick={toggleSidebar}
@@ -36,6 +61,15 @@ const Header = ({ user, toggleSidebar, onLogout, leftPaddingClass = '' }) => {
         <MenuIcon />
       </button>
       <div className="flex-1"></div>
+      {isStudent && hasMultipleClasses && currentClassName && (
+        <button
+          onClick={openClassSelection}
+          className="mr-2 md:mr-4 flex items-center gap-1 md:gap-2 rounded-lg border border-gray-300 bg-white px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm text-gray-700 transition-colors hover:bg-gray-50"
+        >
+          <span className="hidden md:inline text-xs text-gray-500">Você está visualizando a turma:</span>
+          <span className="font-semibold text-blue-600">{currentClassName}</span>
+        </button>
+      )}
       <div className="relative" ref={profileRef}>
         <button
           onClick={() => setProfileOpen(!isProfileOpen)}

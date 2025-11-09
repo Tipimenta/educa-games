@@ -12,6 +12,7 @@ const ConfirmationDialog = ({
   variant = 'danger', // 'danger', 'warning', 'info'
   actionType = 'delete', // 'delete', 'resend', 'custom'
   isLoading = false,
+  showCancel = true, // Se false, mostra apenas o botão de confirmar
 }) => {
   const getActionConfig = () => {
     switch (actionType) {
@@ -87,10 +88,12 @@ const ConfirmationDialog = ({
         </p>
 
         {/* Botões */}
-        <div className="flex justify-end gap-3">
-          <Button variant="outline" onClick={onClose} disabled={isLoading} className="px-4 py-2">
-            {cancelText}
-          </Button>
+        <div className={`flex ${showCancel ? 'justify-end' : 'justify-center'} gap-3`}>
+          {showCancel && (
+            <Button variant="outline" onClick={onClose} disabled={isLoading} className="px-4 py-2">
+              {cancelText}
+            </Button>
+          )}
           <Button
             onClick={handleConfirm}
             disabled={isLoading}

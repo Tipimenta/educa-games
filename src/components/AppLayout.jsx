@@ -16,6 +16,7 @@ export default function AppLayout({ user, onLogout, children, containerClassName
         user={user}
         toggleSidebar={() => setSidebarCollapsed((prev) => !prev)}
         onLogout={onLogout}
+        leftPaddingClass={offsetClass}
       />
       {!isSidebarCollapsed && (
         <div

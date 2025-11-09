@@ -72,10 +72,19 @@ export const useInviteValidation = () => {
       return null;
     }
     const normalizedRole = inviteInfo.role?.toLowerCase() || inviteInfo.role;
-    return {
+    const data = {
       email: inviteInfo.email,
       role: normalizedRole,
     };
+    // Inclui className quando disponível (para convites de estudante)
+    if (inviteInfo.className) {
+      data.className = inviteInfo.className;
+    }
+    // Inclui requiresSignup quando disponível
+    if (inviteInfo.requiresSignup !== undefined) {
+      data.requiresSignup = inviteInfo.requiresSignup;
+    }
+    return data;
   }, [normalized, inviteError]);
 
   return {
