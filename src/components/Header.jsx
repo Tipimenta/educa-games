@@ -2,8 +2,9 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { LogOutIcon, MenuIcon } from '../components';
-import { AuthContext } from '../context';
 import { ROLES } from '../constants';
+import { AuthContext } from '../context';
+import { useProfile } from '../hooks';
 
 const Header = ({ user, toggleSidebar, onLogout, leftPaddingClass = '' }) => {
   const { openClassSelection } = useContext(AuthContext);
@@ -25,6 +26,10 @@ const Header = ({ user, toggleSidebar, onLogout, leftPaddingClass = '' }) => {
   };
 
   const initial = user?.role === 'instructor' ? 'I' : user?.name?.charAt(0).toUpperCase() || 'U';
+  const { data: profile } = useProfile({ enabled: !!user });
+  const avatarSrc = profile?.avatarUrl
+    ? profile.avatarUrl
+    : `https://placehold.co/100x100/E2E8F0/4A5568?text=${initial}`;
   
   // Verifica se é estudante com múltiplas turmas
   const isStudent = user?.role?.toLowerCase() === ROLES.STUDENT;
@@ -79,7 +84,7 @@ const Header = ({ user, toggleSidebar, onLogout, leftPaddingClass = '' }) => {
         >
           <img
             className="h-10 w-10 rounded-full object-cover"
-            src={`https://placehold.co/100x100/E2E8F0/4A5568?text=${initial}`}
+            src={avatarSrc || null}
             alt="Foto do usuário"
           />
         </button>

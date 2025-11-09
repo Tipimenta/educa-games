@@ -98,7 +98,7 @@ const LandingPage = () => {
           <div className="mt-8 border-t border-gray-800 pt-8">
             <div className="flex flex-col items-center justify-between md:flex-row">
               <p className="text-sm text-gray-400">
-                © 2024 EducaGames. Todos os direitos reservados.
+                © 2025 EducaGames. Todos os direitos reservados.
               </p>
               <div className="mt-4 flex space-x-6 md:mt-0">
                 <a href="#" className="text-sm text-gray-400 transition-colors hover:text-white">

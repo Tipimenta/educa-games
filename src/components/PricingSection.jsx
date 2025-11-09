@@ -19,9 +19,10 @@ const PricingSection = () => {
       period: '/mês',
       periodAnnual: '/mês',
       features: [
-        'Até 2 turmas',
-        'Até 20 alunos por turma',
-        'Criar trilhas, módulos e exercícios básicos',
+        '1 turma',
+        'Até 15 alunos',
+        'Limite de upload: 20 MB',
+        'Trilhas, módulos e ranking',
         'Ideal para professores em teste ou fase inicial',
       ],
       highlight: false,
@@ -33,13 +34,12 @@ const PricingSection = () => {
       period: '/mês',
       periodAnnual: '/mês',
       features: [
-        'Até 5 turmas',
-        'Até 40 alunos por turma',
-        'Todos os recursos do plano Free',
-        'Ranking e pontuação',
-        'Upload de conteúdo multimídia',
+        '3 turmas',
+        'Até 25 alunos por turma',
+        'Limite de upload: 300 MB',
         'Relatórios simplificados',
-        'Ideal para professores ativos com algumas turmas',
+        'Todos os recursos do plano Free',
+        'Ideal para professores ativos com algumas turmas'
       ],
       highlight: false,
     },
@@ -50,29 +50,31 @@ const PricingSection = () => {
       period: '/mês',
       periodAnnual: '/mês',
       features: [
-        'Até 10 turmas',
-        'Até 60 alunos por turma',
-        'Todos os recursos do plano Starter',
-        'Certificados simples',
-        'Suporte via chat',
+        '7 turmas',
+        'Até 50 alunos por turma',
+        'Limite de upload: 1 GB',
         'Relatórios completos',
-        'Ideal para instrutores com várias turmas e alunos recorrentes',
+        'Certificados',
+        'Suporte via chat',
+        'Todos os recursos do plano Starter',
+        'Ideal para instrutores com várias turmas e alunos recorrentes'
       ],
       highlight: true,
     },
     {
       name: 'Advanced',
       price: '89,90',
-      monthlyPriceAnnual: '89,90',
+      monthlyPriceAnnual: '79,90',
       period: '/mês',
       periodAnnual: '/mês',
       features: [
-        'Até 15 turmas',
+        '15 turmas',
         'Até 80 alunos por turma',
-        'Todos os recursos do plano Pro',
-        'Personalização visual (logo/cor)',
-        'Suporte prioritário',
+        'Limite de upload: 5 GB',
+        'Personalização visual (logo e cores)',
         'Exportação de dados',
+        'Suporte prioritário',
+        'Todos os recursos do plano Pro',
         'Ideal para instrutores e programas de formação maiores',
       ],
       highlight: false,
@@ -114,58 +116,43 @@ const PricingSection = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-4">
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`relative flex flex-col rounded-lg bg-white shadow-lg ${
-                plan.name === 'Gratuito' ? 'p-8' : 'p-8'
-              } ${
+              className={`relative flex h-full flex-col rounded-lg bg-white p-6 sm:p-8 shadow-lg ${
                 plan.highlight ? 'scale-105 transform ring-2 ring-blue-500' : 'hover:shadow-xl'
               } transition-all duration-300`}
             >
               {plan.highlight && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 transform">
-                  <span className="rounded-full bg-blue-500 px-4 py-1 text-sm font-semibold text-white">
+                <div className="absolute -top-3 sm:-top-4 left-1/2 -translate-x-1/2 transform">
+                  <span className="rounded-full bg-blue-500 px-4 py-1 text-xs sm:text-sm font-semibold text-white">
                     Mais Popular
                   </span>
                 </div>
               )}
 
               <div className="mb-8 text-center">
-                <h3 className="mb-2 text-2xl font-bold text-gray-900">{plan.name}</h3>
+                <h3 className="mb-2 text-xl sm:text-2xl font-bold text-gray-900">{plan.name}</h3>
                 <div className="flex items-baseline justify-center">
                   {isAnnual && plan.name !== 'Free' && plan.price !== plan.monthlyPriceAnnual ? (
-                    <span className="mr-2 text-xl font-bold text-gray-400 line-through">
+                    <span className="mr-2 text-lg sm:text-xl font-bold text-gray-400 line-through">
                       {plan.price}
                     </span>
                   ) : null}
-                  <span className="text-4xl font-bold text-gray-900">
+                  <span className="text-3xl sm:text-4xl font-bold text-gray-900">
                     {isAnnual ? plan.monthlyPriceAnnual : plan.price}
                   </span>
-                  <span className="ml-1 text-gray-600">
+                  <span className="ml-1 text-sm sm:text-base text-gray-400">
                     {isAnnual ? plan.periodAnnual : plan.period}
                   </span>
                 </div>
                 {isAnnual && plan.name !== 'Free' && (
-                  <p className="mt-1 text-sm text-gray-500">pago anualmente</p>
+                  <p className="mt-1 text-xs sm:text-sm text-gray-500">pago anualmente</p>
                 )}
               </div>
 
-              {plan.name !== 'Gratuito' && (
-                <button
-                  onClick={() => handleWhatsAppContact(plan.name)}
-                  className={`mb-4 w-full transform rounded-lg px-6 py-3 font-semibold text-white transition-all duration-300 hover:scale-105 ${
-                    plan.highlight
-                      ? 'bg-green-500 hover:bg-green-600'
-                      : 'bg-blue-600 hover:bg-blue-700'
-                  }`}
-                >
-                  FALAR NO WHATSAPP
-                </button>
-              )}
-
-              <ul className="space-y-4">
+              <ul className="flex-1 space-y-3 sm:space-y-4">
                 {plan.features.map((feature, featureIndex) => (
                   <li key={featureIndex} className="flex items-start">
                     <CheckCircleIcon className="mt-0.5 mr-3 h-5 w-5 flex-shrink-0 text-green-500" />
@@ -174,22 +161,23 @@ const PricingSection = () => {
                 ))}
               </ul>
 
-              {plan.name !== 'Gratuito' && (
-                <p className="mt-6 text-center text-xs text-gray-500">
-                  A assinatura continua automaticamente. Confira os termos.
-                </p>
-              )}
-
-              {!plan.highlight && <p className="mb-6 text-center text-xs text-gray-500"></p>}
+              <button
+                onClick={() => handleWhatsAppContact(plan.name)}
+                className={`mt-6 w-full transform rounded-lg px-6 py-3 font-semibold text-white transition-all duration-300 hover:scale-105 ${
+                  plan.highlight ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-600 hover:bg-blue-700'
+                }`}
+              >
+                FALAR NO WHATSAPP
+              </button>
             </div>
           ))}
         </div>
 
-        <div className="mt-12 text-center">
-          <button className="font-semibold text-green-600 transition-colors hover:text-green-700">
-            &gt; VER PLANO SOMENTE PARA PROFESSORES
-          </button>
-        </div>
+        {/* Aviso único de recorrência fora dos cards */}
+        <p className="mt-8 text-center text-xs text-gray-500">
+          *Assinaturas dos planos pagos são renovadas automaticamente. Você pode cancelar a qualquer
+          momento. Consulte os termos de uso.*
+        </p>
       </div>
     </section>
   );
