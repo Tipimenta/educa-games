@@ -5,6 +5,27 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [1.1.0] - 2025-11-09
+
+### Adicionado
+
+- `DatePicker` para campos de data
+- `ClassSelectionModal` para seleção de turmas
+- `useProfile` para gerenciamento de perfil
+- Serviço `profile.js` e schema `profileSchema.js`
+
+### Alterado
+
+- Ajustes em `Header`, `Modal`, `ConfirmationDialog`
+- Refinos na `LandingPage` e `PricingSection`
+
+### Notas
+
+- Sem breaking changes
+- Detalhes completos em [docs/release-notes/v1.1.0.md](docs/release-notes/v1.1.0.md)
+
+---
+
 ## [1.0.0] - 2025-11-06
 
 ### Adicionado
@@ -48,3 +69,4 @@ Para documentação detalhada, consulte [docs/release-notes/v1.0.0.md](docs/rele
 ---
 
 [1.0.0]: https://github.com/issaahr/educa-games/releases/tag/v1.0.0
+[1.1.0]: https://github.com/issaahr/educa-games/releases/tag/v1.1.0

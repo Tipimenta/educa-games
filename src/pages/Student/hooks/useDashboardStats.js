@@ -2,7 +2,23 @@ import { useMemo } from 'react';
 
 export const useDashboardStats = ({ user, students, courses, modules }) => {
   const currentUserData = useMemo(() => {
-    return students.find((s) => s.id === user.id) || user;
+    const found = students.find((s) => s.id === user.id);
+    // Se encontrou nos students, usa ele, senão usa o user mas garante campos padrão
+    if (found) {
+      return found;
+    }
+    // Garante que o user tenha os campos necessários
+    return {
+      ...user,
+      score: user.score || 0,
+      previousScore: user.previousScore || 0,
+      loginStreak: user.loginStreak || 0,
+      progress: user.progress || {
+        completedLessons: new Set(),
+        finalizedQuizzes: new Set(),
+        dailyBonusDay: null,
+      },
+    };
   }, [students, user]);
 
   const studentsInClass = useMemo(() => {
@@ -34,15 +50,27 @@ export const useDashboardStats = ({ user, students, courses, modules }) => {
   }, [modules, courseIdsForClass]);
 
   const completedModulesCount = useMemo(() => {
+    // Garante que progress existe, caso contrário retorna 0
+    if (!currentUserData.progress) {
+      return 0;
+    }
     return totalAssignedModules.filter((module) => {
-      const allLessonsDone = module.lessons.every((lesson) =>
-        user.progress.completedLessons.has(lesson.id)
-      );
+      const hasLessons = module.lessons && Array.isArray(module.lessons);
+      const allLessonsDone = hasLessons
+        ? module.lessons.every((lesson) => {
+            const completedLessons = currentUserData.progress.completedLessons;
+            return completedLessons && completedLessons.has && completedLessons.has(lesson.id);
+          })
+        : false;
+
+      const hasQuiz = module.quiz && module.quiz.questions && module.quiz.questions.length > 0;
+      const finalizedQuizzes = currentUserData.progress.finalizedQuizzes;
       const quizDone =
-        !module.quiz?.questions?.length > 0 || user.progress.finalizedQuizzes.has(module.id);
+        !hasQuiz || (finalizedQuizzes && finalizedQuizzes.has && finalizedQuizzes.has(module.id));
+
       return allLessonsDone && quizDone;
     }).length;
-  }, [totalAssignedModules, user.progress]);
+  }, [totalAssignedModules, currentUserData.progress]);
 
   const totalModulesCount = useMemo(() => {
     return totalAssignedModules.length;

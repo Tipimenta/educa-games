@@ -4,8 +4,11 @@ const Modal = ({ isOpen, onClose, title, children, showCloseButton = true }) => 
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/5">
-      <div className="relative w-full max-w-lg rounded-lg bg-white p-8 shadow-[0_20px_60px_-12px_rgba(0,0,0,0.15)]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div
+        className="relative w-full max-w-lg rounded-lg bg-white p-8 shadow-[0_20px_60px_-12px_rgba(0,0,0,0.15)]"
+        onClick={(e) => e.stopPropagation()}
+      >
         {title && (
           <div
             className={`flex items-center ${showCloseButton ? 'justify-between border-b pb-4' : ''}`}

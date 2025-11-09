@@ -7,7 +7,11 @@ const extractData = (response) => {
   const normalized =
     userData?.userId && !userData.id ? { ...userData, id: userData.userId } : userData;
   if (normalized?.role) {
-    return { ...normalized, role: normalized.role.toLowerCase() };
+    normalized.role = normalized.role.toLowerCase();
+  }
+  // Preserva o array classes se existir
+  if (userData?.classes) {
+    normalized.classes = userData.classes;
   }
   return normalized;
 };
@@ -22,11 +26,23 @@ const extractInvite = (response) => {
     };
   }
 
+  const invite = {
+    email: inviteData.email,
+    role: inviteData.role?.toLowerCase() || inviteData.role,
+  };
+
+  // Inclui className quando disponível (para convites de estudante)
+  if (inviteData.className) {
+    invite.className = inviteData.className;
+  }
+
+  // Inclui requiresSignup quando disponível
+  if (inviteData.requiresSignup !== undefined) {
+    invite.requiresSignup = inviteData.requiresSignup;
+  }
+
   return {
-    invite: {
-      email: inviteData.email,
-      role: inviteData.role?.toLowerCase() || inviteData.role,
-    },
+    invite,
     message: response?.message ?? null,
   };
 };
@@ -80,5 +96,13 @@ export const authService = {
     }
     const response = await axiosInstance.post('/auth/complete-signup', payload);
     return extractMessage(response);
+  },
+
+  selectClass: async (classId) => {
+    if (USE_MOCKS) {
+      throw { status: 404, data: { message: 'Mock não implementado para selectClass' } };
+    }
+    const response = await axiosInstance.post('/auth/select-class', { classId });
+    return extractData(response);
   },
 };

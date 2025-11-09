@@ -6,6 +6,7 @@ export { default as ClassSelector } from './ClassSelector';
 export { default as ConfirmationDialog } from './ConfirmationDialog';
 export { default as DashboardCard } from './DashboardCard';
 export { default as DataTable } from './DataTable';
+export { default as DatePicker } from './DatePicker';
 export { default as EmptyState } from './EmptyState';
 export { default as ErrorBoundary } from './ErrorBoundary';
 export { default as ErrorMessage } from './ErrorMessage';

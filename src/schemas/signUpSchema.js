@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const createCadastroSchema = (isStudent) =>
+export const createSignUpSchema = (isStudent) =>
   z
     .object({
       name: z
@@ -37,4 +37,4 @@ export const createCadastroSchema = (isStudent) =>
       path: ['confirmPassword'],
     });
 
-export const cadastroSchema = createCadastroSchema(false);
+export const signUpSchema = createSignUpSchema(false);
