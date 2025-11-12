@@ -1,6 +1,6 @@
 export const initialClasses = [
-  { id: 1, name: 'Bootcamp Full Stack 2025' },
-  { id: 2, name: 'Turma de Estágio 2025' },
+  { id: 1, name: 'Bootcamp Full Stack 2025', active: true, createdAt: '2025-10-01T09:00:00' },
+  { id: 2, name: 'Turma de Estágio 2025', active: false, createdAt: '2025-09-15T14:30:00' },
 ];
 
 export const initialCourses = [
@@ -85,6 +85,7 @@ export const initialStudents = [
     name: 'Ana Coder',
     email: 'aluno@email.com',
     classId: 1,
+    active: true,
     score: 190,
     previousScore: 150,
     loginStreak: 3,
@@ -97,6 +98,7 @@ export const initialStudents = [
     name: 'Bruno Dev',
     email: 'bruno@email.com',
     classId: 1,
+    active: true,
     score: 170,
     previousScore: 180,
     loginStreak: 1,
@@ -109,6 +111,7 @@ export const initialStudents = [
     name: 'Carla Script',
     email: 'carla@email.com',
     classId: 2,
+    active: false,
     score: 25,
     previousScore: 25,
     loginStreak: 2,
@@ -158,6 +161,7 @@ export const initialPendingInvites = [
   {
     id: 6,
     email: 'novo@exemplo.com',
+    classroomId: 1,
     sentAt: '2024-01-15',
     expiresAt: '2024-01-22',
     status: 'Pendente',
@@ -165,6 +169,7 @@ export const initialPendingInvites = [
   {
     id: 7,
     email: 'outro@exemplo.com',
+    classroomId: 1,
     sentAt: '2024-01-10',
     expiresAt: '2024-01-17',
     status: 'Pendente',

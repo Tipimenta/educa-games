@@ -3,11 +3,21 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { invitesService } from '../services';
 
 export function useInvites(options = {}) {
-  const { page = 0, size = 10, search = '', sortBy = 'email', sortDir = 'ASC', classroomId = null } = options;
+  const {
+    page = 0,
+    size = 10,
+    search = '',
+    sortBy = 'email',
+    sortDir = 'ASC',
+    classroomId = null,
+    enabled = true,
+  } = options;
 
   return useQuery({
     queryKey: ['invites', { page, size, search, sortBy, sortDir, classroomId }],
     queryFn: () => invitesService.list({ page, size, search, sortBy, sortDir, classroomId }),
+    enabled,
+    placeholderData: (previousData) => previousData,
   });
 }
 
@@ -45,12 +55,19 @@ export function useRemoveInvite() {
 }
 
 export function useInstructorInvites(options = {}) {
-  const { page = 0, size = 10, search = '', sortBy = 'email', sortDir = 'ASC', enabled = true } = options;
+  const {
+    page = 0,
+    size = 10,
+    search = '',
+    sortBy = 'email',
+    sortDir = 'ASC',
+    enabled = true,
+  } = options;
 
   return useQuery({
     queryKey: ['invites', 'instructor', { page, size, search, sortBy, sortDir }],
     queryFn: () => invitesService.list({ page, size, search, sortBy, sortDir, classroomId: null }),
     enabled,
-    placeholderData: (previousData) => previousData, // Manter dados anteriores durante transição
+    placeholderData: (previousData) => previousData,
   });
 }

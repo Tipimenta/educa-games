@@ -1,80 +1,61 @@
-import { useContext, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 
 import {
   AppLayout,
   Button,
-  CheckIcon,
+  DataTable,
   EmptyState,
+  ErrorMessage,
   Input,
-  MailIcon,
+  Label,
+  Modal,
+  PageSizeSelector,
   PageTitle,
-  PencilIcon,
-  Trash2Icon,
-  XIcon,
+  SearchInput,
+  Tabs,
 } from '../../components';
 import { AuthContext } from '../../context';
-import {
-  useAuth,
-  useClassrooms,
-  useConfirmDelete,
-  useCreateClassroom,
-  useDeleteClassroom,
-  useUpdateClassroom,
-} from '../../hooks';
+import { useAuth, useCreateClassroom, useModalForm } from '../../hooks';
+import ClassroomTableRow from './components/ClassroomTableRow';
+import { CLASSROOM_COLUMNS, CLASSROOM_TABS } from './config/classroomConfig';
+import { useManageClassroomsPage } from './hooks/useManageClassroomsPage';
 
 const ManageClassesPage = () => {
   const { user } = useContext(AuthContext);
   const { logout } = useAuth();
-  const { data: classes = [], isLoading: isLoadingClasses } = useClassrooms();
-  const createClassroomMutation = useCreateClassroom();
-  const updateClassroomMutation = useUpdateClassroom();
-  const deleteClassroomMutation = useDeleteClassroom();
+  const [activeTab, setActiveTab] = useState('active');
+  const { logout: logoutHook, tableFilters, isLoading, handleSearchChange, handlePageSizeChange, searchInputValue, refetch } = useManageClassroomsPage(activeTab);
 
-  const [newClassName, setNewClassName] = useState('');
+  const createClassroom = useCreateClassroom();
 
-  const [editingId, setEditingId] = useState(null);
-  const [editingName, setEditingName] = useState('');
-
-  const handleInviteClick = (classItem) => {
-    console.log('Convite para turma:', classItem);
-  };
-
-  const handleAddClass = async (e) => {
-    e.preventDefault();
-    if (newClassName.trim() === '') return;
-    await createClassroomMutation.mutateAsync({ name: newClassName.trim() });
-    setNewClassName('');
-  };
-
-  const handleDeleteClass = useConfirmDelete({
-    onDelete: async (classId) => {
-      await deleteClassroomMutation.mutateAsync(classId);
+  const createModal = useModalForm({
+    initialValues: { name: '' },
+    onReset: () => setNameTouched(false),
+    onSubmit: async (values) => {
+      const name = values.name?.trim();
+      if (!name || name.length < 3) {
+        setNameTouched(true);
+        return;
+      }
+      try {
+        await createClassroom.mutateAsync({ name });
+        createModal.closeModal();
+        refetch();
+      } catch (err) {
+        // Silently fail; error boundaries/toast can handle
+      }
     },
-    title: 'Remover Turma',
-    message: 'Tem a certeza que deseja apagar esta turma? Esta ação não pode ser desfeita.',
-    successMessage: 'Turma removida com sucesso',
   });
 
-  const handleEditClick = (classItem) => {
-    setEditingId(classItem.id);
-    setEditingName(classItem.name);
-  };
+  const [nameTouched, setNameTouched] = useState(false);
+  const isNameValid = (createModal.formValues.name || '').trim().length >= 3;
 
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setEditingName('');
-  };
+  const handleTabChange = useCallback((tab) => {
+    setActiveTab(tab);
+    tableFilters.handlePageChange(1);
+  }, [tableFilters]);
 
-  const handleSaveEdit = async () => {
-    if (editingName.trim() === '') return;
-    await updateClassroomMutation.mutateAsync({
-      id: editingId,
-      data: { name: editingName },
-    });
-    handleCancelEdit();
-  };
-
-  if (isLoadingClasses) {
+  if (isLoading) {
     return (
       <AppLayout user={user} onLogout={logout}>
         <PageTitle>Gerir Turmas</PageTitle>
@@ -87,106 +68,79 @@ const ManageClassesPage = () => {
 
   return (
     <AppLayout user={user} onLogout={logout}>
-      <PageTitle>Gerir Turmas</PageTitle>
-      {classes.length === 0 ? (
-        <EmptyState
-          message="Nenhuma turma encontrada"
-          description="Comece criando sua primeira turma para organizar seus alunos."
-          action={
-            <form onSubmit={handleAddClass} className="flex flex-col gap-3 sm:flex-row">
-              <Input
-                placeholder="Nome da Turma (ex: Bootcamp 2026)"
-                value={newClassName}
-                onChange={(e) => setNewClassName(e.target.value)}
-                className="flex-grow"
-              />
-              <Button type="submit" disabled={newClassName.trim() === ''} className="w-auto px-6">
-                Adicionar Turma
-              </Button>
-            </form>
-          }
-          className="mt-4"
-        />
-      ) : (
-        <div className="mt-6 space-y-8">
-          <div className="rounded-lg bg-white p-4 shadow-md">
-            <h3 className="mb-4 text-xl font-bold text-gray-800">Criar Nova Turma</h3>
-            <form onSubmit={handleAddClass} className="flex items-center gap-3">
-              <Input
-                placeholder="Nome da Turma (ex: Bootcamp 2026)"
-                value={newClassName}
-                onChange={(e) => setNewClassName(e.target.value)}
-                className="flex-grow"
-              />
-              <Button type="submit" disabled={newClassName.trim() === ''} className="w-auto px-4">
-                Adicionar Turma
-              </Button>
-            </form>
-          </div>
+      <PageTitle>Gerenciar Turmas</PageTitle>
 
-          <div className="rounded-lg bg-white p-6 shadow-md">
-            <h3 className="mb-4 text-xl font-bold text-gray-800">Turmas Existentes</h3>
-            <ul className="space-y-2">
-              {classes.map((classItem) => (
-                <li
-                  key={classItem.id}
-                  className="flex h-[58px] items-center justify-between rounded-md bg-gray-50 p-3"
-                >
-                  {editingId === classItem.id ? (
-                    <>
-                      <Input
-                        value={editingName}
-                        onChange={(e) => setEditingName(e.target.value)}
-                        className="my-0 mr-2"
-                        autoFocus
-                      />
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={handleSaveEdit}
-                          className="text-green-600 hover:text-green-800"
-                        >
-                          <CheckIcon className="h-5 w-5" />
-                        </button>
-                        <button
-                          onClick={handleCancelEdit}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <XIcon className="h-5 w-5" />
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <span className="font-medium text-gray-700">{classItem.name}</span>
-                      <div className="flex items-center gap-4">
-                        <button
-                          onClick={() => handleInviteClick(classItem)}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <MailIcon className="h-5 w-5" />
-                        </button>
-                        <button
-                          onClick={() => handleEditClick(classItem)}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <PencilIcon className="h-5 w-5" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClass(classItem.id)}
-                          className="text-red-500 hover:text-red-700"
-                          aria-label={`Remover turma ${classItem.name}`}
-                        >
-                          <Trash2Icon className="h-5 w-5" />
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </li>
-              ))}
-            </ul>
+      <Tabs tabs={CLASSROOM_TABS} activeTab={activeTab} onTabChange={handleTabChange} />
+
+      <div className="mx-auto mb-6 flex max-w-[95%] flex-col justify-between gap-4 sm:flex-row sm:items-center">
+        <div className="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center">
+          <SearchInput
+            key={`search-${activeTab}`}
+            placeholder="Pesquisar turmas por nome"
+            value={searchInputValue}
+            onChange={handleSearchChange}
+          />
+          <div className="flex items-center gap-3">
+            <PageSizeSelector
+              value={tableFilters.pageSize}
+              onChange={handlePageSizeChange}
+              className="h-[48px] px-4 !py-0 text-base"
+            />
+            {activeTab === 'active' && (
+              <Button className="px-6 whitespace-nowrap sm:w-auto" onClick={createModal.openCreateModal}>
+                + Criar Turma
+              </Button>
+            )}
           </div>
         </div>
+      </div>
+
+      {tableFilters.paginatedData.data.length === 0 ? (
+        <EmptyState
+          message={activeTab === 'active' ? 'Nenhuma turma ativa encontrada' : 'Nenhuma turma inativa encontrada'}
+          description={activeTab === 'active' ? 'Não há turmas ativas no momento.' : 'Não há turmas inativas no momento.'}
+          className="mx-auto mt-4 max-w-[95%]"
+        />
+      ) : (
+        <DataTable
+          columns={CLASSROOM_COLUMNS}
+          data={tableFilters.paginatedData.data}
+          currentSort={tableFilters.sort}
+          onSort={tableFilters.handleSort}
+          currentPage={tableFilters.currentPage}
+          totalItems={tableFilters.paginatedData.totalItems}
+          pageSize={tableFilters.pageSize}
+          onPageChange={tableFilters.handlePageChange}
+          hasSearch={!!searchInputValue}
+          renderRow={(item) => <ClassroomTableRow key={item.id} item={item} />}
+        />
       )}
+
+      <Modal isOpen={createModal.isOpen} onClose={createModal.closeModal} title="Criar Turma" showCloseButton={false}>
+        <form onSubmit={createModal.handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="class-name" required>Nome da turma</Label>
+            <Input
+              id="class-name"
+              placeholder="Ex.: Turma 5º Ano - Matemática"
+              value={createModal.formValues.name}
+              onChange={(e) => createModal.updateFormValue('name', e.target.value)}
+              error={nameTouched && !isNameValid}
+            />
+            {nameTouched && !isNameValid && (
+              <ErrorMessage message="Campo inválido" />
+            )}
+          </div>
+          <div className="mt-6 flex justify-end gap-3">
+            <Button type="button" className="w-auto bg-gray-100 text-gray-700 hover:bg-gray-200" onClick={createModal.closeModal}>
+              Cancelar
+            </Button>
+            <Button type="submit" className="w-auto" disabled={!isNameValid || createClassroom.isPending}>
+              {createClassroom.isPending ? 'Criando...' : 'Criar'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </AppLayout>
   );
 };

@@ -12,7 +12,7 @@ export const formatDate = (date, options = {}) => {
     const dateObj = typeof date === 'string' ? new Date(date) : date;
     return dateObj.toLocaleDateString('pt-BR', defaultOptions);
   } catch (error) {
-    console.error('Error formatting date:', error);
+    if (import.meta.env.DEV) console.error('Error formatting date:', error);
     return '-';
   }
 };
@@ -29,7 +29,7 @@ export const formatDateWithTimezone = (dateString, timeZone = 'UTC') => {
       timeZone,
     });
   } catch (error) {
-    console.error('Error formatting date with timezone:', error);
+    if (import.meta.env.DEV) console.error('Error formatting date with timezone:', error);
     return '-';
   }
 };
@@ -49,7 +49,7 @@ export const getRelativeTime = (date) => {
     if (diffDays > 0) return `Em ${diffDays} dias`;
     return `Há ${Math.abs(diffDays)} dias`;
   } catch (error) {
-    console.error('Error calculating relative time:', error);
+    if (import.meta.env.DEV) console.error('Error calculating relative time:', error);
     return '-';
   }
 };

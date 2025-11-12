@@ -20,7 +20,7 @@ const TestConfirmation = () => {
   };
 
   const handleConfirm = async (action) => {
-    console.log(`Ação confirmada: ${action}`);
+    if (import.meta.env.DEV) console.log(`Ação confirmada: ${action}`);
     await new Promise((resolve) => setTimeout(resolve, 1000));
     alert(`Ação "${action}" executada com sucesso!`);
   };

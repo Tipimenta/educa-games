@@ -65,7 +65,7 @@ export function AuthProvider({ children }) {
           try {
             sessionStorage.setItem(`selectedClassId_${userId}`, String(classId));
           } catch (error) {
-            console.error('Erro ao salvar classId no sessionStorage:', error);
+      if (import.meta.env.DEV) console.error('Erro ao salvar classId no sessionStorage:', error);
           }
         }
 
@@ -117,7 +117,7 @@ export function AuthProvider({ children }) {
             }
           }
         } catch (error) {
-          console.error('Erro ao ler classId do sessionStorage:', error);
+      if (import.meta.env.DEV) console.error('Erro ao ler classId do sessionStorage:', error);
         }
       }
 
@@ -160,7 +160,7 @@ export function AuthProvider({ children }) {
           }
         });
       } catch (error) {
-        console.error('Erro ao limpar sessionStorage:', error);
+      if (import.meta.env.DEV) console.error('Erro ao limpar sessionStorage:', error);
       }
     } else {
       isLoggingOutRef.current = false;
