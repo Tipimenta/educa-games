@@ -1,6 +1,7 @@
 export { default as ActionButton } from './ActionButton';
 export { default as AppLayout } from './AppLayout';
 export { default as AuthLayout } from './AuthLayout';
+export { default as Breadcrumb } from './Breadcrumb';
 export { default as Button } from './Button';
 export { default as ClassSelector } from './ClassSelector';
 export { default as ConfirmationDialog } from './ConfirmationDialog';

@@ -5,6 +5,35 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [1.2.0] - 2025-11-11
+
+### Adicionado
+
+- Painel "Gerenciar Turmas" com listagem de turmas (ativas/inativas), busca, paginação e ordenação
+- Página de detalhes da turma com abas:
+  - Alunos Ativos/Inativos: listagem com matrícula, nome, data de ingresso e ações (inativar/reativar, excluir)
+  - Convites: listagem com e-mail, status, expiração e ações (enviar, reenviar, remover)
+  - Cursos Vinculados: aba dedicada à visualização e gestão de cursos associados
+
+### Corrigido
+
+- Remoção de logs em produção (`console.error`/`console.log`), mantendo apenas em `DEV`
+- Evita exposição de stack trace e detalhes de erros em produção (`ErrorBoundary`, `presentError`)
+
+### Alterado
+
+- `services/api.js`: mensagens de erro genéricas em produção (`presentError`)
+- `ErrorBoundary.jsx`: detalhes de erro visíveis apenas em `DEV`
+- `AuthContext.jsx`, `useAuth.js`, `useLocalStorage.js`, `dateFormatter.js`: logs condicionados ao ambiente
+- `ClassroomDetail.jsx`: uso de `useToast` em erros; handler de clique externo para menu
+
+### Notas
+
+- Sem breaking changes
+- Detalhes completos em [docs/release-notes/v1.2.0.md](docs/release-notes/v1.2.0.md)
+
+---
+
 ## [1.1.0] - 2025-11-09
 
 ### Adicionado
@@ -68,5 +97,6 @@ Para documentação detalhada, consulte [docs/release-notes/v1.0.0.md](docs/rele
 
 ---
 
-[1.0.0]: https://github.com/issaahr/educa-games/releases/tag/v1.0.0
-[1.1.0]: https://github.com/issaahr/educa-games/releases/tag/v1.1.0
+[1.0.0]: https://github.com/Tipimenta/educa-games/releases/tag/v1.0.0
+[1.1.0]: https://github.com/Tipimenta/educa-games/releases/tag/v1.1.0
+[1.2.0]: https://github.com/Tipimenta/educa-games/releases/tag/v1.1.1

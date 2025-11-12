@@ -16,8 +16,10 @@ export default function DataTable({
   hasSearch = false,
   renderRow,
   className = '',
+  embedded = false,
 }) {
   if (data.length === 0) {
+    if (embedded) return null;
     return (
       <EmptyState
         message={hasSearch ? emptySearchMessage : emptyMessage}
@@ -26,8 +28,17 @@ export default function DataTable({
     );
   }
 
+  const Wrapper = ({ children }) =>
+    embedded ? (
+      <div className={`overflow-x-auto ${className}`}>{children}</div>
+    ) : (
+      <div className={`mx-auto mt-2 max-w-[95%] overflow-x-auto rounded-lg bg-white shadow ${className}`}>
+        {children}
+      </div>
+    );
+
   return (
-    <div className={`mx-auto mt-2 max-w-[95%] overflow-x-auto rounded-lg bg-white shadow ${className}`}>
+    <Wrapper>
       <table className="w-full table-auto divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
@@ -59,7 +70,7 @@ export default function DataTable({
         pageSize={pageSize}
         onPageChange={onPageChange}
       />
-    </div>
+    </Wrapper>
   );
 }
 

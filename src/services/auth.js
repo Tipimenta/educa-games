@@ -9,7 +9,6 @@ const extractData = (response) => {
   if (normalized?.role) {
     normalized.role = normalized.role.toLowerCase();
   }
-  // Preserva o array classes se existir
   if (userData?.classes) {
     normalized.classes = userData.classes;
   }
@@ -31,12 +30,9 @@ const extractInvite = (response) => {
     role: inviteData.role?.toLowerCase() || inviteData.role,
   };
 
-  // Inclui className quando disponível (para convites de estudante)
   if (inviteData.className) {
     invite.className = inviteData.className;
   }
-
-  // Inclui requiresSignup quando disponível
   if (inviteData.requiresSignup !== undefined) {
     invite.requiresSignup = inviteData.requiresSignup;
   }

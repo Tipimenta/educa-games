@@ -146,7 +146,7 @@ export const useInstructors = () => {
   };
 
   const sendNewInvite = async (email) => {
-    await sendInviteMutation.mutateAsync(email);
+    await sendInviteMutation.mutateAsync({ email });
     const newInvite = instructorService.createInvite(email);
     setPendingInvites((prev) => [...prev, newInvite]);
 

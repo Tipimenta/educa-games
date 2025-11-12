@@ -152,7 +152,7 @@ export const useManageInstructorsPage = (activeTab) => {
   });
 
   const sendNewInvite = async (email) => {
-    await sendInviteMutation.mutateAsync(email);
+    await sendInviteMutation.mutateAsync({ email });
     showToast({ message: 'Convite enviado com sucesso', type: 'success' });
     return { success: true };
   };

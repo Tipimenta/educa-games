@@ -7,6 +7,7 @@ export * from './useConfirmAction';
 export * from './useConfirmDelete';
 export * from './useCourses';
 export * from './useForm';
+export * from './useInstructorClassrooms';
 export * from './useInviteModal';
 export * from './useInvites';
 export { useInstructorInvites } from './useInvites';

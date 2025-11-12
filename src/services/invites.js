@@ -3,11 +3,28 @@ import { api, axiosInstance } from './api';
 const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true';
 
 export const invitesService = {
-  send: async (email) => {
-    if (USE_MOCKS) {
-      return api.invite.send(email);
+  /**
+   * Envia convite conforme contrato: body somente com email e classroomId (quando houver) via query param.
+   * @param {{ email: string, classroomId?: number|string }} payload
+   */
+  send: async (payload) => {
+    const email = payload?.email;
+    const classroomId = payload?.classroomId;
+
+    if (!email || typeof email !== 'string') {
+      throw {
+        status: 400,
+        data: { message: 'Email obrigatório para enviar convite.' },
+      };
     }
-    const response = await axiosInstance.post('/invite/send', { email });
+
+    if (USE_MOCKS) {
+      return api.invite.send(email, classroomId);
+    }
+    const url = classroomId != null
+      ? `/invite/send?classroomId=${encodeURIComponent(classroomId)}`
+      : '/invite/send';
+    const response = await axiosInstance.post(url, { email });
     return response;
   },
 

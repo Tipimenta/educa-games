@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { studentsService } from '../services';
 
@@ -17,10 +17,44 @@ export function useStudent(id) {
   });
 }
 
-export function useStudentsByClass(classId) {
+export function useClassroomStudents(options = {}) {
+  const {
+    classroomId,
+    active,
+    page = 0,
+    size = 10,
+    search = '',
+    sortBy = 'name',
+    sortDir = 'ASC',
+    enabled = true,
+  } = options;
+
   return useQuery({
-    queryKey: ['students', 'class', classId],
-    queryFn: () => studentsService.getByClass(classId),
-    enabled: !!classId,
+    queryKey: ['students', 'classroom', { classroomId, active, page, size, search, sortBy, sortDir }],
+    queryFn: () => studentsService.getByClassroom({ classroomId, active, page, size, search, sortBy, sortDir }),
+    enabled: !!classroomId && typeof active === 'boolean' && enabled,
+    placeholderData: (previousData) => previousData,
+  });
+}
+
+export function useUpdateClassroomStudentStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ classroomId, id, active }) => studentsService.updateClassroomStatus({ classroomId, id, active }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['students', 'classroom'] });
+    },
+  });
+}
+
+export function useRemoveClassroomStudent() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ classroomId, id }) => studentsService.removeFromClassroom({ classroomId, id }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['students', 'classroom'] });
+    },
   });
 }

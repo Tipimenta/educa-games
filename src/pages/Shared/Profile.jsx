@@ -81,11 +81,11 @@ const ProfilePage = () => {
       const file = e.target.files[0];
 
       if (!ALLOWED_TYPES.includes(file.type)) {
-        setInlineError('Formato inválido. Aceita PNG, JPG e JPEG.');
+        showToast({ message: 'Formato inválido. Aceita PNG, JPG e JPEG.', type: 'error' });
         return;
       }
       if (file.size > MAX_SIZE) {
-        setInlineError('Imagem maior que 3MB. Selecione um arquivo menor.');
+        showToast({ message: 'Imagem maior que 3MB. Selecione um arquivo menor.', type: 'error' });
         return;
       }
 

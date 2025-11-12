@@ -7,15 +7,14 @@ import {
   initialCourses,
   initialInactiveInstructors,
   initialModules,
+  initialPendingInvites,
   initialStudents,
 } from '../mocks/data';
+import { paginate, sortArray } from '../utils/pagination';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true';
-const MOCK_USER_ROLE = (import.meta.env.VITE_MOCK_USER_ROLE || 'student').toLowerCase();
-const VALID_ROLES = ['student', 'instructor', 'admin'];
-const _RESOLVED_MOCK_ROLE = VALID_ROLES.includes(MOCK_USER_ROLE) ? MOCK_USER_ROLE : 'student';
 
 const axiosInstance = axios.create({
   baseURL: API_BASE,
@@ -32,14 +31,77 @@ const getMockResponse = async (method, fullUrl, config) => {
   const searchParams = new URLSearchParams(fullUrl.split('?')[1] || '');
 
   if (method === 'get') {
-    if (fullUrl.includes('/classrooms')) {
-      const idMatch = fullUrl.match(/\/classrooms\/(\d+)/);
+    if (fullUrl.includes('/classroom')) {
+      const idMatch = fullUrl.match(/\/classroom\/(\d+)/);
       if (idMatch) {
         const id = parseInt(idMatch[1]);
+        if (fullUrl.includes('/students')) {
+          const page = parseInt(searchParams.get('page') || '0');
+          const size = parseInt(searchParams.get('size') || '10');
+          const search = searchParams.get('search') || '';
+          const sortBy = searchParams.get('sortBy') || 'name';
+          const sortDir = searchParams.get('sortDir') || 'ASC';
+          const activeParam = searchParams.get('active');
+          let data = initialStudents.filter((s) => s.classId === id);
+          if (activeParam !== null) {
+            const mustBeActive = activeParam === 'true';
+            data = data.filter((s) => !!s.active === mustBeActive);
+          }
+          if (search) {
+            const lowerSearch = search.toLowerCase();
+            data = data.filter(
+              (s) =>
+                s.name?.toLowerCase().includes(lowerSearch) ||
+                s.email?.toLowerCase().includes(lowerSearch)
+            );
+          }
+          const key = sortBy === 'createdAt' ? 'createdAt' : 'name';
+          data = sortArray(data, key, sortDir);
+          const pageResponse = paginate(data, page, size);
+          return {
+            data: {
+              content: pageResponse.content,
+              totalElements: pageResponse.totalElements,
+              totalPages: pageResponse.totalPages,
+              size: pageResponse.size,
+              number: pageResponse.number,
+              first: pageResponse.first,
+              last: pageResponse.last,
+            },
+            status: 200,
+          };
+        }
         const item = initialClasses.find((c) => c.id === id);
-        return { data: item || null, status: item ? 200 : 404 };
+        return { data: { message: null, data: item || null }, status: item ? 200 : 404 };
       }
-      return { data: initialClasses, status: 200 };
+      const activeParam = searchParams.get('active');
+      const page = parseInt(searchParams.get('page') || '0');
+      const size = parseInt(searchParams.get('size') || '10');
+      const search = searchParams.get('search') || '';
+      const sortBy = searchParams.get('sortBy') || 'name';
+      const sortDir = searchParams.get('sortDir') || 'ASC';
+
+      let data = initialClasses.slice();
+      if (activeParam !== null) {
+        const mustBeActive = activeParam === 'true';
+        data = data.filter((c) => !!c.active === mustBeActive);
+      }
+      if (search) {
+        const lowerSearch = search.toLowerCase();
+        data = data.filter((c) => c.name?.toLowerCase().includes(lowerSearch));
+      }
+      const key = sortBy === 'createdAt' ? 'createdAt' : 'name';
+      data = sortArray(data, key, sortDir);
+
+      const pageResponse = paginate(data, page, size);
+
+      return {
+        data: {
+          message: null,
+          data: pageResponse,
+        },
+        status: 200,
+      };
     }
 
     if (fullUrl.includes('/courses')) {
@@ -113,21 +175,17 @@ const getMockResponse = async (method, fullUrl, config) => {
         );
       }
 
-      const totalElements = data.length;
-      const totalPages = Math.ceil(totalElements / size);
-      const start = page * size;
-      const end = start + size;
-      const paginatedData = data.slice(start, end);
+      const pageResponse = paginate(data, page, size);
 
       return {
         data: {
-          content: paginatedData,
-          totalElements,
-          totalPages,
-          size,
-          number: page,
-          first: page === 0,
-          last: page >= totalPages - 1,
+          content: pageResponse.content,
+          totalElements: pageResponse.totalElements,
+          totalPages: pageResponse.totalPages,
+          size: pageResponse.size,
+          number: pageResponse.number,
+          first: pageResponse.first,
+          last: pageResponse.last,
         },
         status: 200,
       };
@@ -137,47 +195,99 @@ const getMockResponse = async (method, fullUrl, config) => {
       const page = parseInt(searchParams.get('page') || '0');
       const size = parseInt(searchParams.get('size') || '10');
       const search = searchParams.get('search') || '';
+      const classroomId = searchParams.get('classroomId');
 
-      let data = [];
+      let data = initialPendingInvites.slice();
+      if (classroomId) {
+        const cid = parseInt(classroomId);
+        data = data.filter((i) => i.classroomId === cid);
+      }
 
       if (search) {
         const lowerSearch = search.toLowerCase();
         data = data.filter((i) => i.email?.toLowerCase().includes(lowerSearch));
       }
 
-      const totalElements = data.length;
-      const totalPages = Math.ceil(totalElements / size);
-      const start = page * size;
-      const end = start + size;
-      const paginatedData = data.slice(start, end);
+      const pageResponse = paginate(data, page, size);
 
       return {
         data: {
-          content: paginatedData,
-          totalElements,
-          totalPages,
-          size,
-          number: page,
-          first: page === 0,
-          last: page >= totalPages - 1,
+          content: pageResponse.content,
+          totalElements: pageResponse.totalElements,
+          totalPages: pageResponse.totalPages,
+          size: pageResponse.size,
+          number: pageResponse.number,
+          first: pageResponse.first,
+          last: pageResponse.last,
         },
         status: 200,
       };
     }
   }
 
-  if (method === 'post' || method === 'put' || method === 'delete') {
+  if (method === 'post' || method === 'put' || method === 'patch' || method === 'delete') {
+    if (method === 'post' && fullUrl.includes('/invite/resend')) {
+      return { data: { message: 'Convite reenviado com sucesso' }, status: 200 };
+    }
+    if (method === 'delete' && fullUrl.includes('/invite')) {
+      return { data: { message: 'Convite removido com sucesso' }, status: 204 };
+    }
+    if (method === 'post' && fullUrl.includes('/classroom/create')) {
+      const name = (config?.data?.name || 'Nova Turma').toString();
+      const nowIso = new Date().toISOString();
+      const created = { id: Date.now(), name, active: true, createdAt: nowIso };
+      return { data: { message: 'Turma criada com sucesso', data: created }, status: 201 };
+    }
+    if (method === 'patch' && /\/classroom\/\d+\/students\/status/.test(fullUrl)) {
+      const idMatch = fullUrl.match(/\/classroom\/(\d+)/);
+      const classroomId = idMatch ? parseInt(idMatch[1]) : undefined;
+      const payload = config?.data || {};
+      const occurrenceId =
+        typeof payload?.id === 'string' ? parseInt(payload.id) : Number(payload?.id);
+      const active = Boolean(payload?.status);
+
+      if (Number.isFinite(classroomId) && Number.isFinite(occurrenceId)) {
+        const idx = initialStudents.findIndex(
+          (s) => s.id === occurrenceId && s.classId === classroomId
+        );
+        if (idx >= 0) {
+          initialStudents[idx] = { ...initialStudents[idx], active };
+        }
+      }
+      return { data: { message: 'Status atualizado com sucesso' }, status: 200 };
+    }
+    if (method === 'delete' && /\/classroom\/\d+\/students$/.test(fullUrl)) {
+      const idMatch = fullUrl.match(/\/classroom\/(\d+)/);
+      const classroomId = idMatch ? parseInt(idMatch[1]) : undefined;
+      const payload = config?.data || {};
+      const occurrenceId =
+        typeof payload?.id === 'string' ? parseInt(payload.id) : Number(payload?.id);
+      if (Number.isFinite(classroomId) && Number.isFinite(occurrenceId)) {
+        const idx = initialStudents.findIndex(
+          (s) => s.id === occurrenceId && s.classId === classroomId
+        );
+        if (idx >= 0) {
+          initialStudents.splice(idx, 1);
+          return { data: { message: 'Removido com sucesso' }, status: 200 };
+        }
+        return { data: { message: 'Não encontrado' }, status: 404 };
+      }
+      return { data: { message: 'Requisição inválida' }, status: 400 };
+    }
     if (
       fullUrl.includes('/courses') ||
       fullUrl.includes('/modules') ||
-      fullUrl.includes('/classrooms') ||
+      fullUrl.includes('/classroom') ||
       fullUrl.includes('/announcements') ||
       fullUrl.includes('/students') ||
       (fullUrl.includes('/users') && !fullUrl.includes('/auth'))
     ) {
+      const isNoContent = method === 'delete' || method === 'patch';
       return {
-        data: { id: Date.now(), ...config.data, message: 'Sucesso' },
-        status: method === 'post' ? 201 : method === 'delete' ? 204 : 200,
+        data: isNoContent
+          ? { message: 'Sucesso', data: null }
+          : { id: Date.now(), ...config.data, message: 'Sucesso' },
+        status: isNoContent ? 204 : method === 'post' ? 201 : 200,
       };
     }
   }
@@ -260,6 +370,7 @@ export const isCorsError = (status, errDataOrMsg) => {
 
 export const presentError = ({ status, errData, setInline, showToast }) => {
   const msg = extractErrorMessage(errData);
+  const safeMsg = import.meta.env.DEV ? msg : 'Ocorreu um erro inesperado. Tente novamente.';
 
   if (isCorsError(status, errData)) {
     showToast({ message: 'Erro ao se comunicar com o servidor', type: 'error' });
@@ -268,8 +379,11 @@ export const presentError = ({ status, errData, setInline, showToast }) => {
   }
 
   if (status === 409) {
-    showToast({ message: msg || 'Conflito ao processar a solicitação', type: 'error' });
-    setInline('');
+    const conflictMsg = import.meta.env.DEV
+      ? (msg || 'Conflito ao processar a solicitação')
+      : 'Conflito ao processar a solicitação';
+    showToast({ message: conflictMsg, type: 'error' });
+    setInline(import.meta.env.DEV ? msg : '');
     return;
   }
 
@@ -279,7 +393,7 @@ export const presentError = ({ status, errData, setInline, showToast }) => {
     return;
   }
 
-  setInline(msg);
+  setInline(safeMsg);
 };
 
 const extractData = (response) => response?.data ?? response;
@@ -295,11 +409,9 @@ const extractInvite = (response) => {
     email: invite.email,
     role: invite.role?.toLowerCase() || invite.role,
   };
-  // Inclui className quando disponível (para convites de estudante)
   if (invite.className) {
     inviteData.className = invite.className;
   }
-  // Inclui requiresSignup quando disponível
   if (invite.requiresSignup !== undefined) {
     inviteData.requiresSignup = invite.requiresSignup;
   }

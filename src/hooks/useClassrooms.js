@@ -2,10 +2,21 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { classroomsService } from '../services';
 
-export function useClassrooms() {
+export function useClassrooms(options = {}) {
+  const { enabled = true } = options;
+
   return useQuery({
-    queryKey: ['classrooms'],
-    queryFn: classroomsService.list,
+    queryKey: ['classrooms', 'all'],
+    queryFn: async () => {
+      const [activePage, inactivePage] = await Promise.all([
+        classroomsService.listByInstructor({ active: true, page: 0, size: 1000, search: '', sortBy: 'name', sortDir: 'ASC' }),
+        classroomsService.listByInstructor({ active: false, page: 0, size: 1000, search: '', sortBy: 'name', sortDir: 'ASC' }),
+      ]);
+      const activeClasses = activePage?.content ?? [];
+      const inactiveClasses = inactivePage?.content ?? [];
+      return [...activeClasses, ...inactiveClasses];
+    },
+    enabled,
   });
 }
 

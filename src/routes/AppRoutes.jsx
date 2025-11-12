@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { ROLES } from '../constants';
 import ManageInstructorsPage from '../pages/Admin/ManageInstructors';
+import ClassroomDetailPage from '../pages/Instructor/ClassroomDetail';
 import ManageAnnouncementsPage from '../pages/Instructor/ManageAnnouncements';
 import ManageClassesPage from '../pages/Instructor/ManageClasses';
 import ManageContentPage from '../pages/Instructor/ManageContent';
@@ -50,6 +51,15 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
             <ManageClassesPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/instructor/classroom/:classroomId"
+        element={
+          <ProtectedRoute allowedRoles={[ROLES.INSTRUCTOR]}>
+            <ClassroomDetailPage />
           </ProtectedRoute>
         }
       />

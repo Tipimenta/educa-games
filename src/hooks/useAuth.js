@@ -58,7 +58,7 @@ export const useAuth = () => {
         });
         setErrorMessage('');
       }
-      console.error('Erro de login:', err);
+    if (import.meta.env.DEV) console.error('Erro de login:', err);
     }
   };
 
@@ -68,7 +68,7 @@ export const useAuth = () => {
       await logoutMutation.mutateAsync();
       navigate('/login');
     } catch (err) {
-      console.error('Erro no logout:', err);
+    if (import.meta.env.DEV) console.error('Erro no logout:', err);
       setUser(null);
       navigate('/login');
     }
@@ -95,7 +95,7 @@ export const useAuth = () => {
         showToast({ message: 'Erro ao se comunicar com o servidor', type: 'error' });
         setErrorMessage('');
       }
-      console.error('Erro no cadastro:', err);
+    if (import.meta.env.DEV) console.error('Erro no cadastro:', err);
     }
   };
 

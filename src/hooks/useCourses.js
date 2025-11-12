@@ -2,10 +2,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { coursesService } from '../services';
 
-export function useCourses() {
+export function useCourses(options = {}) {
+  const { enabled = true } = options;
+
   return useQuery({
     queryKey: ['courses'],
     queryFn: coursesService.list,
+    enabled,
+    placeholderData: (previousData) => previousData,
   });
 }
 

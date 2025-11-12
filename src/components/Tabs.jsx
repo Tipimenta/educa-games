@@ -19,11 +19,21 @@ export default function Tabs({
   onTabChange,
   className = '',
   containerClassName = '',
+  align = 'center',
+  navClassName = '',
+  fluid = false,
 }) {
+  const justifyClass =
+    align === 'left' || align === 'start'
+      ? 'justify-start'
+      : align === 'right' || align === 'end'
+      ? 'justify-end'
+      : 'justify-center';
+  const widthClass = fluid ? '' : 'mx-auto max-w-[95%]';
   return (
     <div className={`mb-8 ${containerClassName}`}>
-      <div className={`mx-auto max-w-[95%] border-b border-gray-200 ${className}`}>
-        <nav className="-mb-px flex justify-center">
+      <div className={`${widthClass} border-b border-gray-200 ${className}`}>
+        <nav className={`-mb-px flex ${justifyClass} ${navClassName}`}>
           {tabs.map((tab) => (
             <TabButton
               key={tab.id}
