@@ -1,4 +1,5 @@
 import { api, axiosInstance } from './api';
+const PATH = '/v1/invite';
 
 const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true';
 
@@ -22,8 +23,8 @@ export const invitesService = {
       return api.invite.send(email, classroomId);
     }
     const url = classroomId != null
-      ? `/invite/send?classroomId=${encodeURIComponent(classroomId)}`
-      : '/invite/send';
+      ? `${PATH}/send?classroomId=${encodeURIComponent(classroomId)}`
+      : `${PATH}/send`;
     const response = await axiosInstance.post(url, { email });
     return response;
   },
@@ -48,7 +49,7 @@ export const invitesService = {
     if (classroomId) {
       params.append('classroomId', String(classroomId));
     }
-    const response = await axiosInstance.get(`/invite?${params}`);
+    const response = await axiosInstance.get(`${PATH}?${params}`);
     const pageData = response?.data || response;
     return {
       content: pageData?.content || [],
@@ -62,12 +63,12 @@ export const invitesService = {
   },
 
   resend: async (id) => {
-    const response = await axiosInstance.post('/invite/resend', { id });
+    const response = await axiosInstance.post(`${PATH}/resend`, { id });
     return response;
   },
 
   remove: async (id) => {
-    const response = await axiosInstance.delete('/invite', { data: { id } });
+    const response = await axiosInstance.delete(PATH, { data: { id } });
     return response;
   },
 };

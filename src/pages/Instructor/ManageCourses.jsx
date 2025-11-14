@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
 import {
@@ -6,6 +6,7 @@ import {
   Button,
   ClassSelector,
   EmptyState,
+  ErrorMessage,
   Input,
   Label,
   Modal,
@@ -16,15 +17,19 @@ import {
 import { AuthContext } from '../../context';
 import {
   useAuth,
-  useClassrooms,
+  useAvailableClasses,
   useClassSelection,
   useConfirmDelete,
   useCourses,
   useCreateCourse,
   useDeleteCourse,
+  useForm,
   useModalForm,
+  useToast,
   useUpdateCourse,
 } from '../../hooks';
+import { courseSchema } from '../../schemas/courseSchema';
+import { presentError } from '../../services';
 
 const ManageCoursesPage = () => {
   const { user } = useContext(AuthContext);
@@ -34,7 +39,7 @@ const ManageCoursesPage = () => {
   const updateCourseMutation = useUpdateCourse();
   const deleteCourseMutation = useDeleteCourse();
   const classSelection = useClassSelection([]);
-  const { data: classes = [], refetch: refetchClassrooms } = useClassrooms({
+  const { data: classes = [], refetch: refetchAvailable } = useAvailableClasses({
     enabled: false, // Só carregar quando o modal abrir
   });
 
@@ -43,23 +48,40 @@ const ManageCoursesPage = () => {
     onReset: () => {
       classSelection.reset();
     },
-    onSubmit: async (values, editingItem, closeModal) => {
-      if (values.title.trim() === '') return;
-      if (editingItem) {
-        await updateCourseMutation.mutateAsync({
-          id: editingItem.id,
-          data: {
+    onSubmit: () => {},
+  });
+
+  const { showToast } = useToast();
+
+  const form = useForm({
+    initialValues: modalForm.formValues,
+    schema: courseSchema,
+    onSubmit: async (values) => {
+      try {
+        if (modalForm.editingItem) {
+          const resp = await updateCourseMutation.mutateAsync({
+            id: modalForm.editingItem.id,
+            data: {
+              ...values,
+              assignedClasses: classSelection.selectedClasses,
+            },
+          });
+          const msg = resp?.message || 'Curso atualizado com sucesso';
+          showToast({ message: msg, type: 'success' });
+        } else {
+          const resp = await createCourseMutation.mutateAsync({
             ...values,
             assignedClasses: classSelection.selectedClasses,
-          },
-        });
-      } else {
-        await createCourseMutation.mutateAsync({
-          ...values,
-          assignedClasses: classSelection.selectedClasses,
-        });
+          });
+          const msg = resp?.message || 'Curso criado com sucesso';
+          showToast({ message: msg, type: 'success' });
+        }
+        modalForm.closeModal();
+      } catch (err) {
+        const status = err?.status || err?.response?.status || 500;
+        const errData = err?.data || err?.response?.data || {};
+        presentError({ status, errData, setInline: () => {}, showToast });
       }
-      closeModal();
     },
   });
 
@@ -95,7 +117,7 @@ const ManageCoursesPage = () => {
           action={
             <Button
               onClick={() => {
-                refetchClassrooms();
+                refetchAvailable();
                 modalForm.openCreateModal();
               }}
               className="w-auto px-6"
@@ -140,7 +162,7 @@ const ManageCoursesPage = () => {
         <div className="mt-8 flex justify-center">
           <Button
             onClick={() => {
-              refetchClassrooms();
+              refetchAvailable();
               modalForm.openCreateModal();
             }}
             className="w-full px-6 sm:w-auto"
@@ -155,24 +177,36 @@ const ManageCoursesPage = () => {
         onClose={modalForm.closeModal}
         title={modalForm.editingItem ? 'Editar Curso' : 'Criar Novo Curso'}
       >
-        <form onSubmit={modalForm.handleSubmit}>
+        <form onSubmit={form.handleSubmit}>
           <div className="mb-4">
             <Label htmlFor="course-title">Título do Curso</Label>
             <Input
               id="course-title"
               placeholder="Ex: Matemática Financeira"
-              value={modalForm.formValues.title}
-              onChange={(e) => modalForm.updateFormValue('title', e.target.value)}
+              value={form.values.title}
+              onChange={(e) => {
+                modalForm.updateFormValue('title', e.target.value);
+                form.handleChange('title', e.target.value);
+              }}
+              onBlur={() => form.handleBlur('title')}
+              error={!!form.errors.title}
             />
+            <ErrorMessage message={form.errors.title} />
           </div>
           <div className="mb-4">
             <Label htmlFor="course-description">Descrição</Label>
             <Textarea
               id="course-description"
-              value={modalForm.formValues.description}
-              onChange={(e) => modalForm.updateFormValue('description', e.target.value)}
+              value={form.values.description}
+              onChange={(e) => {
+                modalForm.updateFormValue('description', e.target.value);
+                form.handleChange('description', e.target.value);
+              }}
+              onBlur={() => form.handleBlur('description')}
+              error={!!form.errors.description}
               rows={3}
             />
+            <ErrorMessage message={form.errors.description} />
           </div>
           <div className="mb-6">
             <Label>Vincular às Turmas</Label>
@@ -183,7 +217,11 @@ const ManageCoursesPage = () => {
               namePrefix="course-class"
             />
           </div>
-          <Button type="submit">
+          <Button
+            type="submit"
+            disabled={!form.isFormValid || form.isSubmitting}
+            className="disabled:cursor-not-allowed disabled:opacity-50"
+          >
             {modalForm.editingItem ? 'Salvar Alterações' : 'Criar Curso'}
           </Button>
         </form>

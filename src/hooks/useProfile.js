@@ -7,9 +7,11 @@ export function useProfile(options = {}) {
     queryKey: ['profile', 'me'],
     queryFn: profileService.get,
     retry: false,
-    staleTime: 0,
-    refetchOnMount: true,
+    // Atualiza apenas quando houver invalidação explícita
+    staleTime: Infinity,
+    refetchOnMount: false,
     refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     ...options,
   });
 }

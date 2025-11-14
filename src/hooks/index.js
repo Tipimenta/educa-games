@@ -2,6 +2,7 @@ export * from './useAnnouncements';
 export * from './useAuth';
 export * from './useAuthQuery';
 export * from './useClassrooms';
+export { useAvailableClasses } from './useClassrooms';
 export * from './useClassSelection';
 export * from './useConfirmAction';
 export * from './useConfirmDelete';

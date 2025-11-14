@@ -61,3 +61,56 @@ export function useDeleteClassroom() {
     },
   });
 }
+
+export function useAvailableClasses(options = {}) {
+  const { enabled = true } = options;
+  return useQuery({
+    queryKey: ['classrooms', 'available'],
+    queryFn: classroomsService.listAvailable,
+    enabled,
+  });
+}
+
+export function useClassroomCourses(options = {}) {
+  const {
+    classroomId,
+    page = 0,
+    size = 10,
+    search = '',
+    sortBy = 'title',
+    sortDir = 'ASC',
+    enabled = true,
+  } = options;
+
+  return useQuery({
+    queryKey: ['courses', 'classroom', { classroomId, page, size, search, sortBy, sortDir }],
+    queryFn: () => classroomsService.listCoursesByClassroom({ classroomId, page, size, search, sortBy, sortDir }),
+    enabled: !!classroomId && enabled,
+    placeholderData: (previousData) => previousData,
+  });
+}
+
+export function useDetachCourseFromClassroom() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ classroomId, courseId }) => classroomsService.detachCourse(classroomId, courseId),
+    onSuccess: () => {
+      // Atualiza listagem de cursos por turma e detalhes de turmas
+      queryClient.invalidateQueries({ queryKey: ['courses', 'classroom'] });
+      queryClient.invalidateQueries({ queryKey: ['classrooms'] });
+    },
+  });
+}
+
+export function useAttachCoursesToClassroom() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ classroomId, courseIds }) => classroomsService.attachCourses(classroomId, courseIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courses', 'classroom'] });
+      queryClient.invalidateQueries({ queryKey: ['classrooms'] });
+    },
+  });
+}

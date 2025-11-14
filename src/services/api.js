@@ -32,6 +32,10 @@ const getMockResponse = async (method, fullUrl, config) => {
 
   if (method === 'get') {
     if (fullUrl.includes('/classroom')) {
+      if (fullUrl.includes('/availableClasses')) {
+        const available = initialClasses.filter((c) => !!c.active);
+        return { data: available, status: 200 };
+      }
       const idMatch = fullUrl.match(/\/classroom\/(\d+)/);
       if (idMatch) {
         const id = parseInt(idMatch[1]);
@@ -56,6 +60,39 @@ const getMockResponse = async (method, fullUrl, config) => {
             );
           }
           const key = sortBy === 'createdAt' ? 'createdAt' : 'name';
+          data = sortArray(data, key, sortDir);
+          const pageResponse = paginate(data, page, size);
+          return {
+            data: {
+              content: pageResponse.content,
+              totalElements: pageResponse.totalElements,
+              totalPages: pageResponse.totalPages,
+              size: pageResponse.size,
+              number: pageResponse.number,
+              first: pageResponse.first,
+              last: pageResponse.last,
+            },
+            status: 200,
+          };
+        }
+        if (fullUrl.includes('/courses')) {
+          const page = parseInt(searchParams.get('page') || '0');
+          const size = parseInt(searchParams.get('size') || '10');
+          const search = searchParams.get('search') || '';
+          const sortBy = searchParams.get('sortBy') || 'title';
+          const sortDir = searchParams.get('sortDir') || 'ASC';
+          let data = initialCourses.filter(
+            (c) => Array.isArray(c.assignedClasses) && c.assignedClasses.includes(id)
+          );
+          if (search) {
+            const lowerSearch = search.toLowerCase();
+            data = data.filter(
+              (c) =>
+                c.title?.toLowerCase().includes(lowerSearch) ||
+                c.description?.toLowerCase().includes(lowerSearch)
+            );
+          }
+          const key = sortBy === 'createdAt' ? 'createdAt' : 'title';
           data = sortArray(data, key, sortDir);
           const pageResponse = paginate(data, page, size);
           return {
@@ -102,6 +139,16 @@ const getMockResponse = async (method, fullUrl, config) => {
         },
         status: 200,
       };
+    }
+
+    if (fullUrl.includes('/course')) {
+      const idMatch = fullUrl.match(/\/course\/(\d+)/);
+      if (idMatch) {
+        const id = parseInt(idMatch[1]);
+        const item = initialCourses.find((c) => c.id === id);
+        return { data: item || null, status: item ? 200 : 404 };
+      }
+      return { data: initialCourses, status: 200 };
     }
 
     if (fullUrl.includes('/courses')) {
@@ -191,6 +238,57 @@ const getMockResponse = async (method, fullUrl, config) => {
       };
     }
 
+    if (
+      fullUrl.includes('/user') &&
+      !fullUrl.includes('/user/instructors') &&
+      !fullUrl.includes('/user/profile')
+    ) {
+      const combinedUsers = [];
+      initialActiveInstructors.forEach((i) => {
+        combinedUsers.push({
+          id: i.id,
+          name: i.name,
+          email: i.email,
+          role: 'instructor',
+          active: true,
+        });
+      });
+      initialInactiveInstructors.forEach((i) => {
+        combinedUsers.push({
+          id: i.id,
+          name: i.name,
+          email: i.email,
+          role: 'instructor',
+          active: false,
+        });
+      });
+      initialStudents.forEach((s) => {
+        combinedUsers.push({
+          id: s.id,
+          name: s.name,
+          email: s.email,
+          role: 'student',
+          active: !!s.active,
+        });
+      });
+      combinedUsers.push({
+        id: 901,
+        name: 'Administrador Mock',
+        email: 'admin@email.com',
+        role: 'admin',
+        active: true,
+      });
+
+      const idMatch = fullUrl.match(/\/user\/(\d+)/);
+      if (idMatch) {
+        const id = parseInt(idMatch[1]);
+        const item = combinedUsers.find((u) => u.id === id);
+        return { data: item || null, status: item ? 200 : 404 };
+      }
+
+      return { data: combinedUsers, status: 200 };
+    }
+
     if (fullUrl.includes('/invite') && !fullUrl.includes('/invite/send')) {
       const page = parseInt(searchParams.get('page') || '0');
       const size = parseInt(searchParams.get('size') || '10');
@@ -222,6 +320,43 @@ const getMockResponse = async (method, fullUrl, config) => {
         },
         status: 200,
       };
+    }
+  }
+
+  if (method === 'post') {
+    if (fullUrl.includes('/classroom')) {
+      const idMatch = fullUrl.match(/\/classroom\/(\d+)/);
+      if (idMatch && fullUrl.endsWith('/courses')) {
+        const classroomId = parseInt(idMatch[1]);
+        const ids = (config?.data?.ids ?? []).map((x) => parseInt(x));
+        ids.forEach((cid) => {
+          const course = initialCourses.find((c) => c.id === cid);
+          if (course) {
+            course.assignedClasses = Array.isArray(course.assignedClasses)
+              ? course.assignedClasses
+              : [];
+            if (!course.assignedClasses.includes(classroomId)) {
+              course.assignedClasses.push(classroomId);
+            }
+          }
+        });
+        return { data: { message: null, data: null }, status: 204 };
+      }
+    }
+  }
+
+  if (method === 'delete') {
+    if (fullUrl.includes('/classroom')) {
+      const match = fullUrl.match(/\/classroom\/(\d+)\/courses\/(\d+)/);
+      if (match) {
+        const classroomId = parseInt(match[1]);
+        const courseId = parseInt(match[2]);
+        const course = initialCourses.find((c) => c.id === courseId);
+        if (course && Array.isArray(course.assignedClasses)) {
+          course.assignedClasses = course.assignedClasses.filter((clId) => clId !== classroomId);
+        }
+        return { data: { message: null, data: null }, status: 204 };
+      }
     }
   }
 
@@ -275,12 +410,12 @@ const getMockResponse = async (method, fullUrl, config) => {
       return { data: { message: 'Requisição inválida' }, status: 400 };
     }
     if (
-      fullUrl.includes('/courses') ||
+      fullUrl.includes('/course') ||
       fullUrl.includes('/modules') ||
       fullUrl.includes('/classroom') ||
       fullUrl.includes('/announcements') ||
       fullUrl.includes('/students') ||
-      (fullUrl.includes('/users') && !fullUrl.includes('/auth'))
+      (fullUrl.includes('/user') && !fullUrl.includes('/auth'))
     ) {
       const isNoContent = method === 'delete' || method === 'patch';
       return {
@@ -380,7 +515,7 @@ export const presentError = ({ status, errData, setInline, showToast }) => {
 
   if (status === 409) {
     const conflictMsg = import.meta.env.DEV
-      ? (msg || 'Conflito ao processar a solicitação')
+      ? msg || 'Conflito ao processar a solicitação'
       : 'Conflito ao processar a solicitação';
     showToast({ message: conflictMsg, type: 'error' });
     setInline(import.meta.env.DEV ? msg : '');
@@ -395,32 +530,6 @@ export const presentError = ({ status, errData, setInline, showToast }) => {
 
   setInline(safeMsg);
 };
-
-const extractData = (response) => response?.data ?? response;
-const extractInvite = (response) => {
-  const invite = response?.data ?? response;
-  if (!invite?.email) {
-    return {
-      invite: null,
-      message: response?.message ?? null,
-    };
-  }
-  const inviteData = {
-    email: invite.email,
-    role: invite.role?.toLowerCase() || invite.role,
-  };
-  if (invite.className) {
-    inviteData.className = invite.className;
-  }
-  if (invite.requiresSignup !== undefined) {
-    inviteData.requiresSignup = invite.requiresSignup;
-  }
-  return {
-    invite: inviteData,
-    message: response?.message ?? null,
-  };
-};
-const extractMessage = (response) => response?.message ?? response ?? null;
 
 let api;
 
@@ -508,40 +617,7 @@ if (USE_MOCKS) {
     },
   };
 } else {
-  api = {
-    auth: {
-      login: async (email, password) => {
-        const response = await axiosInstance.post('/auth/login', { email, password });
-        return response;
-      },
-      logout: async () => {
-        const response = await axiosInstance.post('/auth/logout', {});
-        return response;
-      },
-      getMe: async () => {
-        const response = await axiosInstance.get('/auth/me');
-        return extractData(response);
-      },
-      register: async (userData) => {
-        const response = await axiosInstance.post('/auth/register', userData);
-        return response;
-      },
-      validateInvite: async (token) => {
-        const response = await axiosInstance.get(`/auth/validate-invite?token=${token}`);
-        return extractInvite(response);
-      },
-      completeSignup: async (payload) => {
-        const response = await axiosInstance.post('/auth/complete-signup', payload);
-        return extractMessage(response);
-      },
-    },
-    invite: {
-      send: async (email) => {
-        const response = await axiosInstance.post('/invite/send', { email });
-        return response;
-      },
-    },
-  };
+  api = {};
 }
 
 export { api, axiosInstance };

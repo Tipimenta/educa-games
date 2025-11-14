@@ -1,8 +1,9 @@
-import { Ban, CircleCheck,RotateCw, Trash2 } from 'lucide-react';
-import { useContext, useEffect, useMemo, useRef,useState } from 'react';
+import { Ban, CircleCheck, RotateCw, Trash2, Unlink } from 'lucide-react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import {
+  ActionButton,
   AppLayout,
   Breadcrumb,
   Button,
@@ -10,6 +11,7 @@ import {
   DataTable,
   EmptyState,
   ErrorMessage,
+  FormattedDate,
   Input,
   Label,
   Modal,
@@ -17,11 +19,13 @@ import {
   PageSizeSelector,
   PageTitle,
   SearchInput,
+  StatusBadge,
   Tabs,
+  Textarea,
 } from '../../components';
-import { ActionButton,FormattedDate, StatusBadge } from '../../components';
 import { AuthContext } from '../../context';
-import { useAuth, useClassroom, useClassroomStudents, useConfirmAction, useCourses, useDeleteClassroom, useInviteModal, useInvites, useRemoveClassroomStudent,useRemoveInvite, useResendInvite, useSendInvite, useToast, useUpdateClassroom, useUpdateClassroomStudentStatus } from '../../hooks';
+import { useAttachCoursesToClassroom, useAuth, useClassroom, useClassroomCourses, useClassroomStudents, useConfirmAction, useCourses, useCreateCourse, useDeleteClassroom, useDetachCourseFromClassroom, useForm, useInviteModal, useInvites, useRemoveClassroomStudent, useRemoveInvite, useResendInvite, useSendInvite, useToast, useUpdateClassroom, useUpdateClassroomStudentStatus } from '../../hooks';
+import { courseSchema } from '../../schemas/courseSchema';
 
 const TABS = [
   { id: 'active', label: 'Alunos Ativos' },
@@ -63,7 +67,38 @@ const ClassroomDetailPage = () => {
     }));
   }, [activeTab]);
 
-  const { data: courses = [] } = useCourses({ enabled: !!classroomId && activeTab === 'courses' });
+  const detachCourseMutation = useDetachCourseFromClassroom();
+  const attachCoursesMutation = useAttachCoursesToClassroom();
+
+  const [addCourseChoiceOpen, setAddCourseChoiceOpen] = useState(false);
+
+  const [courseModalOpen, setCourseModalOpen] = useState(false);
+  const createCourseMutation = useCreateCourse();
+  const courseForm = useForm({
+    initialValues: { title: '', description: '' },
+    schema: courseSchema,
+    onSubmit: async (values) => {
+      try {
+        const resp = await createCourseMutation.mutateAsync({
+          title: values.title,
+          description: values.description,
+          classroomId: Number(classroomId),
+        });
+        const msg = resp?.message || 'Curso criado e vinculado à turma';
+        showToast({ message: msg, type: 'success' });
+        setCourseModalOpen(false);
+        courseForm.reset({ title: '', description: '' });
+      } catch (err) {
+        const status = err?.status || err?.response?.status || 500;
+        const errData = err?.data || err?.response?.data || {};
+        console.error('Erro ao criar curso:', err);
+        const message = errData?.message || 'Erro ao criar curso. Tente novamente.';
+        showToast({ message, type: 'error' });
+      }
+    },
+  });
+
+
 
   const [renameOpen, setRenameOpen] = useState(false);
   const [renameConfirmOpen, setRenameConfirmOpen] = useState(false);
@@ -92,6 +127,13 @@ const ClassroomDetailPage = () => {
         { key: 'nome', label: 'E-MAIL', align: 'left' },
         { key: 'status', label: 'STATUS', align: 'center' },
         { key: 'expires', label: 'EXPIRA EM', align: 'center' },
+        { key: 'acoes', label: 'AÇÕES', align: 'center' },
+      ];
+    }
+    if (activeTab === 'courses') {
+      return [
+        { key: 'titulo', label: 'TÍTULO', align: 'left' },
+        { key: 'descricao', label: 'DESCRIÇÃO', align: 'left' },
         { key: 'acoes', label: 'AÇÕES', align: 'center' },
       ];
     }
@@ -135,7 +177,63 @@ const ClassroomDetailPage = () => {
     enabled: activeTab === 'invites' && !!classroomId,
   });
 
-  // Envio de convite para alunos da turma
+  const classroomCoursesQuery = useClassroomCourses({
+    classroomId: Number(classroomId),
+    page: backendPage,
+    size: pageSize,
+    search,
+    sortBy: 'title',
+    sortDir: 'ASC',
+    enabled: activeTab === 'courses' && !!classroomId,
+  });
+
+  const [attachModalOpen, setAttachModalOpen] = useState(false);
+  const PAGE_CHUNK_SIZE = 20;
+  const [visibleCount, setVisibleCount] = useState(PAGE_CHUNK_SIZE);
+  const [attachSearch, setAttachSearch] = useState('');
+  const allCoursesQuery = useCourses({ enabled: attachModalOpen });
+  const availableCourses = useMemo(() => {
+    const all = allCoursesQuery.data || [];
+    const classroomCourses = classroomCoursesQuery.data?.content || [];
+    const attachedIds = new Set(classroomCourses.map((c) => c.id));
+    return all.filter((c) => !attachedIds.has(c.id));
+  }, [allCoursesQuery.data, classroomCoursesQuery.data]);
+  const filteredCourses = useMemo(() => {
+    const term = attachSearch.trim().toLowerCase();
+    if (!term) return availableCourses;
+    return availableCourses.filter(
+      (c) => (c.title || '').toLowerCase().includes(term) || (c.description || '').toLowerCase().includes(term)
+    );
+  }, [attachSearch, availableCourses]);
+  const visibleCourses = useMemo(() => filteredCourses.slice(0, visibleCount), [filteredCourses, visibleCount]);
+  const canLoadMore = filteredCourses.length > visibleCount;
+  const [selectedCourseIds, setSelectedCourseIds] = useState(new Set());
+  const toggleSelect = (id) => {
+    setSelectedCourseIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  const loadMore = () => setVisibleCount((c) => c + PAGE_CHUNK_SIZE);
+
+  const confirmAttach = async () => {
+    try {
+      const ids = Array.from(selectedCourseIds);
+      await attachCoursesMutation.mutateAsync({ classroomId: Number(classroomId), courseIds: ids });
+      setAttachModalOpen(false);
+      setSelectedCourseIds(new Set());
+      setVisibleCount(PAGE_CHUNK_SIZE);
+      classroomCoursesQuery.refetch?.();
+      classroomQuery.refetch?.();
+      showToast({ message: 'Cursos vinculados à turma.', type: 'success' });
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('Erro ao vincular cursos:', error);
+      showToast({ message: 'Erro ao vincular cursos. Tente novamente.', type: 'error' });
+    }
+  };
+
   const sendInviteMutation = useSendInvite();
   const resendInviteMutation = useResendInvite();
   const removeInviteMutation = useRemoveInvite();
@@ -244,8 +342,9 @@ const ClassroomDetailPage = () => {
     if (activeTab === 'active') return activeStudentsQuery.data || { content: [], totalElements: 0 };
     if (activeTab === 'inactive') return inactiveStudentsQuery.data || { content: [], totalElements: 0 };
     if (activeTab === 'invites') return invitesQuery.data || { content: [], totalElements: 0 };
+    if (activeTab === 'courses') return classroomCoursesQuery.data || { content: [], totalElements: 0 };
     return { content: [], totalElements: 0 };
-  }, [activeTab, activeStudentsQuery.data, inactiveStudentsQuery.data, invitesQuery.data]);
+  }, [activeTab, activeStudentsQuery.data, inactiveStudentsQuery.data, invitesQuery.data, classroomCoursesQuery.data]);
 
   const data = useMemo(() => {
     const content = currentPageData?.content || [];
@@ -258,6 +357,13 @@ const ClassroomDetailPage = () => {
         _raw: inv,
       }));
     }
+    if (activeTab === 'courses') {
+      return content.map((course) => ({
+        titulo: course.title ?? '-',
+        descricao: (course.description && course.description.trim()) ? course.description : '-',
+        _raw: course,
+      }));
+    }
     // Students
     return content.map((s) => ({
       matricula: s.enrollment ?? '—',
@@ -267,6 +373,22 @@ const ClassroomDetailPage = () => {
       _raw: s,
     }));
   }, [currentPageData?.content, activeTab]);
+
+  const handleUnlinkCourse = async (course) => {
+    await executeWithConfirmation({
+      confirmConfig: {
+        title: 'Desvincular Curso',
+        message: `Tem certeza que deseja desvincular "${course.title}" desta turma?`,
+        variant: 'warning',
+      },
+      action: async () =>
+        detachCourseMutation.mutateAsync({ classroomId: Number(classroomId), courseId: course.id }),
+      successMessage: 'foi desvinculado',
+      itemName: course.title,
+    });
+    classroomCoursesQuery.refetch?.();
+    classroomQuery.refetch?.();
+  };
 
   const handleRenameSubmit = (e) => {
     e.preventDefault();
@@ -303,7 +425,6 @@ const ClassroomDetailPage = () => {
     }
   };
 
-  // Fecha o menu ao clicar fora
   useEffect(() => {
     const onClickAway = (e) => {
       if (!menuOpen) return;
@@ -416,7 +537,7 @@ const ClassroomDetailPage = () => {
 
         <Tabs tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} align="left" fluid containerClassName="mb-3" />
 
-        {/* Controles acima da listagem, sem linha preta */}
+        {/* Controles acima da listagem */}
         <div className="mt-3 mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <SearchInput
             key={`search-${activeTab}`}
@@ -431,12 +552,17 @@ const ClassroomDetailPage = () => {
             ) : activeTab === 'invites' ? (
               <Button className="px-6 whitespace-nowrap sm:w-auto" onClick={inviteModal.openModal} disabled={isInactive}>+ Enviar Convite</Button>
             ) : activeTab === 'courses' ? (
-              <Button className="px-6 whitespace-nowrap sm:w-auto" disabled={isInactive}>+ Adicionar Curso</Button>
+              <Button
+                className="px-6 whitespace-nowrap sm:w-auto"
+                onClick={() => setAddCourseChoiceOpen(true)}
+                disabled={isInactive}
+              >
+                + Adicionar Curso
+              </Button>
             ) : null}
           </div>
         </div>
 
-        {/* Card de conteúdo (tabela/estado vazio) */}
         <div className="overflow-hidden rounded-xl bg-white shadow mb-8 p-5 sm:p-6">
           {data.length === 0 ? (
             <div className="flex min-h-[260px] items-center justify-center p-8">
@@ -486,6 +612,37 @@ const ClassroomDetailPage = () => {
                           </div>
                         </td>
                       </>
+                    ) : activeTab === 'courses' ? (
+                      <>
+                        <td className="px-6 py-4 text-left align-middle">
+                          <Link
+                            to="/instructor/manage-content"
+                            state={{ courseId: row._raw.id }}
+                            className="text-blue-600 hover:underline"
+                          >
+                            {row.titulo}
+                          </Link>
+                        </td>
+                        <td
+                          className={`px-6 py-4 align-middle text-sm text-gray-700 ${row.descricao === '-' ? 'text-center' : 'text-left'}`}
+                        >
+                          {row.descricao === '-' ? (
+                            <span className="text-gray-400">———</span>
+                          ) : (
+                            row.descricao
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-center align-middle">
+                          <div className="flex items-center justify-center gap-2">
+                            <ActionButton
+                              icon={Unlink}
+                              title="Desvincular curso"
+                              variant="delete"
+                              onClick={() => handleUnlinkCourse(row._raw)}
+                            />
+                          </div>
+                        </td>
+                      </>
                     ) : (
                       <>
                         <td className="px-6 py-4 text-left align-middle text-base text-gray-700">{row.matricula}</td>
@@ -514,6 +671,81 @@ const ClassroomDetailPage = () => {
             </div>
           )}
         </div>
+
+      <Modal isOpen={addCourseChoiceOpen} onClose={() => setAddCourseChoiceOpen(false)} title="Adicionar Curso" showCloseButton={false}>
+          <div className="space-y-4">
+            <p className="text-gray-700">Como você deseja adicionar o curso?</p>
+            <div className="flex gap-3 justify-end">
+              <Button className="w-auto bg-gray-100 text-gray-700 hover:bg-gray-200" onClick={() => setAddCourseChoiceOpen(false)}>Cancelar</Button>
+              <Button className="w-auto" onClick={() => { setAddCourseChoiceOpen(false); setCourseModalOpen(true); }}>Criar novo</Button>
+              <Button className="w-auto bg-blue-600 hover:bg-blue-700" onClick={() => { setAddCourseChoiceOpen(false); setAttachModalOpen(true); setVisibleCount(PAGE_CHUNK_SIZE); }}>Adicionar existente</Button>
+            </div>
+          </div>
+        </Modal>
+
+        <Modal isOpen={courseModalOpen} onClose={() => setCourseModalOpen(false)} title="Criar Novo Curso para esta Turma">
+          <form onSubmit={courseForm.handleSubmit}>
+            <div className="mb-4">
+              <Label htmlFor="course-title">Título do Curso</Label>
+              <Input
+                id="course-title"
+                placeholder="Ex: Matemática Financeira"
+                value={courseForm.values.title}
+                onChange={(e) => courseForm.handleChange('title', e.target.value)}
+                onBlur={() => courseForm.handleBlur('title')}
+                error={!!courseForm.errors.title}
+              />
+              <ErrorMessage message={courseForm.errors.title} />
+            </div>
+            <div className="mb-4">
+              <Label htmlFor="course-description">Descrição</Label>
+              <Textarea
+                id="course-description"
+                rows={3}
+                value={courseForm.values.description}
+                onChange={(e) => courseForm.handleChange('description', e.target.value)}
+                onBlur={() => courseForm.handleBlur('description')}
+                error={!!courseForm.errors.description}
+              />
+              <ErrorMessage message={courseForm.errors.description} />
+            </div>
+            <Button type="submit" disabled={!courseForm.isFormValid || courseForm.isSubmitting} className="disabled:cursor-not-allowed disabled:opacity-50">
+              Criar Curso
+            </Button>
+          </form>
+        </Modal>
+
+        <Modal isOpen={attachModalOpen} onClose={() => setAttachModalOpen(false)} title="Adicionar Cursos Existentes">
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="attach-search">Pesquisar</Label>
+              <Input id="attach-search" placeholder="Buscar por título ou descrição" value={attachSearch} onChange={(e) => setAttachSearch(e.target.value)} />
+            </div>
+            <div className="max-h-[360px] overflow-auto border rounded-md divide-y">
+              {(visibleCourses ?? []).map((c) => (
+                <label key={c.id} className="flex items-center gap-3 px-3 py-2 cursor-pointer">
+                  <input type="checkbox" checked={selectedCourseIds.has(c.id)} onChange={() => toggleSelect(c.id)} />
+                  <div>
+                    <div className="font-medium text-gray-800">{c.title}</div>
+                    <div className="text-sm text-gray-600">{c.description || '—'}</div>
+                  </div>
+                </label>
+              ))}
+              {canLoadMore && (
+                <div className="p-3">
+                  <Button className="w-full bg-gray-100 text-gray-700 hover:bg-gray-200" onClick={loadMore}>Carregar mais</Button>
+                </div>
+              )}
+              {!allCoursesQuery.isLoading && (visibleCourses ?? []).length === 0 && (
+                <div className="p-6 text-center text-gray-500">Nenhum curso encontrado.</div>
+              )}
+            </div>
+            <div className="flex justify-end gap-3">
+              <Button className="w-auto bg-gray-100 text-gray-700 hover:bg-gray-200" onClick={() => setAttachModalOpen(false)}>Cancelar</Button>
+              <Button className="w-auto bg-blue-600 hover:bg-blue-700" disabled={selectedCourseIds.size === 0 || attachCoursesMutation.isPending} onClick={confirmAttach}>{attachCoursesMutation.isPending ? 'Vinculando...' : 'Vincular Selecionados'}</Button>
+            </div>
+          </div>
+        </Modal>
         </div>
       </div>
 
@@ -541,7 +773,7 @@ const ClassroomDetailPage = () => {
         </form>
       </Modal>
 
-      {/* Modal de envio de convite (igual ao painel admin) */}
+      {/* Modal de envio de convite */}
       <Modal isOpen={inviteModal.isOpen} onClose={inviteModal.closeModal} title="Enviar Convite" showCloseButton={false}>
         <div className="space-y-4">
           <div>

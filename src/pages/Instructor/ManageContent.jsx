@@ -41,14 +41,8 @@ const ManageContentPage = () => {
 
   return (
     <AppLayout user={user} onLogout={logout}>
-      <PageTitle>Gerir Módulos</PageTitle>
-      {selectedCourseId && (
-        <div className="mb-6 flex justify-center">
-          <Link to="/instructor/module-editor" state={{ courseId: selectedCourseId }}>
-            <Button>+ Novo Módulo</Button>
-          </Link>
-        </div>
-      )}
+      <PageTitle>Gerenciar Módulos</PageTitle>
+      {/* Botão de criação movido para dentro do EmptyState via prop 'action' */}
 
       {selectedCourseId ? (
         <h3 className="mb-4 text-xl font-semibold text-gray-700">
@@ -73,6 +67,13 @@ const ManageContentPage = () => {
             selectedCourseId
               ? 'Comece criando seu primeiro módulo para este curso.'
               : 'Selecione um curso para ver seus módulos ou crie um novo módulo.'
+          }
+          action={
+            selectedCourseId ? (
+              <Link to="/instructor/module-editor" state={{ courseId: selectedCourseId }}>
+                <Button className="w-auto">+ Novo Módulo</Button>
+              </Link>
+            ) : null
           }
         />
       ) : (

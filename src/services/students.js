@@ -1,13 +1,15 @@
 import { axiosInstance } from './api';
+const PATH = '/v1/students';
+const CLASSROOM_PATH = '/v1/classroom';
 
 export const studentsService = {
   list: async () => {
-    const response = await axiosInstance.get('/students');
+    const response = await axiosInstance.get(PATH);
     return response;
   },
 
   getById: async (id) => {
-    const response = await axiosInstance.get(`/students/${id}`);
+    const response = await axiosInstance.get(`${PATH}/${id}`);
     return response;
   },
 
@@ -30,7 +32,7 @@ export const studentsService = {
     if (search) params.set('search', search);
 
     const response = await axiosInstance.get(
-      `/classroom/${classroomId}/students?${params.toString()}`
+      `${CLASSROOM_PATH}/${classroomId}/students?${params.toString()}`
     );
     const pageData = response?.data || response;
     return {
@@ -45,7 +47,7 @@ export const studentsService = {
   },
 
   updateClassroomStatus: async ({ classroomId, id, active }) => {
-    const response = await axiosInstance.patch(`/classroom/${classroomId}/students/status`, {
+    const response = await axiosInstance.patch(`${CLASSROOM_PATH}/${classroomId}/students/status`, {
       id,
       status: active,
     });
@@ -53,7 +55,7 @@ export const studentsService = {
   },
 
   removeFromClassroom: async ({ classroomId, id }) => {
-    const response = await axiosInstance.delete(`/classroom/${classroomId}/students`, {
+    const response = await axiosInstance.delete(`${CLASSROOM_PATH}/${classroomId}/students`, {
       data: { id },
     });
     return response;
