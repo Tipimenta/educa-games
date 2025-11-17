@@ -1,0 +1,142 @@
+/* --- Overlay de Ecrã Inteiro --- */
+.logo-animation-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  place-content: center;
+  background-color: #ffffff;
+  z-index: 9999;
+  overflow: hidden;
+
+  /* ANIMAÇÃO CORRIGIDA:
+    - A tua animação (reveal + texto) termina aos 7.8s.
+    - Vamos esperar até aos 8.5s (dá 0.7s de "hold").
+    - O fade-out começa aos 8.5s e dura 0.5s.
+    - Total: 9.0s
+  */
+  animation: overlayFadeOut 0.5s 9.5s ease-in forwards;
+}
+
+/* --- Container Principal (O teu CSS original) --- */
+.logo-container {
+  position: relative;
+  width: 450px;
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* --- Estilo Padrão dos Elementos --- */
+.logo-container svg,
+.logo-container h2 {
+  position: absolute;
+  opacity: 0;
+}
+
+/* --- Posições e Estilos Iniciais --- */
+#plus-sign {
+  transform: scale(0.2);
+  z-index: 9999;
+  opacity: 1;
+}
+
+#educa-text,
+#games-text {
+  font-family: 'Carter One', sans-serif; /* A fonte importada */
+  font-size: 50px;
+  margin: 0;
+  font-weight: bold;
+  letter-spacing: -2px;
+}
+
+#educa-text {
+  color: #007de3;
+  transform: translateX(-70px);
+}
+
+#games-text {
+  color: #fe8c68;
+  transform: translateX(80px);
+}
+
+/* Estilo das letras individuais (começam invisíveis) */
+#educa-text span,
+#games-text span {
+  opacity: 0;
+  transition: opacity 0.9s ease-in-out;
+}
+
+/* Letra visível */
+.visible {
+  opacity: 1 !important;
+}
+
+/* --- Classe Gatilho para Iniciar a Animação --- */
+.logo-container.start-animation #plus-sign {
+  animation:
+    fade-in 1.5s ease-out forwards,
+    /* 1. Aparecer */
+    move-and-spin 1.7s ease-in-out 2s forwards,
+    /* 2. Mover para a direita e girar */
+    reveal 5s ease-in-out 2.7s forwards;
+  /* 3. Voltar revelando */
+}
+
+/* O H2 se torna visível para que suas letras possam aparecer */
+.logo-container.start-animation .text-container-visible {
+  opacity: 1;
+}
+
+/* --- KEYFRAMES (A Lógica da Animação do '+') --- */
+@keyframes fade-in {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes move-and-spin {
+  to {
+    opacity: 1;
+    transform: translateX(180px) rotate(360deg);
+  }
+}
+
+@keyframes reveal {
+  to {
+    opacity: 1;
+    transform: translateX(-150px) rotate(360deg);
+  }
+}
+
+/* --- Efeito de Partículas (Estrelinhas) --- */
+.sparkle {
+  position: absolute;
+  background-color: #fe8c68;
+  border-radius: 50%;
+  animation: fade-out 0.7s forwards;
+  z-index: -1;
+}
+
+@keyframes fade-out {
+  to {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
+/* --- Animação de Fade-out do Overlay --- */
+@keyframes overlayFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    /* Torna o overlay não-clicável após sumir */
+    visibility: hidden; 
+  }
+}

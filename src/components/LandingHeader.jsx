@@ -3,7 +3,7 @@ import { HashLink } from 'react-router-hash-link';
 
 import logoSvg from '../assets/+EducaGames.svg';
 
-const LandingHeader = () => {
+const LandingHeader = ({ onLoginClick }) => {
   return (
     <header className="bg-white shadow-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -30,9 +30,14 @@ const LandingHeader = () => {
 
           {/* CTA Buttons */}
           <div className="flex items-center space-x-4">
-            <Link to="/login" className="text-gray-600 transition-colors hover:text-gray-900">
+            {/* 2. Transforma o <Link> "Entrar" num <button> */}
+            <button
+              type="button"
+              onClick={onLoginClick}
+              className="text-gray-600 transition-colors hover:text-gray-900"
+            >
               Entrar
-            </Link>
+            </button>
             <HashLink
               to="/#pricing"
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"

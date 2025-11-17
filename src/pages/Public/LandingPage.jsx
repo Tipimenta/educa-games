@@ -1,16 +1,40 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import logoSvg from '../../assets/+EducaGames.svg';
 import {
   FeaturesSection,
   HeroSection,
   LandingHeader,
+  LogoAnimation,
   PricingSection,
   TestimonialsSection,
 } from '../../components';
 
 const LandingPage = () => {
+  // 3. Adiciona o estado para controlar a animação e o hook de navegação
+  const [showAnimation, setShowAnimation] = useState(false);
+  const navigate = useNavigate();
+
+  // 4. Esta função será chamada pelo clique no botão "Entrar"
+  const handleLoginClick = () => {
+    setShowAnimation(true); // Mostra o ecrã de animação
+
+    // 5. Define um timer para a navegação.
+    // A animação mais longa (reveal + texto) dura ~7.3 segundos.
+    // Vamos esperar 7.5 segundos (7500ms) para garantir que tudo termine.
+    setTimeout(() => {
+      navigate('/login');
+    }, 9000); 
+  };
+
   return (
     <div className="min-h-screen bg-white">
-      <LandingHeader />
+      {/* 6. Renderiza o componente de animação (ele só aparece se showAnimation for true) */}
+      {showAnimation && <LogoAnimation />}
+
+      {/* 7. Passa a função 'handleLoginClick' para o LandingHeader */}
+      <LandingHeader onLoginClick={handleLoginClick} />
 
       <main>
         <HeroSection />

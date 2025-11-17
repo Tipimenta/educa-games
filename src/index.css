@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Carter+One&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
@@ -23,6 +24,7 @@
     opacity: 0;
     transform: translateY(16px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -34,6 +36,7 @@
     opacity: 1;
     transform: translateY(0);
   }
+
   100% {
     opacity: 0;
     transform: translateY(16px);
@@ -77,6 +80,7 @@ body {
 /* Ajustes de responsividade mínima */
 /* -------------------------- */
 @media (max-width: 360px) {
+
   h1,
   h2 {
     font-size: 1.25rem;
@@ -93,7 +97,8 @@ body {
 /* -------------------------- */
 @media (max-width: 480px) {
   .auth-card {
-    padding: 1.5rem; /* reduz um pouco em telas pequenas */
+    padding: 1.5rem;
+    /* reduz um pouco em telas pequenas */
   }
 }
 
