@@ -12,6 +12,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+
 import { Button, ConfirmationDialog, ErrorMessage, Modal, RichTextEditor } from '../../../components';
 import Input from '../../../components/Input';
 import { validateSingleField } from '../../../schemas/helpers';

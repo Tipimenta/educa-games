@@ -1,6 +1,6 @@
-import Input from './Input';
-import ErrorMessage from './ErrorMessage';
 import { onlyDigits } from '../utils/text';
+import ErrorMessage from './ErrorMessage';
+import Input from './Input';
 
 export default function PointsField({
   label = 'Pontos',

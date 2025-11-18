@@ -1,10 +1,11 @@
 import { useState } from 'react';
+
+import { Button, ErrorMessage, Label, Modal,PointsField, Textarea } from '../../../components';
 import { Trash2Icon } from '../../../components/Icons';
 import Input from '../../../components/Input';
-import { ErrorMessage, Label, Textarea, PointsField, Button, Modal } from '../../../components';
+import { useQuizForm } from '../../../hooks';
 import { validateSingleField } from '../../../schemas/helpers';
 import { quizOptionSchema, quizQuestionTextSchema } from '../../../schemas/quizSchema';
-import { useQuizForm } from '../../../hooks';
 
 const QuizEditor = ({
   questions,

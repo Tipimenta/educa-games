@@ -4,9 +4,6 @@ import Underline from "@tiptap/extension-underline";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { common, createLowlight } from "lowlight";
-import { useEffect, useState } from "react";
-import Modal from "./Modal";
-
 import {
   Bold,
   Code,
@@ -19,6 +16,9 @@ import {
   Strikethrough,
   Underline as UnderlineIcon,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+
+import Modal from "./Modal";
 
 const ToolbarButton = ({ active, onClick, children, title }) => (
   <button

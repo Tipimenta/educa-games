@@ -1,8 +1,8 @@
+import { DndContext } from '@dnd-kit/core';
+import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import { DndContext } from '@dnd-kit/core';
-import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { AppLayout, Button, ChevronLeftIcon, Input, Stepper } from '../../components';
 import { AuthContext } from '../../context';
 import { useAuth, useCourses, useCreateModule, useModule, useToast, useUpdateModule } from '../../hooks';
