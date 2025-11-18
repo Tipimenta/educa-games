@@ -16,7 +16,8 @@ const StudentProfilePage = () => {
     error: studentError,
   } = useStudent(studentId ? parseInt(studentId) : null);
   const { data: classes = [], isLoading: isLoadingClasses } = useClassrooms();
-  const { data: modules = [], isLoading: isLoadingModules } = useModules();
+  const { data: modulesData = { content: [] }, isLoading: isLoadingModules } = useModules();
+  const modules = modulesData.content || [];
 
   const isLoading = isLoadingStudent || isLoadingClasses || isLoadingModules;
 

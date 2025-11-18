@@ -16,6 +16,7 @@ export * from './useLocalStorage';
 export * from './useModalForm';
 export * from './useModules';
 export * from './useProfile';
+export * from './useQuizForm';
 export * from './useStudentProgress';
 export * from './useStudents';
 export * from './useTableFilters';

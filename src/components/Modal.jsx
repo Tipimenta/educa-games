@@ -1,4 +1,25 @@
-const Modal = ({ isOpen, onClose, title, children, showCloseButton = true }) => {
+import { useEffect } from "react";
+
+const Modal = ({ isOpen, onClose, title, children, showCloseButton = true, size = "lg" }) => {
+  // Controla bloqueio de rolagem do body enquanto o modal estiver aberto,
+  // garantindo desbloqueio ao fechar ou desmontar.
+  useEffect(() => {
+    const body = document.body;
+    if (isOpen) {
+      body.dataset.prevOverflow = body.style.overflow || "";
+      body.style.overflow = "hidden";
+    }
+    return () => {
+      const prev = body.dataset.prevOverflow;
+      if (typeof prev !== "undefined") {
+        body.style.overflow = prev;
+        delete body.dataset.prevOverflow;
+      } else {
+        body.style.overflow = "";
+      }
+    };
+  }, [isOpen]);
+
   if (!isOpen) {
     return null;
   }
@@ -6,12 +27,20 @@ const Modal = ({ isOpen, onClose, title, children, showCloseButton = true }) => 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div
-        className="relative w-full max-w-lg rounded-lg bg-white p-8 shadow-[0_20px_60px_-12px_rgba(0,0,0,0.15)]"
+        className={
+          `relative w-full ${
+            size === "fullscreen"
+              ? "max-w-none mx-4 md:mx-8 rounded-xl"
+              : size === "xl"
+                ? "max-w-5xl mx-4 md:mx-8 rounded-xl"
+                : "max-w-lg rounded-lg"
+          } bg-white p-6 md:p-8 shadow-[0_20px_60px_-12px_rgba(0,0,0,0.15)] flex flex-col max-h-[80vh]`
+        }
         onClick={(e) => e.stopPropagation()}
       >
         {title && (
           <div
-            className={`flex items-center ${showCloseButton ? 'justify-between border-b pb-4' : ''}`}
+            className={`flex items-center ${showCloseButton ? 'justify-between' : ''}`}
           >
             <h3 className="text-xl font-bold text-gray-800">{title}</h3>
             {showCloseButton && (
@@ -34,7 +63,7 @@ const Modal = ({ isOpen, onClose, title, children, showCloseButton = true }) => 
             )}
           </div>
         )}
-        <div className={title ? 'mt-4' : ''}>{children}</div>
+        <div className={`${title ? 'mt-3' : ''}`}>{children}</div>
       </div>
     </div>
   );

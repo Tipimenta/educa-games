@@ -46,15 +46,16 @@ export const createLesson = (title = '', points = 5, description = '', resources
   };
 };
 
-export const createResource = (type, content = '') => {
+export const createResource = (type, content = '', label = '') => {
   return {
     id: Date.now(),
     type,
     content,
+    label,
   };
 };
 
-export const createQuizQuestion = (text = '', options = ['', ''], correctAnswer = '', points = 10) => {
+export const createQuizQuestion = (text = '', options = [], correctAnswer = '', points = 10) => {
   return {
     id: Date.now(),
     text,

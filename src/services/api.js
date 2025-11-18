@@ -31,6 +31,42 @@ const getMockResponse = async (method, fullUrl, config) => {
   const searchParams = new URLSearchParams(fullUrl.split('?')[1] || '');
 
   if (method === 'get') {
+    // Paginação de módulos com suporte a courseId e busca por título
+    if (fullUrl.includes('/module/page')) {
+      const page = parseInt(searchParams.get('page') || '0');
+      const size = parseInt(searchParams.get('size') || '10');
+      const search = searchParams.get('search') || '';
+      const sortBy = searchParams.get('sortBy') || 'title';
+      const sortDir = searchParams.get('sortDir') || 'ASC';
+      const courseIdParam = searchParams.get('courseId');
+
+      let data = initialModules.slice();
+      if (courseIdParam) {
+        const cid = parseInt(courseIdParam);
+        data = data.filter((m) => m.courseId === cid);
+      }
+      if (search) {
+        const lower = search.toLowerCase();
+        data = data.filter((m) => (m.title || '').toLowerCase().includes(lower));
+      }
+      const key = sortBy === 'title' ? 'title' : 'title';
+      data = sortArray(data, key, sortDir);
+
+      const pageResponse = paginate(data, page, size);
+
+      return {
+        data: {
+          content: pageResponse.content,
+          totalElements: pageResponse.totalElements,
+          totalPages: pageResponse.totalPages,
+          size: pageResponse.size,
+          number: pageResponse.number,
+          first: pageResponse.first,
+          last: pageResponse.last,
+        },
+        status: 200,
+      };
+    }
     if (fullUrl.includes('/classroom')) {
       if (fullUrl.includes('/availableClasses')) {
         const available = initialClasses.filter((c) => !!c.active);
@@ -161,8 +197,8 @@ const getMockResponse = async (method, fullUrl, config) => {
       return { data: initialCourses, status: 200 };
     }
 
-    if (fullUrl.includes('/modules')) {
-      const idMatch = fullUrl.match(/\/modules\/(\d+)/);
+    if (fullUrl.includes('/module')) {
+      const idMatch = fullUrl.match(/\/module\/(\d+)/);
       if (idMatch) {
         const id = parseInt(idMatch[1]);
         const item = initialModules.find((m) => m.id === id);
