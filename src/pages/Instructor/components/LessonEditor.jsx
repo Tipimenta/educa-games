@@ -11,7 +11,7 @@ import {
   Link as LinkIcon,
   Trash2
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Button, ConfirmationDialog, ErrorMessage, Modal, RichTextEditor } from '../../../components';
 import Input from '../../../components/Input';
@@ -47,12 +47,35 @@ const LessonEditor = ({
 
   const editorRef = useRef(null);
   const [editorHeight, setEditorHeight] = useState(0);
+
+  const updateEditorHeight = useCallback(() => {
+    if (editorRef.current) {
+      requestAnimationFrame(() => {
+        const height = editorRef.current?.offsetHeight || 0;
+        setEditorHeight(height);
+      });
+    }
+  }, []);
+
   useEffect(() => {
-    const update = () => setEditorHeight(editorRef.current?.offsetHeight || 0);
-    update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
-  }, [lesson.description]);
+    updateEditorHeight();
+    window.addEventListener('resize', updateEditorHeight);
+    return () => window.removeEventListener('resize', updateEditorHeight);
+  }, [lesson.description, updateEditorHeight]);
+
+  useEffect(() => {
+    if (!editorRef.current) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateEditorHeight();
+    });
+
+    resizeObserver.observe(editorRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [lesson.description, updateEditorHeight]);
 
   const [titleError, setTitleError] = useState('');
   const [pointsError, setPointsError] = useState('');
@@ -60,7 +83,7 @@ const LessonEditor = ({
 
   const [confirmState, setConfirmState] = useState({
     open: false,
-    type: null, // 'lesson' | 'resource'
+    type: null,
     resourceId: null,
     resourceIndex: null,
   });
@@ -91,6 +114,7 @@ const LessonEditor = ({
     url: '',
     type: 'link',
     file: null,
+    existingFileUrl: null,
   });
   const fileInputRef = useRef(null);
 
@@ -110,7 +134,7 @@ const LessonEditor = ({
     if (materialForm.type === 'link') {
       return isValidUrlForType(materialForm.url, materialForm.type);
     }
-    return !!materialForm.file;
+    return !!materialForm.file || !!materialForm.existingFileUrl;
   };
 
   useEffect(() => {
@@ -174,7 +198,7 @@ const LessonEditor = ({
         onAddResource(index, type, { content: trimmedUrl, label: trimmedLabel });
       }
     } else {
-      if (!file) {
+      if (!file && !materialForm.existingFileUrl) {
         setMaterialFileError('Selecione um arquivo para enviar');
         return;
       }
@@ -182,8 +206,8 @@ const LessonEditor = ({
         onUpdateResource(index, editingResource.resource.id, {
           label: trimmedLabel,
           type,
-          content: '',
-          file: file,
+          content: file ? '' : materialForm.existingFileUrl || '',
+          file: file || editingResource.resource.file || null,
         });
       } else {
         onAddResource(index, type, { content: '', label: trimmedLabel, file: file });
@@ -192,7 +216,7 @@ const LessonEditor = ({
 
     setIsMaterialModalOpen(false);
     setEditingResource(null);
-    setMaterialForm({ label: '', url: '', type: 'link', file: null });
+    setMaterialForm({ label: '', url: '', type: 'link', file: null, existingFileUrl: null });
     setMaterialNameError('');
     setMaterialUrlError('');
     setMaterialFileError('');
@@ -327,6 +351,9 @@ const LessonEditor = ({
                   );
                   setContentError(err || '');
                 }}
+                onExpandedChange={() => {
+                  updateEditorHeight();
+                }}
                 placeholder="Escreva o conteúdo da aula..."
               />
               <ErrorMessage message={contentError} />
@@ -341,10 +368,13 @@ const LessonEditor = ({
                   className="text-xs font-semibold text-blue-600 hover:underline"
                   onClick={() => {
                     setEditingResource(null);
-                    setMaterialForm({ label: '', url: '', type: 'link', file: null });
+                    setMaterialForm({ label: '', url: '', type: 'link', file: null, existingFileUrl: null });
                     setMaterialNameError('');
                     setMaterialUrlError('');
                     setMaterialFileError('');
+                    if (fileInputRef.current) {
+                      fileInputRef.current.value = '';
+                    }
                     setIsMaterialModalOpen(true);
                   }}
                 >
@@ -406,16 +436,21 @@ const LessonEditor = ({
                             title="Editar material"
                             className="flex h-6 w-6 items-center justify-center rounded text-blue-600 transition-colors hover:bg-blue-50"
                             onClick={() => {
+                              const isFileType = res.type === 'pdf' || res.type === 'zip' || res.type === 'image';
                               setMaterialForm({
                                 label: res.label || '',
                                 url: res.content || '',
                                 type: res.type,
-                                file: null,
+                                file: res.file || null,
+                                existingFileUrl: isFileType && !res.file ? res.content : null,
                               });
                               setEditingResource({ resource: res, index: idx });
                               setMaterialNameError('');
                               setMaterialUrlError('');
                               setMaterialFileError('');
+                              if (fileInputRef.current) {
+                                fileInputRef.current.value = '';
+                              }
                               setIsMaterialModalOpen(true);
                             }}
                           >
@@ -489,10 +524,13 @@ const LessonEditor = ({
         onClose={() => {
           setIsMaterialModalOpen(false);
           setEditingResource(null);
-          setMaterialForm({ label: '', url: '', type: 'link', file: null });
+          setMaterialForm({ label: '', url: '', type: 'link', file: null, existingFileUrl: null });
           setMaterialNameError('');
           setMaterialUrlError('');
           setMaterialFileError('');
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
         }}
         title={editingResource ? 'Editar Material' : 'Adicionar Material'}
       >
@@ -516,9 +554,12 @@ const LessonEditor = ({
             <select
               className="w-full rounded-lg border px-4 py-3 text-sm bg-white transition focus:ring-2 focus:outline-none border-gray-300 focus:ring-blue-500 appearance-none"
               value={materialForm.type}
-              onChange={(e) =>
-                setMaterialForm((f) => ({ ...f, type: e.target.value, url: '', file: null }))
-              }
+              onChange={(e) => {
+                setMaterialForm((f) => ({ ...f, type: e.target.value, url: '', file: null, existingFileUrl: null }));
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = '';
+                }
+              }}
             >
               <option value="link">Link externo</option>
               <option value="pdf">PDF</option>
@@ -540,19 +581,56 @@ const LessonEditor = ({
           ) : (
             <div>
               <label className="mb-1 block text-xs font-medium text-gray-600">Arquivo</label>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept={
-                  materialForm.type === 'pdf'
-                    ? 'application/pdf'
-                    : materialForm.type === 'zip'
-                      ? 'application/zip,application/x-zip-compressed'
-                      : 'image/*'
-                }
-                className="w-full rounded-lg border px-3 py-2 text-sm bg-white transition focus:ring-2 focus:outline-none border-gray-300 focus:ring-blue-500"
-                onChange={(e) => setMaterialForm((f) => ({ ...f, file: e.target.files?.[0] || null }))}
-              />
+              <div className="relative">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={
+                    materialForm.type === 'pdf'
+                      ? 'application/pdf'
+                      : materialForm.type === 'zip'
+                        ? 'application/zip,application/x-zip-compressed'
+                        : 'image/*'
+                  }
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  onChange={(e) => setMaterialForm((f) => ({ ...f, file: e.target.files?.[0] || null }))}
+                />
+                <div className="flex items-center justify-between w-full rounded-lg border px-3 py-2 text-sm bg-white transition focus-within:ring-2 focus-within:outline-none border-gray-300 focus-within:ring-blue-500 min-h-[42px]">
+                  <span className={materialForm.file || materialForm.existingFileUrl ? "text-gray-800" : "text-gray-500"}>
+                    {materialForm.file
+                      ? materialForm.file.name
+                      : materialForm.existingFileUrl
+                        ? `Arquivo atual: ${materialForm.existingFileUrl.split('/').pop() || 'arquivo'}`
+                        : "Escolher Arquivo"}
+                  </span>
+                  <div className="flex gap-2">
+                     {materialForm.existingFileUrl && !materialForm.file && (
+                       <button
+                         type="button"
+                         onClick={(e) => {
+                           e.preventDefault();
+                           e.stopPropagation();
+                           setMaterialForm((f) => ({ ...f, existingFileUrl: null }));
+                         }}
+                         className="px-3 py-1 text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition"
+                       >
+                         Remover
+                       </button>
+                     )}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        fileInputRef.current?.click();
+                      }}
+                      className="px-3 py-1 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition"
+                    >
+                      {materialForm.file || materialForm.existingFileUrl ? "Alterar" : "Selecionar"}
+                    </button>
+                  </div>
+                </div>
+              </div>
               <ErrorMessage message={materialFileError} />
             </div>
           )}

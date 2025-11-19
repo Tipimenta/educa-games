@@ -3,10 +3,11 @@ import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-ki
 import { useContext, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import { AppLayout, Button, ChevronLeftIcon, Input, Stepper } from '../../components';
+import { AppLayout, Button, ChevronLeftIcon, ConfirmationDialog, Input, Stepper } from '../../components';
 import { AuthContext } from '../../context';
 import { useAuth, useCourses, useCreateModule, useModule, useToast, useUpdateModule } from '../../hooks';
 import { isValid } from '../../schemas/helpers';
+import { lessonPointsSchema, lessonTitleSchema } from '../../schemas/lessonSchema';
 import { quizSchema } from '../../schemas/quizSchema';
 import { modulesService } from '../../services';
 import { LessonEditor, QuizEditor } from './components';
@@ -38,6 +39,8 @@ import { LessonEditor, QuizEditor } from './components';
   const [coursesPage, setCoursesPage] = useState(0);
   const [isSavingLessons, setIsSavingLessons] = useState(false);
   const [isSavingQuiz, setIsSavingQuiz] = useState(false);
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false);
+  const [savedLessonsState, setSavedLessonsState] = useState(null);
   const COURSES_PAGE_SIZE = 8;
   const handleCoursesScroll = (e) => {
     const el = e.currentTarget;
@@ -58,6 +61,8 @@ import { LessonEditor, QuizEditor } from './components';
         questions: Array.isArray(cloned.quiz?.questions) ? cloned.quiz.questions : [],
       };
       setCurrentModule(cloned);
+      // Salvar estado inicial das aulas para comparação
+      setSavedLessonsState(JSON.stringify(cloned.lessons));
       if (cloned.courseId) {
         setLinkedCourseIds([cloned.courseId]);
       }
@@ -104,9 +109,56 @@ import { LessonEditor, QuizEditor } from './components';
     return cloned;
   };
   const nextStep = () => {
-    setCurrentModule((prev) => purgeDeletedResources(prev));
+    setCurrentModule((prev) => {
+      const sanitized = purgeDeletedResources(prev);
+      // Atualizar estado salvo quando avançar do step 2
+      if (currentStep === 2) {
+        setSavedLessonsState(JSON.stringify(sanitized.lessons));
+      }
+      return sanitized;
+    });
     setCurrentStep((prev) => (prev < 3 ? prev + 1 : prev));
   };
+
+  const hasUnsavedChanges = () => {
+    if (currentStep !== 2) return false;
+    // Se não há módulo salvo ainda, verificar se há aulas adicionadas
+    if (!moduleId || savedLessonsState === null) {
+      const lessons = currentModule.lessons || [];
+      return lessons.length > 0;
+    }
+    const sanitized = purgeDeletedResources(currentModule);
+    const currentState = JSON.stringify(sanitized.lessons);
+    return currentState !== savedLessonsState;
+  };
+
+  const handlePrevStep = () => {
+    if (currentStep === 2 && hasUnsavedChanges()) {
+      setShowDiscardDialog(true);
+    } else {
+      prevStep();
+    }
+  };
+
+  const handleDiscardChanges = () => {
+    // Restaurar estado salvo
+    if (moduleData && savedLessonsState !== null) {
+      const restoredLessons = JSON.parse(savedLessonsState);
+      setCurrentModule((prev) => ({
+        ...prev,
+        lessons: restoredLessons,
+      }));
+    } else {
+      // Se não há módulo salvo, limpar as aulas
+      setCurrentModule((prev) => ({
+        ...prev,
+        lessons: [],
+      }));
+    }
+    setShowDiscardDialog(false);
+    prevStep();
+  };
+
   const prevStep = () => {
     setCurrentModule((prev) => purgeDeletedResources(prev));
     setCurrentStep((prev) => (prev > 1 ? prev - 1 : prev));
@@ -138,6 +190,8 @@ import { LessonEditor, QuizEditor } from './components';
         const result = await createModuleMutation.mutateAsync(payload);
         savedModuleId = result?.data?.data ?? result?.data ?? result;
         showToast({ message: 'Módulo salvo com sucesso.', type: 'success' });
+        // Inicializar estado salvo para novo módulo (sem aulas ainda)
+        setSavedLessonsState(JSON.stringify([]));
         navigate(`/instructor/module-editor/${savedModuleId}`, { replace: true, state: { courseId, step: 2 } });
       }
     } catch (err) {
@@ -156,15 +210,12 @@ import { LessonEditor, QuizEditor } from './components';
       return;
     }
 
-    setCurrentModule((prev) => purgeDeletedResources(prev));
-    const sanitizedCurrent = purgeDeletedResources(currentModule);
-
     setIsSavingLessons(true);
     try {
       const files = [];
-      const lessonsForSave = (sanitizedCurrent.lessons || []).map((lesson) => {
-        const resources = (lesson.resources || []).map((resource) => {
-          if (resource.file) {
+      const lessonsForSave = (currentModule.lessons || []).map((lesson) => {
+        const resources = (lesson.resources || []).filter((r) => !r.deleted).map((resource) => {
+          if (resource.file && resource.file instanceof File) {
             files.push(resource.file);
             return {
               id: resource.id,
@@ -189,8 +240,12 @@ import { LessonEditor, QuizEditor } from './components';
         };
       });
 
+      const sanitizedCurrent = purgeDeletedResources(currentModule);
+
       await modulesService.updateLessons(parseInt(moduleId), lessonsForSave, files.length > 0 ? files : null);
       showToast({ message: 'Aulas salvas com sucesso.', type: 'success' });
+      // Atualizar estado salvo após salvar
+      setSavedLessonsState(JSON.stringify(sanitizedCurrent.lessons));
       nextStep();
     } catch (err) {
       showToast({ message: 'Falha ao salvar aulas. Tente novamente.', type: 'error' });
@@ -280,6 +335,7 @@ import { LessonEditor, QuizEditor } from './components';
       type,
       content: typeof init.content === 'string' ? init.content : '',
       label: typeof init.label === 'string' ? init.label : '',
+      file: init.file || null,
     };
     const prevLesson = newLessons[lessonIndex] || {};
     const prevResources = Array.isArray(prevLesson.resources) ? prevLesson.resources : [];
@@ -291,9 +347,18 @@ import { LessonEditor, QuizEditor } from './components';
     const newLessons = [...currentModule.lessons];
     const prevLesson = newLessons[lessonIndex];
     if (!prevLesson || !Array.isArray(prevLesson.resources)) return;
-    const nextResources = (prevLesson.resources || []).map((r) =>
-      r.id === resourceId ? { ...r, ...updates } : r
-    );
+    const nextResources = (prevLesson.resources || []).map((r) => {
+      if (r.id === resourceId) {
+        const updated = { ...r, ...updates };
+        if (updates.file === null && r.file) {
+          updated.file = null;
+        } else if (updates.file) {
+          updated.file = updates.file;
+        }
+        return updated;
+      }
+      return r;
+    });
     newLessons[lessonIndex] = { ...prevLesson, resources: nextResources };
     handleModuleChange('lessons', newLessons);
   };
@@ -551,6 +616,22 @@ import { LessonEditor, QuizEditor } from './components';
   const isSaving = createModuleMutation.isPending || updateModuleMutation.isPending;
   const disableSave = moduleTitleInvalid || hasQuizErrors || isSaving;
 
+  // Validar se todas as aulas têm título e pontuação válidos
+  const validateAllLessons = () => {
+    if (currentStep !== 2) return true;
+    const lessons = currentModule.lessons || [];
+    if (lessons.length === 0) return true; // Permite salvar sem aulas
+
+    return lessons.every((lesson) => {
+      const titleValid = lessonTitleSchema.safeParse({ title: lesson.title || '' }).success;
+      const pointsValid = lessonPointsSchema.safeParse({ points: lesson.points }).success;
+      return titleValid && pointsValid;
+    });
+  };
+
+  const allLessonsValid = validateAllLessons();
+  const canSaveLessons = allLessonsValid && !isSavingLessons;
+
   return (
     <AppLayout user={user} onLogout={logout} containerClassName="max-w-full">
       <Link
@@ -578,7 +659,7 @@ import { LessonEditor, QuizEditor } from './components';
           </div>
           <div className="flex gap-4">
             <button
-              onClick={prevStep}
+              onClick={handlePrevStep}
               disabled={currentStep === 1}
               className="rounded-lg border border-gray-300 px-6 py-2 font-semibold text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -596,7 +677,7 @@ import { LessonEditor, QuizEditor } from './components';
               <Button
                 onClick={handleSaveLessonsAndNext}
                 className="w-auto px-6 py-2"
-                disabled={isSavingLessons}
+                disabled={!canSaveLessons}
               >
                 {isSavingLessons ? 'Salvando...' : 'Salvar e Próxima Página'}
               </Button>
@@ -621,6 +702,18 @@ import { LessonEditor, QuizEditor } from './components';
           </div>
         </div>
       </div>
+
+      {/* Dialog de confirmação para descartar alterações */}
+      <ConfirmationDialog
+        isOpen={showDiscardDialog}
+        onClose={() => setShowDiscardDialog(false)}
+        onConfirm={handleDiscardChanges}
+        title="Descartar Alterações?"
+        message="Todas as alterações não salvas serão perdidas. Deseja continuar?"
+        variant="warning"
+        confirmText="Sim, descartar"
+        cancelText="Não"
+      />
     </AppLayout>
   );
 };

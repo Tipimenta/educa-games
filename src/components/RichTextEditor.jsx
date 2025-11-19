@@ -36,7 +36,7 @@ const ToolbarButton = ({ active, onClick, children, title }) => (
   </button>
 );
 
-const RichTextEditor = ({ value, onChange, placeholder, onBlur }) => {
+const RichTextEditor = ({ value, onChange, placeholder, onBlur, onExpandedChange }) => {
   const [linkUrl, setLinkUrl] = useState("");
   const [expanded, setExpanded] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -263,10 +263,15 @@ const RichTextEditor = ({ value, onChange, placeholder, onBlur }) => {
     </div>
 
     {/* Expanded Modal */}
-    <Modal isOpen={expanded} onClose={() => setExpanded(false)} title="Editor" size="xl">
-      <div className="w-full h-full overflow-hidden">
-        <div className="rounded-xl border border-gray-200 bg-white shadow-sm h-full flex flex-col">
-          <div className="flex flex-wrap items-center gap-2 rounded-t-xl border-b border-gray-200 bg-gray-50 p-2">
+    <Modal isOpen={expanded} onClose={() => {
+      setExpanded(false);
+      if (onExpandedChange) {
+        setTimeout(() => onExpandedChange(false), 100);
+      }
+    }} title="Editor" size="xl">
+      <div className="w-full flex flex-col overflow-hidden" style={{ height: 'calc(80vh - 120px)', maxHeight: 'calc(80vh - 120px)' }}>
+        <div className="rounded-xl border border-gray-200 bg-white shadow-sm flex flex-col flex-1 min-h-0 overflow-hidden">
+          <div className="flex flex-wrap items-center gap-2 rounded-t-xl border-b border-gray-200 bg-gray-50 p-2 flex-shrink-0">
             {/* Toolbar */}
             <ToolbarButton
               title="Negrito"
@@ -358,7 +363,7 @@ const RichTextEditor = ({ value, onChange, placeholder, onBlur }) => {
               <Code className="h-4 w-4" />
             </ToolbarButton>
           </div>
-          <div className="p-2 flex-1 min-h-0">
+          <div className="p-2 flex-1 min-h-0 overflow-hidden">
             {expanded && (
               <EditorContent
                 editor={editor}

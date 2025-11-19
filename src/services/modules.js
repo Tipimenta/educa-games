@@ -89,11 +89,15 @@ export const modulesService = {
   updateLessons: async (moduleId, lessons, files = null) => {
     const formData = new FormData();
     formData.append('data', new Blob([JSON.stringify({ lessons })], { type: 'application/json' }));
+
     if (files && files.length > 0) {
       files.forEach((file) => {
-        formData.append('files', file);
+        if (file instanceof File) {
+          formData.append('files', file);
+        }
       });
     }
+
     const response = await axiosInstance.put(`${PATH}/${moduleId}/lessons`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
