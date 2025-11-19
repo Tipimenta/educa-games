@@ -13,8 +13,8 @@ import {
 } from '../../components';
 import AppLayout from '../../components/AppLayout';
 import PageTitle from '../../components/PageTitle';
-import { AnnouncementsContext, AuthContext } from '../../context';
-import { useAuth, useStudentDashboard, useStudentRanking } from '../../hooks';
+import { AuthContext } from '../../context';
+import { useAuth, useStudentAnnouncements, useStudentDashboard, useStudentRanking } from '../../hooks';
 
 const RankingIndicator = ({ change }) => {
   if (change > 0) {
@@ -40,7 +40,6 @@ const RankingIndicator = ({ change }) => {
 
 const DashboardPage = () => {
   const { user } = useContext(AuthContext);
-  const { announcements } = useContext(AnnouncementsContext);
   const { logout } = useAuth();
 
   const {
@@ -55,11 +54,12 @@ const DashboardPage = () => {
     error: rankingError,
   } = useStudentRanking();
 
-  const filteredAnnouncements = (announcements || []).filter((ann) =>
-    ann.assignedClasses.includes(user?.classId)
-  );
+  const {
+    data: announcements = [],
+    isLoading: isLoadingAnnouncements,
+  } = useStudentAnnouncements();
 
-  if (isLoadingDashboard || isLoadingRanking) {
+  if (isLoadingDashboard || isLoadingRanking || isLoadingAnnouncements) {
     return (
       <AppLayout user={user} onLogout={logout}>
         <div className="mx-auto max-w-7xl">
@@ -186,9 +186,9 @@ const DashboardPage = () => {
 
           <div className="rounded-lg bg-white p-6 shadow-md">
             <h3 className="mb-4 text-xl font-bold text-gray-800">Quadro de Avisos</h3>
-            <ul className="space-y-4">
-              {filteredAnnouncements.length > 0 ? (
-                filteredAnnouncements.slice(0, 3).map((ann) => (
+            {announcements.length > 0 ? (
+              <ul className="max-h-96 space-y-4 overflow-y-auto">
+                {announcements.map((ann) => (
                   <li key={ann.id} className="border-b pb-2 last:border-b-0">
                     <p className="font-semibold text-gray-700">{ann.title}</p>
                     <p className="text-sm text-gray-500">{ann.content}</p>
@@ -196,11 +196,11 @@ const DashboardPage = () => {
                       <FormattedDate date={ann.date} />
                     </p>
                   </li>
-                ))
-              ) : (
-                <p className="text-sm text-gray-500">Nenhum aviso para a sua turma no momento.</p>
-              )}
-            </ul>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-gray-500">Nenhum aviso para a sua turma no momento.</p>
+            )}
           </div>
         </div>
       </div>

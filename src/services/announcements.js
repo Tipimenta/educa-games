@@ -2,29 +2,34 @@ import { axiosInstance } from './api';
 
 const PATH = '/v1/announcements';
 
+const unwrap = (response) => response?.data ?? response;
+
 export const announcementsService = {
   list: async () => {
     const response = await axiosInstance.get(PATH);
-    return response;
+    const data = unwrap(response);
+    return data?.data ?? data ?? [];
   },
 
   getById: async (id) => {
     const response = await axiosInstance.get(`${PATH}/${id}`);
-    return response;
+    const data = unwrap(response);
+    return data?.data ?? data;
   },
 
   create: async (data) => {
     const response = await axiosInstance.post(PATH, data);
-    return response;
+    const result = unwrap(response);
+    return result?.data ?? result;
   },
 
   update: async (id, data) => {
     const response = await axiosInstance.put(`${PATH}/${id}`, data);
-    return response;
+    const result = unwrap(response);
+    return result?.data ?? result;
   },
 
   delete: async (id) => {
-    const response = await axiosInstance.delete(`${PATH}/${id}`);
-    return response;
+    await axiosInstance.delete(`${PATH}/${id}`);
   },
 };

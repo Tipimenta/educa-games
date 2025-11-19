@@ -16,6 +16,13 @@ export function useStudentRanking() {
   });
 }
 
+export function useStudentAnnouncements() {
+  return useQuery({
+    queryKey: ['student', 'announcements'],
+    queryFn: studentService.getAnnouncements,
+  });
+}
+
 export function useStudentCourses() {
   return useQuery({
     queryKey: ['student', 'courses'],
@@ -72,8 +79,13 @@ export function useClassroomStudents(options = {}) {
   } = options;
 
   return useQuery({
-    queryKey: ['students', 'classroom', { classroomId, active, page, size, search, sortBy, sortDir }],
-    queryFn: () => studentsService.getByClassroom({ classroomId, active, page, size, search, sortBy, sortDir }),
+    queryKey: [
+      'students',
+      'classroom',
+      { classroomId, active, page, size, search, sortBy, sortDir },
+    ],
+    queryFn: () =>
+      studentsService.getByClassroom({ classroomId, active, page, size, search, sortBy, sortDir }),
     enabled: !!classroomId && typeof active === 'boolean' && enabled,
     placeholderData: (previousData) => previousData,
   });
@@ -83,7 +95,8 @@ export function useUpdateClassroomStudentStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ classroomId, id, active }) => studentsService.updateClassroomStatus({ classroomId, id, active }),
+    mutationFn: ({ classroomId, id, active }) =>
+      studentsService.updateClassroomStatus({ classroomId, id, active }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['students', 'classroom'] });
     },

@@ -15,6 +15,12 @@ export const studentService = {
     return extractData(response);
   },
 
+  getAnnouncements: async () => {
+    const response = await axiosInstance.get(`${STUDENT_PATH}/announcements`);
+    const data = extractData(response);
+    return data?.data ?? data ?? [];
+  },
+
   getCourses: async () => {
     const response = await axiosInstance.get(`${STUDENT_PATH}/courses`);
     return extractData(response);

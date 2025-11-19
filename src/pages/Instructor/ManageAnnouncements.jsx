@@ -76,6 +76,11 @@ const ManageAnnouncementsPage = () => {
 
   const isLoading = isLoadingAnnouncements || isLoadingClasses;
 
+  const isFormValid =
+    modalForm.formValues.title.trim() !== '' &&
+    modalForm.formValues.content.trim() !== '' &&
+    classSelection.selectedClasses.length > 0;
+
   if (isLoading) {
     return (
       <AppLayout user={user} onLogout={logout}>
@@ -186,7 +191,7 @@ const ManageAnnouncementsPage = () => {
               namePrefix="announcement-class"
             />
           </div>
-          <Button type="submit">
+          <Button type="submit" disabled={!isFormValid}>
             {modalForm.editingItem ? 'Salvar Alterações' : 'Publicar Aviso'}
           </Button>
         </form>
