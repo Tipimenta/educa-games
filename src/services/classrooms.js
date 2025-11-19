@@ -65,7 +65,7 @@ export const classroomsService = {
     const response = await axiosInstance.delete(`${PATH}/${classroomId}/courses/${courseId}`);
     return unwrap(response);
   },
-  
+
   listCoursesByClassroom: async ({
     classroomId,
     page = 0,
@@ -86,5 +86,17 @@ export const classroomsService = {
     const data = unwrap(response);
     const pageData = data?.data ?? data;
     return pageData;
+  },
+
+  getRanking: async (classroomId) => {
+    const response = await axiosInstance.get(`${PATH}/${classroomId}/ranking`);
+    const data = unwrap(response);
+    return data?.data ?? data;
+  },
+
+  getReport: async (classroomId) => {
+    const response = await axiosInstance.get(`${PATH}/${classroomId}/report`);
+    const data = unwrap(response);
+    return data?.data ?? data;
   },
 };

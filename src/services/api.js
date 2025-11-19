@@ -550,9 +550,17 @@ export const presentError = ({ status, errData, setInline, showToast }) => {
   }
 
   if (status === 409) {
-    const conflictMsg = import.meta.env.DEV
-      ? msg || 'Conflito ao processar a solicitação'
-      : 'Conflito ao processar a solicitação';
+    const isDuplicateError =
+      msg.toLowerCase().includes('duplicate') ||
+      msg.toLowerCase().includes('already exists') ||
+      msg.toLowerCase().includes('já existe');
+
+    const conflictMsg = isDuplicateError
+      ? 'O recurso já existe. Tente novamente.'
+      : import.meta.env.DEV
+        ? msg || 'Conflito ao processar a solicitação'
+        : 'Conflito ao processar a solicitação';
+
     showToast({ message: conflictMsg, type: 'error' });
     setInline(import.meta.env.DEV ? msg : '');
     return;

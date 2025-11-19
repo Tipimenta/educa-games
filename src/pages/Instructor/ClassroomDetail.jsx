@@ -647,7 +647,12 @@ const ClassroomDetailPage = () => {
                       <>
                         <td className="px-6 py-4 text-left align-middle text-base text-gray-700">{row.matricula}</td>
                         <td className="px-6 py-4 text-left align-middle">
-                          <Link to="#" className="text-blue-600 hover:underline">{row.nome}</Link>
+                          <Link
+                            to={`/instructor/classroom/${classroomId}/student/${row._raw.id}`}
+                            className="text-blue-600 hover:underline"
+                          >
+                            {row.nome}
+                          </Link>
                           <div className="text-sm text-gray-500">{row.email}</div>
                         </td>
                         <td className="px-6 py-4 text-center align-middle text-base text-gray-700">

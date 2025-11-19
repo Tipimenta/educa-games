@@ -100,7 +100,9 @@ export const authService = {
     if (USE_MOCKS) {
       throw { status: 404, data: { message: 'Mock não implementado para selectClass' } };
     }
-    const response = await axiosInstance.post(`${AUTH_PATH}/select-class`, { classId });
+    const response = await axiosInstance.post(`${AUTH_PATH}/select-class`, {
+      classroomId: classId,
+    });
     return extractData(response);
   },
 };

@@ -1,7 +1,9 @@
-import { useContext, useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useContext, useState } from 'react';
 
 import {
   ChevronLeftIcon,
+  EmptyState,
   LibraryIcon,
   LockIcon,
   Modal,
@@ -9,56 +11,109 @@ import {
   Quiz,
 } from '../../components';
 import AppLayout from '../../components/AppLayout';
-import { AuthContext, CoursesContext, ModulesContext } from '../../context';
-import { useAuth, useStudentProgress } from '../../hooks';
+import { AuthContext } from '../../context';
+import { useAuth, useStudentCourseModules, useStudentCourses, useStudentModuleDetails } from '../../hooks';
+import { studentService } from '../../services';
 import ModuleContentViewer from './components/ModuleContentViewer';
 import ModuleSidebar from './components/ModuleSidebar';
 import { useModuleProgress } from './hooks/useModuleProgress';
-import { useStudentCourseNavigation } from './hooks/useStudentCourseNavigation';
 
 const StudentCoursesPage = () => {
   const { user } = useContext(AuthContext);
-  const { courses } = useContext(CoursesContext);
-  const { modules } = useContext(ModulesContext);
   const { logout } = useAuth();
-  const { updateStudentProgress } = useStudentProgress();
+  const queryClient = useQueryClient();
+  const [selectedCourseId, setSelectedCourseId] = useState(null);
+  const [selectedModuleId, setSelectedModuleId] = useState(null);
+  const [activeSelection, setActiveSelection] = useState(0);
   const [viewingResource, setViewingResource] = useState(null);
   const [showPoints, setShowPoints] = useState({ show: false, points: 0 });
 
-  const navigation = useStudentCourseNavigation({ courses, modules, user });
+  const { data: courses = [], isLoading: isLoadingCourses } = useStudentCourses();
+  const { data: modules = [], isLoading: isLoadingModules } = useStudentCourseModules(selectedCourseId);
+  const { data: moduleDetails, isLoading: isLoadingModuleDetails } = useStudentModuleDetails(selectedModuleId);
+
+  const selectedCourse = courses.find((c) => c.id === selectedCourseId);
+  const selectedModule = moduleDetails;
 
   const progress = useModuleProgress({
-    selectedModule: navigation.selectedModule,
+    selectedModule: selectedModule,
     user,
   });
 
-  useEffect(() => {
-    if (navigation.selectedModule) {
-      progress.initializeProgress(navigation.selectedModule);
-    }
-  }, [navigation.selectedModule]);
-
   const activeLesson =
-    typeof navigation.activeSelection === 'number' && navigation.selectedModule
-      ? navigation.selectedModule.lessons[navigation.activeSelection]
+    typeof activeSelection === 'number' && selectedModule?.lessons
+      ? selectedModule.lessons[activeSelection]
       : null;
 
-  const handleToggleLesson = (lesson) => {
+  const handleToggleLesson = async (lesson) => {
     if (progress.completedLessons.has(lesson.id)) return;
-    progress.setCompletedLessonsUI((prev) => new Set(prev).add(lesson.id));
-    updateStudentProgress(user.id, 'completedLessons', lesson.id, lesson.points);
-    setShowPoints({ show: true, points: lesson.points });
-    setTimeout(() => setShowPoints({ show: false, points: 0 }), 2000);
-  };
+    try {
+      await studentService.completeLesson(lesson.id);
+      progress.setCompletedLessonsUI((prev) => new Set(prev).add(lesson.id));
+      setShowPoints({ show: true, points: lesson.points || 0 });
+      setTimeout(() => setShowPoints({ show: false, points: 0 }), 2000);
 
-  const handleQuizComplete = (finalScore) => {
-    if (navigation.selectedModule) {
-      updateStudentProgress(user.id, 'finalizedQuizzes', navigation.selectedModule.id, finalScore);
-      navigation.setActiveSelection(0);
+      queryClient.invalidateQueries({ queryKey: ['student', 'modules', selectedModuleId] });
+      queryClient.invalidateQueries({ queryKey: ['student', 'dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['student', 'ranking'] });
+    } catch (error) {
+      console.error('Erro ao completar aula:', error);
     }
   };
 
-  if (navigation.selectedCourse && navigation.selectedModule) {
+  const handleQuizComplete = async (answers) => {
+    if (selectedModule?.quiz?.id) {
+      try {
+        const score = await studentService.completeQuiz(selectedModule.quiz.id, answers);
+        setShowPoints({ show: true, points: score });
+        setTimeout(() => setShowPoints({ show: false, points: 0 }), 2000);
+        setActiveSelection(0);
+
+        queryClient.invalidateQueries({ queryKey: ['student', 'modules', selectedModuleId] });
+        queryClient.invalidateQueries({ queryKey: ['student', 'dashboard'] });
+        queryClient.invalidateQueries({ queryKey: ['student', 'ranking'] });
+      } catch (error) {
+        console.error('Erro ao completar quiz:', error);
+      }
+    }
+  };
+
+  const handleSelectCourse = (courseId) => {
+    setSelectedCourseId(courseId);
+    setSelectedModuleId(null);
+    setActiveSelection(0);
+  };
+
+  const handleSelectModule = (moduleId) => {
+    setSelectedModuleId(moduleId);
+    setActiveSelection(0);
+  };
+
+  const handleBackToCourses = () => {
+    setSelectedCourseId(null);
+    setSelectedModuleId(null);
+    setActiveSelection(0);
+  };
+
+  const handleBackToModules = () => {
+    setSelectedModuleId(null);
+    setActiveSelection(0);
+  };
+
+  if (isLoadingCourses) {
+    return (
+      <AppLayout user={user} onLogout={logout}>
+        <div className="flex-grow p-6">
+          <PageTitle>Meus Cursos</PageTitle>
+          <div className="text-center">
+            <p className="text-gray-600">Carregando cursos...</p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (selectedModule) {
     return (
       <AppLayout user={user} onLogout={logout}>
         <div className="relative flex-grow p-6">
@@ -68,39 +123,38 @@ const StudentCoursesPage = () => {
             </div>
           )}
           <button
-            onClick={navigation.handleBackToModules}
+            onClick={handleBackToModules}
             className="mb-4 flex items-center text-sm font-semibold text-blue-600 hover:underline"
           >
             <ChevronLeftIcon className="mr-1 h-5 w-5" /> Voltar para Módulos
           </button>
-          <h2 className="mb-4 text-3xl font-bold text-gray-800">
-            {navigation.selectedModule.title}
-          </h2>
+          <h2 className="mb-4 text-3xl font-bold text-gray-800">{selectedModule.title}</h2>
           <div className="flex flex-col gap-8 lg:flex-row">
             <ModuleSidebar
-              selectedModule={navigation.selectedModule}
-              activeSelection={navigation.activeSelection}
+              selectedModule={selectedModule}
+              activeSelection={activeSelection}
               completedLessons={progress.completedLessons}
               allLessonsCompleted={progress.allLessonsCompleted}
-              onLessonSelect={navigation.setActiveSelection}
+              onLessonSelect={setActiveSelection}
               isQuizFinalized={progress.isQuizFinalized}
             />
             <div className="w-full lg:w-3/4">
-              {navigation.activeSelection === 'quiz' ? (
+              {activeSelection === 'quiz' && selectedModule.quiz ? (
                 <Quiz
-                  questions={navigation.selectedModule.quiz.questions}
+                  quizId={selectedModule.quiz.id}
+                  questions={selectedModule.quiz.quiz?.questions || []}
                   onQuizComplete={handleQuizComplete}
                   isFinalized={progress.isQuizFinalized}
                 />
               ) : (
                 <ModuleContentViewer
-                  selectedModule={navigation.selectedModule}
-                  activeSelection={navigation.activeSelection}
+                  selectedModule={selectedModule}
+                  activeSelection={activeSelection}
                   activeLesson={activeLesson}
                   completedLessons={progress.completedLessons}
                   lessonProgress={progress.lessonProgress}
                   allLessonsCompleted={progress.allLessonsCompleted}
-                  onLessonSelect={navigation.setActiveSelection}
+                  onLessonSelect={setActiveSelection}
                   onToggleLesson={handleToggleLesson}
                 />
               )}
@@ -133,30 +187,55 @@ const StudentCoursesPage = () => {
     );
   }
 
-  if (navigation.selectedCourse) {
+  if (selectedCourseId) {
+    if (isLoadingModules) {
+      return (
+        <AppLayout user={user} onLogout={logout}>
+          <div className="flex-grow p-6">
+            <button
+              onClick={handleBackToCourses}
+              className="mb-4 flex items-center text-sm font-semibold text-blue-600 hover:underline"
+            >
+              <ChevronLeftIcon className="mr-1 h-5 w-5" /> Voltar para Cursos
+            </button>
+            <PageTitle>{selectedCourse?.title || 'Carregando...'}</PageTitle>
+            <div className="text-center">
+              <p className="text-gray-600">Carregando módulos...</p>
+            </div>
+          </div>
+        </AppLayout>
+      );
+    }
+
     return (
       <AppLayout user={user} onLogout={logout}>
         <div className="flex-grow p-6">
           <button
-            onClick={navigation.handleBackToCourses}
+            onClick={handleBackToCourses}
             className="mb-4 flex items-center text-sm font-semibold text-blue-600 hover:underline"
           >
             <ChevronLeftIcon className="mr-1 h-5 w-5" /> Voltar para Cursos
           </button>
-          <PageTitle>{navigation.selectedCourse.title}</PageTitle>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {navigation.modulesForCourse.map((module) => {
-              const isLocked = module.id > user.currentModuleId;
-              const isCurrent = module.id === user.currentModuleId;
+          <PageTitle>{selectedCourse?.title}</PageTitle>
+          {modules.length === 0 ? (
+            <EmptyState
+              message="Nenhum módulo disponível"
+              description="Este curso ainda não possui módulos cadastrados."
+            />
+          ) : (
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {modules.map((module) => {
+              const isLocked = module.isLocked;
+              const isCompleted = module.isCompleted;
               return (
                 <div
                   key={module.id}
-                  onClick={() => !isLocked && navigation.handleSelectModule(module)}
+                  onClick={() => !isLocked && handleSelectModule(module.id)}
                   className={`transform rounded-lg bg-white p-6 shadow-md transition-all ${
                     isLocked
                       ? 'cursor-not-allowed bg-gray-50 opacity-60'
                       : 'cursor-pointer hover:scale-105'
-                  } ${isCurrent ? 'border-2 border-blue-500' : ''}`}
+                  } ${isCompleted ? 'border-2 border-green-500' : ''}`}
                 >
                   <div className="flex items-center justify-between">
                     <h3
@@ -168,16 +247,30 @@ const StudentCoursesPage = () => {
                     </h3>
                     {isLocked && <LockIcon className="h-5 w-5 text-gray-400" />}
                   </div>
-                  <p className="text-sm text-gray-500">{module.lessons.length} aulas</p>
-                  {isCurrent && (
-                    <div className="mt-2 text-xs font-bold text-blue-600 uppercase">
-                      Módulo Atual
+                  <p className="text-sm text-gray-500">
+                    {module.lessonsCount || 0} aulas
+                  </p>
+                  {module.progress !== undefined && (
+                    <div className="mt-2">
+                      <div className="h-2 w-full rounded-full bg-gray-200">
+                        <div
+                          className="h-2 rounded-full bg-blue-500"
+                          style={{ width: `${module.progress}%` }}
+                        ></div>
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">{module.progress}% completo</p>
+                    </div>
+                  )}
+                  {isCompleted && (
+                    <div className="mt-2 text-xs font-bold text-green-600 uppercase">
+                      Concluído
                     </div>
                   )}
                 </div>
               );
-            })}
-          </div>
+              })}
+            </div>
+          )}
         </div>
       </AppLayout>
     );
@@ -187,11 +280,17 @@ const StudentCoursesPage = () => {
     <AppLayout user={user} onLogout={logout}>
       <div className="flex-grow p-6">
         <PageTitle>Meus Cursos</PageTitle>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {navigation.availableCourses.map((course) => (
+        {courses.length === 0 ? (
+          <EmptyState
+            message="Nenhum curso disponível"
+            description="Você ainda não possui cursos atribuídos à sua turma."
+          />
+        ) : (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {courses.map((course) => (
             <div
               key={course.id}
-              onClick={() => navigation.handleSelectCourse(course)}
+              onClick={() => handleSelectCourse(course.id)}
               className="transform cursor-pointer rounded-lg bg-white p-6 shadow-md transition-transform hover:scale-105"
             >
               <div className="flex items-start gap-4">
@@ -201,11 +300,13 @@ const StudentCoursesPage = () => {
                 <div>
                   <h3 className="mb-2 text-xl font-bold text-gray-800">{course.title}</h3>
                   <p className="text-sm text-gray-500">{course.description}</p>
+                  <p className="mt-2 text-xs text-gray-400">{course.modulesCount || 0} módulos</p>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </AppLayout>
   );

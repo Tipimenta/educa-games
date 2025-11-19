@@ -1,6 +1,7 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 
 import {
+  AppLayout,
   Button,
   ConfirmationDialog,
   DatePicker,
@@ -11,10 +12,8 @@ import {
   PencilIcon,
   XIcon,
 } from '../../components';
-import { AppLayout } from '../../components';
 import { AuthContext } from '../../context';
-import { useAuth } from '../../hooks';
-import { useProfile, useToast,useUpdateProfile } from '../../hooks';
+import { useAuth, useProfile, useToast, useUpdateProfile } from '../../hooks';
 import { validateAll, validateSingleField } from '../../schemas/helpers';
 import { profileSchema } from '../../schemas/profileSchema';
 import { presentError } from '../../services/api';
@@ -141,7 +140,7 @@ const ProfilePage = () => {
     try {
       const payload = {
         name: userName,
-        birthDate: birthDate || '', 
+        birthDate: birthDate || '',
         description: bio,
         clearDescription: bio.trim().length === 0,
         removeAvatar,
@@ -178,6 +177,24 @@ const ProfilePage = () => {
       setEditingName(false);
       setEditingBirth(false);
     } catch (error) {
+      // Tratamento específico para erro 409 (Conflict) em upload de avatar
+      if (error.status === 409 && avatarFile) {
+        const errorMessage = error.data?.message || error.message || '';
+        const isDuplicateError = errorMessage.toLowerCase().includes('duplicate') ||
+                                 errorMessage.toLowerCase().includes('already exists') ||
+                                 errorMessage.toLowerCase().includes('já existe');
+
+        if (isDuplicateError) {
+          showToast({
+            message: 'Erro ao fazer upload da foto. Tente novamente',
+            type: 'error'
+          });
+          setInlineError('Erro ao fazer upload da foto');
+          setAvatarFile(null);
+          return;
+        }
+      }
+
       presentError({
         status: error.status || 500,
         errData: error.data || { message: error.message },

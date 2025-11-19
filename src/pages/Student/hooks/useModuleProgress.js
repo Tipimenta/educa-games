@@ -1,28 +1,43 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 export const useModuleProgress = ({ selectedModule, user }) => {
   const [completedLessonsUI, setCompletedLessonsUI] = useState(new Set());
 
-  const completedLessons = useMemo(() => new Set(completedLessonsUI), [completedLessonsUI]);
+  const completedLessons = useMemo(() => {
+    if (!selectedModule?.lessons) return new Set();
+    const completed = new Set(
+      selectedModule.lessons.filter((lesson) => lesson.isCompleted).map((lesson) => lesson.id)
+    );
+    return new Set([...completed, ...completedLessonsUI]);
+  }, [selectedModule, completedLessonsUI]);
 
   const lessonProgress = useMemo(() => {
     if (!selectedModule || !selectedModule.lessons || selectedModule.lessons.length === 0) return 0;
-    return (completedLessons.size / selectedModule.lessons.length) * 100;
-  }, [completedLessons, selectedModule]);
+    return selectedModule.progress || 0;
+  }, [selectedModule]);
 
-  const allLessonsCompleted = useMemo(() => lessonProgress >= 100, [lessonProgress]);
+  const allLessonsCompleted = useMemo(() => {
+    if (!selectedModule?.lessons || selectedModule.lessons.length === 0) return false;
+    return selectedModule.lessons.every((lesson) => lesson.isCompleted);
+  }, [selectedModule]);
 
-  const isQuizFinalized = selectedModule && user.progress.finalizedQuizzes.has(selectedModule.id);
+  const isQuizFinalized = useMemo(() => {
+    return selectedModule?.quiz?.isCompleted || false;
+  }, [selectedModule]);
 
   const initializeProgress = (module) => {
-    if (!module) return;
-    const studentProgress = user.progress.completedLessons;
-    const moduleLessons = new Set(module.lessons.map((l) => l.id));
+    if (!module?.lessons) return;
     const completedInThisModule = new Set(
-      [...studentProgress].filter((id) => moduleLessons.has(id))
+      module.lessons.filter((l) => l.isCompleted).map((l) => l.id)
     );
     setCompletedLessonsUI(completedInThisModule);
   };
+
+  useEffect(() => {
+    if (selectedModule) {
+      initializeProgress(selectedModule);
+    }
+  }, [selectedModule]);
 
   return {
     completedLessons,

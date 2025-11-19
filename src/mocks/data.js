@@ -29,6 +29,23 @@ export const initialModules = [
         title: 'O que é JSX?',
         description: 'Aprenda a sintaxe que mistura HTML e JavaScript.',
         points: 10,
+        resources: [
+          {
+            id: 101, // ID do recurso (qualquer número único)
+            type: 'youtube',
+            content: 'https://www.youtube.com/watch?v=w7ejDZ8SWv8', // URL do vídeo
+          },
+          {
+            id: 102,
+            type: 'pdf',
+            content: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', // URL de um PDF de exemplo
+          },
+          {
+            id: 103, // ID do recurso (qualquer número único)
+            type: 'youtube',
+            content: 'https://www.youtube.com/watch?v=w7ejDZ8SWv8', // URL do vídeo
+          },
+        ],
       },
       {
         id: 2,

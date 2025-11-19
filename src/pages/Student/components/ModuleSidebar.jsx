@@ -33,25 +33,28 @@ const ModuleSidebar = ({
               </button>
             </li>
           ))}
-          {selectedModule.quiz?.questions?.length > 0 && (
+          {selectedModule.quiz && selectedModule.quiz.quiz?.questions?.length > 0 && (
             <li key="quiz-item" className="mt-2 border-t pt-2">
               <button
                 onClick={() => onLessonSelect('quiz')}
-                disabled={!allLessonsCompleted}
+                disabled={!allLessonsCompleted || !selectedModule.quiz.isAvailable}
                 className={`flex w-full items-center gap-3 rounded-md p-3 text-left font-semibold transition-colors ${
                   activeSelection === 'quiz' ? 'bg-blue-100 text-blue-700' : 'text-gray-600'
                 } ${
-                  allLessonsCompleted
+                  allLessonsCompleted && selectedModule.quiz.isAvailable
                     ? 'hover:bg-gray-100'
                     : 'cursor-not-allowed text-gray-400'
                 }`}
               >
                 <HelpCircleIcon
                   className={`h-5 w-5 ${
-                    allLessonsCompleted ? 'text-blue-600' : 'text-gray-400'
+                    allLessonsCompleted && selectedModule.quiz.isAvailable ? 'text-blue-600' : 'text-gray-400'
                   }`}
                 />
                 <span>Questionário</span>
+                {selectedModule.quiz.isCompleted && (
+                  <span className="ml-auto text-xs text-green-600">✓ Concluído</span>
+                )}
               </button>
             </li>
           )}

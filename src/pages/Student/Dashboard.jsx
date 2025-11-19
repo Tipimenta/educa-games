@@ -13,15 +13,8 @@ import {
 } from '../../components';
 import AppLayout from '../../components/AppLayout';
 import PageTitle from '../../components/PageTitle';
-import {
-  AnnouncementsContext,
-  AuthContext,
-  CoursesContext,
-  ModulesContext,
-  StudentsContext,
-} from '../../context';
-import { useAuth } from '../../hooks';
-import { useDashboardStats } from './hooks/useDashboardStats';
+import { AnnouncementsContext, AuthContext } from '../../context';
+import { useAuth, useStudentDashboard, useStudentRanking } from '../../hooks';
 
 const RankingIndicator = ({ change }) => {
   if (change > 0) {
@@ -47,17 +40,58 @@ const RankingIndicator = ({ change }) => {
 
 const DashboardPage = () => {
   const { user } = useContext(AuthContext);
-  const { students } = useContext(StudentsContext);
-  const { courses } = useContext(CoursesContext);
-  const { modules } = useContext(ModulesContext);
   const { announcements } = useContext(AnnouncementsContext);
   const { logout } = useAuth();
 
-  const stats = useDashboardStats({ user, students, courses, modules });
+  const {
+    data: dashboardData,
+    isLoading: isLoadingDashboard,
+    error: dashboardError,
+  } = useStudentDashboard();
+
+  const {
+    data: rankingData = [],
+    isLoading: isLoadingRanking,
+    error: rankingError,
+  } = useStudentRanking();
 
   const filteredAnnouncements = (announcements || []).filter((ann) =>
-    ann.assignedClasses.includes(user.classId)
+    ann.assignedClasses.includes(user?.classId)
   );
+
+  if (isLoadingDashboard || isLoadingRanking) {
+    return (
+      <AppLayout user={user} onLogout={logout}>
+        <div className="mx-auto max-w-7xl">
+          <PageTitle>Dashboard</PageTitle>
+          <div className="text-center">
+            <p className="text-gray-600">Carregando dados do dashboard...</p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (dashboardError || rankingError) {
+    return (
+      <AppLayout user={user} onLogout={logout}>
+        <div className="mx-auto max-w-7xl">
+          <PageTitle>Dashboard</PageTitle>
+          <div className="text-center">
+            <p className="text-red-600">Erro ao carregar dados do dashboard.</p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  const stats = dashboardData || {
+    totalScore: 0,
+    rank: 0,
+    loginStreak: 0,
+    completedModules: 0,
+    totalModules: 0,
+  };
 
   return (
     <AppLayout user={user} onLogout={logout}>
@@ -67,22 +101,22 @@ const DashboardPage = () => {
           <DashboardCard
             icon={<TargetIcon />}
             title="Pontuação Total"
-            value={stats.currentUserData.score}
+            value={stats.totalScore || 0}
           />
           <DashboardCard
             icon={<BarChartIcon />}
             title="Classificação"
-            value={`${stats.userRank}º`}
+            value={`${stats.rank || 0}º`}
           />
           <DashboardCard
             icon={<FlameIcon />}
             title="Dias Seguidos"
-            value={stats.currentUserData.loginStreak}
+            value={stats.loginStreak || 0}
           />
           <DashboardCard
             icon={<CheckSquareIcon />}
             title="Módulos Concluídos"
-            value={`${stats.completedModulesCount} de ${stats.totalModulesCount}`}
+            value={`${stats.completedModules || 0} de ${stats.totalModules || 0}`}
           />
         </div>
 
@@ -108,40 +142,43 @@ const DashboardPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {stats.currentRanking.map((student, index) => {
-                    const currentRank = index + 1;
-                    const previousRank =
-                      stats.previousRanking.findIndex((s) => s.id === student.id) + 1;
-                    const rankChange = previousRank > 0 ? previousRank - currentRank : 0;
+                  {rankingData.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                        Nenhum aluno no ranking ainda.
+                      </td>
+                    </tr>
+                  ) : (
+                    rankingData.map((entry) => {
+                      const isCurrentUser = entry.studentId === user?.id;
                     return (
                       <tr
-                        key={student.id}
-                        className={`border-b last:border-b-0 ${
-                          student.id === user.id ? 'bg-blue-50' : ''
-                        }`}
+                          key={entry.studentId}
+                          className={`border-b last:border-b-0 ${isCurrentUser ? 'bg-blue-50' : ''}`}
                       >
                         <td
-                          className={`px-4 py-4 font-bold ${student.id === user.id ? 'text-blue-700' : 'text-gray-800'}`}
+                            className={`px-4 py-4 font-bold ${isCurrentUser ? 'text-blue-700' : 'text-gray-800'}`}
                         >
-                          {currentRank}º
+                            {entry.rank}º
                         </td>
                         <td
-                          className={`px-4 py-4 font-medium ${student.id === user.id ? 'text-blue-700' : 'text-gray-800'}`}
+                            className={`px-4 py-4 font-medium ${isCurrentUser ? 'text-blue-700' : 'text-gray-800'}`}
                         >
-                          {student.name}
-                          {student.id === user.id ? ' (você)' : ''}
+                            {entry.studentName}
+                            {isCurrentUser ? ' (você)' : ''}
                         </td>
                         <td
-                          className={`px-4 py-4 font-medium ${student.id === user.id ? 'text-blue-700' : 'text-gray-800'}`}
+                            className={`px-4 py-4 font-medium ${isCurrentUser ? 'text-blue-700' : 'text-gray-800'}`}
                         >
-                          {student.score} Pts
+                            {entry.score} Pts
                         </td>
                         <td className="px-4 py-4">
-                          <RankingIndicator change={rankChange} />
+                            <RankingIndicator change={entry.rankChange || 0} />
                         </td>
                       </tr>
                     );
-                  })}
+                    })
+                  )}
                 </tbody>
               </table>
             </div>

@@ -10,7 +10,14 @@ export const profileService = {
     return extractProfile(response);
   },
 
-  update: async ({ name, birthDate, description, clearDescription = false, removeAvatar = false, avatarFile = null }) => {
+  update: async ({
+    name,
+    birthDate,
+    description,
+    clearDescription = false,
+    removeAvatar = false,
+    avatarFile = null,
+  }) => {
     const form = new FormData();
 
     const dto = {
@@ -25,7 +32,19 @@ export const profileService = {
     form.append('data', dataBlob);
 
     if (!removeAvatar && avatarFile instanceof File) {
-      form.append('avatar', avatarFile);
+      // Adiciona timestamp ao nome do arquivo para evitar conflitos de duplicação
+      const timestamp = Date.now();
+      const fileExtension = avatarFile.name.split('.').pop();
+      const baseName = avatarFile.name.replace(/\.[^/.]+$/, '');
+      const uniqueFileName = `${baseName}_${timestamp}.${fileExtension}`;
+
+      // Cria um novo File com o nome único mantendo o tipo e conteúdo originais
+      const uniqueFile = new File([avatarFile], uniqueFileName, {
+        type: avatarFile.type,
+        lastModified: avatarFile.lastModified,
+      });
+
+      form.append('avatar', uniqueFile);
     }
 
     const response = await axiosInstance.patch(`${USER_PATH}/profile`, form, {

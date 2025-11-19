@@ -58,12 +58,13 @@ export const quizQuestionSchema = z
       .max(10000, 'Os pontos devem ser no máximo 10000'),
     correctAnswer: z
       .string()
-      .max(200, 'A resposta correta deve ter no máximo 200 caracteres')
-      .optional(),
+      .trim()
+      .min(1, 'Selecione uma alternativa correta para esta pergunta')
+      .max(200, 'A resposta correta deve ter no máximo 200 caracteres'),
   })
   .refine(
     (data) => {
-      if (!data.correctAnswer) return true;
+      if (!data.correctAnswer || !data.correctAnswer.trim()) return false;
       const nonEmptyOptions = data.options.map((o) => (o || '').trim()).filter((o) => o.length > 0);
       return nonEmptyOptions.includes(data.correctAnswer.trim());
     },

@@ -50,12 +50,14 @@ export function AuthProvider({ children }) {
   const user = explicitUser !== null ? explicitUser : queryUser;
 
   const handleClassSelection = useCallback(
-    (classId) => {
+    async (classId) => {
       const useMocks = import.meta.env.VITE_USE_MOCKS === 'true';
       if (!useMocks) {
-        authService.selectClass(classId).catch((error) => {
+        try {
+          await authService.selectClass(classId);
+        } catch (error) {
           if (import.meta.env.DEV) console.error('Erro ao selecionar turma:', error);
-        });
+        }
       }
       const userToUse = explicitUser || queryUser;
       if (userToUse) {
@@ -80,7 +82,6 @@ export function AuthProvider({ children }) {
           }
         }
 
-        // Só redireciona se não for uma troca (quando isSwitchingClass é false)
         if (!isSwitchingClass) {
           navigate('/dashboard');
         }
@@ -98,9 +99,7 @@ export function AuthProvider({ children }) {
     }
   }, [explicitUser, queryUser]);
 
-  // Detecta múltiplas turmas quando o user é carregado
   useEffect(() => {
-    // Não processa se estiver fazendo logout ou se for uma rota pública
     if (isLoggingOutRef.current || isPublicPath) {
       return;
     }
@@ -133,12 +132,18 @@ export function AuthProvider({ children }) {
       }
 
       if (savedClassId) {
-        // Aplica o classId salvo automaticamente
         const normalizedUser = {
           ...queryUser,
           classId: savedClassId,
         };
         setExplicitUser(normalizedUser);
+
+        const useMocks = import.meta.env.VITE_USE_MOCKS === 'true';
+        if (!useMocks) {
+          authService.selectClass(savedClassId).catch((error) => {
+            if (import.meta.env.DEV) console.error('Erro ao selecionar turma:', error);
+          });
+        }
         return;
       }
 

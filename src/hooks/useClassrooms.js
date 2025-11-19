@@ -9,8 +9,22 @@ export function useClassrooms(options = {}) {
     queryKey: ['classrooms', 'all'],
     queryFn: async () => {
       const [activePage, inactivePage] = await Promise.all([
-        classroomsService.listByInstructor({ active: true, page: 0, size: 1000, search: '', sortBy: 'name', sortDir: 'ASC' }),
-        classroomsService.listByInstructor({ active: false, page: 0, size: 1000, search: '', sortBy: 'name', sortDir: 'ASC' }),
+        classroomsService.listByInstructor({
+          active: true,
+          page: 0,
+          size: 1000,
+          search: '',
+          sortBy: 'name',
+          sortDir: 'ASC',
+        }),
+        classroomsService.listByInstructor({
+          active: false,
+          page: 0,
+          size: 1000,
+          search: '',
+          sortBy: 'name',
+          sortDir: 'ASC',
+        }),
       ]);
       const activeClasses = activePage?.content ?? [];
       const inactiveClasses = inactivePage?.content ?? [];
@@ -84,7 +98,15 @@ export function useClassroomCourses(options = {}) {
 
   return useQuery({
     queryKey: ['courses', 'classroom', { classroomId, page, size, search, sortBy, sortDir }],
-    queryFn: () => classroomsService.listCoursesByClassroom({ classroomId, page, size, search, sortBy, sortDir }),
+    queryFn: () =>
+      classroomsService.listCoursesByClassroom({
+        classroomId,
+        page,
+        size,
+        search,
+        sortBy,
+        sortDir,
+      }),
     enabled: !!classroomId && enabled,
     placeholderData: (previousData) => previousData,
   });
@@ -94,7 +116,8 @@ export function useDetachCourseFromClassroom() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ classroomId, courseId }) => classroomsService.detachCourse(classroomId, courseId),
+    mutationFn: ({ classroomId, courseId }) =>
+      classroomsService.detachCourse(classroomId, courseId),
     onSuccess: () => {
       // Atualiza listagem de cursos por turma e detalhes de turmas
       queryClient.invalidateQueries({ queryKey: ['courses', 'classroom'] });
@@ -107,10 +130,31 @@ export function useAttachCoursesToClassroom() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ classroomId, courseIds }) => classroomsService.attachCourses(classroomId, courseIds),
+    mutationFn: ({ classroomId, courseIds }) =>
+      classroomsService.attachCourses(classroomId, courseIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courses', 'classroom'] });
       queryClient.invalidateQueries({ queryKey: ['classrooms'] });
     },
+  });
+}
+
+export function useClassroomRanking(classroomId, options = {}) {
+  const { enabled = true } = options;
+
+  return useQuery({
+    queryKey: ['classroom', 'ranking', classroomId],
+    queryFn: () => classroomsService.getRanking(classroomId),
+    enabled: !!classroomId && enabled,
+  });
+}
+
+export function useClassroomReport(classroomId, options = {}) {
+  const { enabled = true } = options;
+
+  return useQuery({
+    queryKey: ['classroom', 'report', classroomId],
+    queryFn: () => classroomsService.getReport(classroomId),
+    enabled: !!classroomId && enabled,
   });
 }

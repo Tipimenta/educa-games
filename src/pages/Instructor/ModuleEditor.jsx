@@ -36,6 +36,8 @@ import { LessonEditor, QuizEditor } from './components';
   const [isCoursesDropdownOpen, setIsCoursesDropdownOpen] = useState(false);
   const coursesDropdownRef = useRef(null);
   const [coursesPage, setCoursesPage] = useState(0);
+  const [isSavingLessons, setIsSavingLessons] = useState(false);
+  const [isSavingQuiz, setIsSavingQuiz] = useState(false);
   const COURSES_PAGE_SIZE = 8;
   const handleCoursesScroll = (e) => {
     const el = e.currentTarget;
@@ -63,12 +65,19 @@ import { LessonEditor, QuizEditor } from './components';
   }, [moduleData]);
 
   useEffect(() => {
+    if (location.state?.step && moduleId) {
+      setCurrentStep(location.state.step);
+      const courseIdFromState = location.state.courseId;
+      navigate(location.pathname, { replace: true, state: courseIdFromState ? { courseId: courseIdFromState } : undefined });
+    }
+  }, [moduleId, location.state?.step, location.pathname, navigate]);
+
+  useEffect(() => {
     if (!moduleId && courseId && linkedCourseIds.length === 0) {
       setLinkedCourseIds([courseId]);
     }
   }, [moduleId, courseId]);
 
-  // Fecha o dropdown ao clicar fora
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -103,44 +112,55 @@ import { LessonEditor, QuizEditor } from './components';
     setCurrentStep((prev) => (prev > 1 ? prev - 1 : prev));
   };
 
-  const handleSaveModule = async () => {
+  const handleSaveModuleAndNext = async () => {
     if (createModuleMutation.isPending || updateModuleMutation.isPending) {
+      return;
+    }
+
+    const selectedCourseId = linkedCourseIds.length > 0 ? linkedCourseIds[0] : null;
+    try {
+      let savedModuleId = moduleId;
+      if (moduleId) {
+        const payload = {
+          title: currentModule.title,
+          courseId: selectedCourseId || null,
+        };
+        await updateModuleMutation.mutateAsync({ id: parseInt(moduleId), data: payload });
+        savedModuleId = parseInt(moduleId);
+        showToast({ message: 'Módulo salvo com sucesso.', type: 'success' });
+        nextStep();
+      } else {
+        const payload = {
+          title: currentModule.title,
+          courseId: selectedCourseId || null,
+          lessons: [],
+        };
+        const result = await createModuleMutation.mutateAsync(payload);
+        savedModuleId = result?.data?.data ?? result?.data ?? result;
+        showToast({ message: 'Módulo salvo com sucesso.', type: 'success' });
+        navigate(`/instructor/module-editor/${savedModuleId}`, { replace: true, state: { courseId, step: 2 } });
+      }
+    } catch (err) {
+      showToast({ message: 'Falha ao salvar módulo. Tente novamente.', type: 'error' });
+    }
+  };
+
+  const handleSaveLessonsAndNext = async () => {
+    if (!moduleId) {
+      showToast({ message: 'Salve o módulo primeiro antes de adicionar aulas.', type: 'error' });
+      setCurrentStep(1);
+      return;
+    }
+
+    if (isSavingLessons) {
       return;
     }
 
     setCurrentModule((prev) => purgeDeletedResources(prev));
     const sanitizedCurrent = purgeDeletedResources(currentModule);
 
-    if (sanitizedCurrent?.quiz?.questions?.length > 0) {
-      const quizValidation = quizSchema.safeParse(sanitizedCurrent.quiz);
-      if (!quizValidation.success) {
-        const firstError = quizValidation.error.issues[0];
-        showToast({ message: firstError.message || 'Erro de validação no quiz', type: 'error' });
-        setCurrentStep(3);
-        return;
-      }
-    }
-    const selectedCourseId = linkedCourseIds.length > 0 ? linkedCourseIds[0] : null;
+    setIsSavingLessons(true);
     try {
-      let savedModuleId = moduleId;
-      if (moduleId) {
-        const payload = {
-          title: sanitizedCurrent.title,
-          courseId: selectedCourseId || null,
-          lessons: [],
-        };
-        await updateModuleMutation.mutateAsync({ id: parseInt(moduleId), data: payload });
-        savedModuleId = parseInt(moduleId);
-      } else {
-        const payload = {
-          title: sanitizedCurrent.title,
-          courseId: selectedCourseId || null,
-          lessons: [],
-        };
-        const result = await createModuleMutation.mutateAsync(payload);
-        savedModuleId = result?.data?.data ?? result?.data ?? result;
-      }
-
       const files = [];
       const lessonsForSave = (sanitizedCurrent.lessons || []).map((lesson) => {
         const resources = (lesson.resources || []).map((resource) => {
@@ -169,22 +189,60 @@ import { LessonEditor, QuizEditor } from './components';
         };
       });
 
-      await modulesService.updateLessons(savedModuleId, lessonsForSave, files.length > 0 ? files : null);
+      await modulesService.updateLessons(parseInt(moduleId), lessonsForSave, files.length > 0 ? files : null);
+      showToast({ message: 'Aulas salvas com sucesso.', type: 'success' });
+      nextStep();
+    } catch (err) {
+      showToast({ message: 'Falha ao salvar aulas. Tente novamente.', type: 'error' });
+    } finally {
+      setIsSavingLessons(false);
+    }
+  };
 
-      const hasQuiz = sanitizedCurrent.quiz?.questions?.length > 0;
-      if (hasQuiz) {
-        const moduleData = await modulesService.getById(savedModuleId);
-        if (moduleData?.quiz?.id) {
-          await modulesService.updateQuiz(savedModuleId, sanitizedCurrent.quiz);
-        } else {
-          await modulesService.createQuiz(savedModuleId, sanitizedCurrent.quiz);
-        }
+  const handleSaveQuiz = async () => {
+    if (!moduleId) {
+      showToast({ message: 'Salve o módulo primeiro antes de adicionar quiz.', type: 'error' });
+      setCurrentStep(1);
+      return;
+    }
+
+    if (isSavingQuiz) {
+      return;
+    }
+
+    setCurrentModule((prev) => purgeDeletedResources(prev));
+    const sanitizedCurrent = purgeDeletedResources(currentModule);
+
+    const hasQuiz = sanitizedCurrent.quiz?.questions?.length > 0;
+
+    if (!hasQuiz) {
+      showToast({ message: 'Módulo salvo com sucesso. (Quiz não foi adicionado)', type: 'success' });
+      navigate('/instructor/manage-content');
+      return;
+    }
+
+    const quizValidation = quizSchema.safeParse(sanitizedCurrent.quiz);
+    if (!quizValidation.success) {
+      const firstError = quizValidation.error.issues[0];
+      showToast({ message: firstError.message || 'Erro de validação no quiz', type: 'error' });
+      return;
+    }
+
+    setIsSavingQuiz(true);
+    try {
+      const moduleData = await modulesService.getById(parseInt(moduleId));
+      if (moduleData?.quiz?.id) {
+        await modulesService.updateQuiz(parseInt(moduleId), sanitizedCurrent.quiz);
+        showToast({ message: 'Quiz atualizado com sucesso.', type: 'success' });
+      } else {
+        await modulesService.createQuiz(parseInt(moduleId), sanitizedCurrent.quiz);
+        showToast({ message: 'Quiz criado com sucesso.', type: 'success' });
       }
-
-      showToast({ message: 'Módulo salvo com sucesso.', type: 'success' });
       navigate('/instructor/manage-content');
     } catch (err) {
-      showToast({ message: 'Falha ao salvar módulo. Tente novamente.', type: 'error' });
+      showToast({ message: 'Falha ao salvar quiz. Tente novamente.', type: 'error' });
+    } finally {
+      setIsSavingQuiz(false);
     }
   };
 
@@ -526,12 +584,39 @@ import { LessonEditor, QuizEditor } from './components';
             >
               Anterior
             </button>
-            {currentStep < 3 ? (
-              <Button onClick={nextStep} className="w-auto px-6 py-2">Próximo</Button>
-            ) : (
-              <Button onClick={handleSaveModule} className="w-auto px-6 py-2" disabled={disableSave}>
-                {isSaving ? 'Salvando...' : moduleId ? 'Salvar Alterações' : 'Criar Módulo'}
+            {currentStep === 1 ? (
+              <Button
+                onClick={handleSaveModuleAndNext}
+                className="w-auto px-6 py-2"
+                disabled={moduleTitleInvalid || isSaving}
+              >
+                {isSaving ? 'Salvando...' : 'Salvar e Próxima Página'}
               </Button>
+            ) : currentStep === 2 ? (
+              <Button
+                onClick={handleSaveLessonsAndNext}
+                className="w-auto px-6 py-2"
+                disabled={isSavingLessons}
+              >
+                {isSavingLessons ? 'Salvando...' : 'Salvar e Próxima Página'}
+              </Button>
+            ) : (
+              <>
+                <Button
+                  onClick={handleSaveQuiz}
+                  className="w-auto px-6 py-2 whitespace-nowrap"
+                  disabled={hasQuizErrors || isSavingQuiz}
+                >
+                  {isSavingQuiz ? 'Salvando...' : 'Salvar Alterações'}
+                </Button>
+                <Button
+                  onClick={() => navigate('/instructor/manage-content')}
+                  className="w-auto px-6 py-2 bg-gray-500 hover:bg-gray-600 whitespace-nowrap"
+                  disabled={isSavingQuiz}
+                >
+                  Pular Quiz
+                </Button>
+              </>
             )}
           </div>
         </div>

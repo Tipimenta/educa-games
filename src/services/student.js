@@ -1,4 +1,57 @@
+import { axiosInstance } from './api';
+
+const STUDENT_PATH = '/v1/student';
+
+const extractData = (response) => response?.data || response;
+
 export const studentService = {
+  getDashboard: async () => {
+    const response = await axiosInstance.get(`${STUDENT_PATH}/dashboard`);
+    return extractData(response);
+  },
+
+  getRanking: async () => {
+    const response = await axiosInstance.get(`${STUDENT_PATH}/ranking`);
+    return extractData(response);
+  },
+
+  getCourses: async () => {
+    const response = await axiosInstance.get(`${STUDENT_PATH}/courses`);
+    return extractData(response);
+  },
+
+  getCourseModules: async (courseId) => {
+    const response = await axiosInstance.get(`${STUDENT_PATH}/courses/${courseId}/modules`);
+    return extractData(response);
+  },
+
+  getModuleDetails: async (moduleId) => {
+    const response = await axiosInstance.get(`${STUDENT_PATH}/modules/${moduleId}`);
+    return extractData(response);
+  },
+
+  completeLesson: async (lessonId) => {
+    await axiosInstance.post(`${STUDENT_PATH}/lessons/${lessonId}/complete`);
+  },
+
+  completeQuiz: async (quizId, answers) => {
+    const answersArray = Array.isArray(answers) ? answers : [];
+    const response = await axiosInstance.post(`${STUDENT_PATH}/quizzes/${quizId}/complete`, {
+      answers: answersArray,
+    });
+    const result = extractData(response);
+    return result?.data ?? result ?? 0;
+  },
+
+  calculateQuizScore: async (quizId, answers) => {
+    const answersArray = Array.isArray(answers) ? answers : [];
+    const response = await axiosInstance.post(`${STUDENT_PATH}/quizzes/${quizId}/calculate-score`, {
+      answers: answersArray,
+    });
+    const result = extractData(response);
+    return result?.data ?? result ?? 0;
+  },
+
   getStudentsByClass: (students, classes, className) => {
     if (!className) return students;
 
@@ -53,4 +106,3 @@ export const studentService = {
     return allLessonsDone && quizDone;
   },
 };
-
