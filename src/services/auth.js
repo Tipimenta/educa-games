@@ -2,6 +2,8 @@ import { api, axiosInstance } from './api';
 
 const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true';
 
+const AUTH_PATH = '/v1/auth';
+
 const extractData = (response) => {
   const userData = response?.data || response;
   const normalized =
@@ -49,7 +51,7 @@ export const authService = {
     if (USE_MOCKS) {
       return api.auth.login(email, password);
     }
-    const response = await axiosInstance.post('/auth/login', { email, password });
+    const response = await axiosInstance.post(`${AUTH_PATH}/login`, { email, password });
     return response;
   },
 
@@ -57,7 +59,7 @@ export const authService = {
     if (USE_MOCKS) {
       return api.auth.logout();
     }
-    const response = await axiosInstance.post('/auth/logout', {});
+    const response = await axiosInstance.post(`${AUTH_PATH}/logout`, {});
     return response;
   },
 
@@ -66,7 +68,7 @@ export const authService = {
       const response = await api.auth.getMe();
       return extractData(response);
     }
-    const response = await axiosInstance.get('/auth/me');
+    const response = await axiosInstance.get(`${AUTH_PATH}/me`);
     return extractData(response);
   },
 
@@ -74,7 +76,7 @@ export const authService = {
     if (USE_MOCKS) {
       return api.auth.register(userData);
     }
-    const response = await axiosInstance.post('/auth/register', userData);
+    const response = await axiosInstance.post(`${AUTH_PATH}/register`, userData);
     return response;
   },
 
@@ -82,7 +84,7 @@ export const authService = {
     if (USE_MOCKS) {
       throw { status: 404, data: { message: 'Mock não implementado para validateInvite' } };
     }
-    const response = await axiosInstance.get(`/auth/validate-invite?token=${token}`);
+    const response = await axiosInstance.get(`${AUTH_PATH}/validate-invite?token=${token}`);
     return extractInvite(response);
   },
 
@@ -90,7 +92,7 @@ export const authService = {
     if (USE_MOCKS) {
       throw { status: 404, data: { message: 'Mock não implementado para completeSignup' } };
     }
-    const response = await axiosInstance.post('/auth/complete-signup', payload);
+    const response = await axiosInstance.post(`${AUTH_PATH}/complete-signup`, payload);
     return extractMessage(response);
   },
 
@@ -98,7 +100,7 @@ export const authService = {
     if (USE_MOCKS) {
       throw { status: 404, data: { message: 'Mock não implementado para selectClass' } };
     }
-    const response = await axiosInstance.post('/auth/select-class', { classId });
+    const response = await axiosInstance.post(`${AUTH_PATH}/select-class`, { classId });
     return extractData(response);
   },
 };

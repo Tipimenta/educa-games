@@ -34,6 +34,8 @@ export function useLogout() {
       queryClient.setQueryData(['auth', 'me'], null);
       queryClient.cancelQueries({ queryKey: ['auth', 'me'] });
       queryClient.removeQueries({ queryKey: ['auth', 'me'] });
+      queryClient.cancelQueries({ queryKey: ['profile', 'me'] });
+      queryClient.removeQueries({ queryKey: ['profile', 'me'] });
     },
   });
 }

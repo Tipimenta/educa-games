@@ -9,6 +9,25 @@ export function useModules(courseId) {
   });
 }
 
+export function useModulesPage(options = {}) {
+  const {
+    courseId = null,
+    page = 0,
+    size = 10,
+    search = '',
+    sortBy = 'title',
+    sortDir = 'ASC',
+    enabled = true,
+  } = options;
+
+  return useQuery({
+    queryKey: ['modules', 'page', { courseId, page, size, search, sortBy, sortDir }],
+    queryFn: () => modulesService.listPage({ courseId, page, size, search, sortBy, sortDir }),
+    enabled,
+    placeholderData: (previousData) => previousData,
+  });
+}
+
 export function useModule(id) {
   return useQuery({
     queryKey: ['modules', id],

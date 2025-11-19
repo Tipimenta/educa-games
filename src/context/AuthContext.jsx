@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import ClassSelectionModal from '../components/ClassSelectionModal';
 import { useAuthUser } from '../hooks/useAuthQuery';
+import { authService } from '../services';
 
 export const AuthContext = createContext({
   user: null,
@@ -28,7 +29,13 @@ export function AuthProvider({ children }) {
     return publicPaths.some((p) => pathname === p || (p !== '/' && pathname.startsWith(p)));
   }, [location.pathname]);
 
-  const shouldFetchUser = !isPublicPath && !isLoggingOutRef.current;
+  let isLoggedInFlag = false;
+  try {
+    isLoggedInFlag = localStorage.getItem('EG_loggedIn') === 'true';
+  } catch (e) {
+    isLoggedInFlag = false;
+  }
+  const shouldFetchUser = !isPublicPath && !isLoggingOutRef.current && isLoggedInFlag;
 
   const {
     data: queryUser,
@@ -44,8 +51,12 @@ export function AuthProvider({ children }) {
 
   const handleClassSelection = useCallback(
     (classId) => {
-      // Por enquanto, apenas atualiza o estado local e redireciona
-      // TODO: Implementar chamada à API /auth/select-class quando necessário
+      const useMocks = import.meta.env.VITE_USE_MOCKS === 'true';
+      if (!useMocks) {
+        authService.selectClass(classId).catch((error) => {
+          if (import.meta.env.DEV) console.error('Erro ao selecionar turma:', error);
+        });
+      }
       const userToUse = explicitUser || queryUser;
       if (userToUse) {
         const normalizedUser = {

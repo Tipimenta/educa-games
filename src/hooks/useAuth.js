@@ -22,6 +22,9 @@ export const useAuth = () => {
     setErrorMessage('');
     try {
       await loginMutation.mutateAsync({ email, password });
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem('EG_loggedIn', 'true');
+      }
       const result = await refetchUser();
       const user = result.data;
 
@@ -66,10 +69,16 @@ export const useAuth = () => {
     try {
       setUser(null);
       await logoutMutation.mutateAsync();
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem('EG_loggedIn');
+      }
       navigate('/login');
     } catch (err) {
     if (import.meta.env.DEV) console.error('Erro no logout:', err);
       setUser(null);
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem('EG_loggedIn');
+      }
       navigate('/login');
     }
   };

@@ -10,7 +10,8 @@ const ReportsPage = () => {
   const { logout } = useAuth();
   const { data: classes = [], isLoading: isLoadingClasses } = useClassrooms();
   const { data: students = [], isLoading: isLoadingStudents } = useStudents();
-  const { data: modules = [], isLoading: isLoadingModules } = useModules();
+  const { data: modulesData = { content: [] }, isLoading: isLoadingModules } = useModules();
+  const modules = modulesData.content || [];
 
   const [selectedClass, setSelectedClass] = useState('');
 

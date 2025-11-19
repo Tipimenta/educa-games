@@ -1,10 +1,12 @@
 import { axiosInstance } from './api';
 
+const USER_PATH = '/v1/user';
+
 const extractProfile = (response) => response?.data || response;
 
 export const profileService = {
   get: async () => {
-    const response = await axiosInstance.get('/user/profile');
+    const response = await axiosInstance.get(`${USER_PATH}/profile`);
     return extractProfile(response);
   },
 
@@ -26,7 +28,7 @@ export const profileService = {
       form.append('avatar', avatarFile);
     }
 
-    const response = await axiosInstance.patch('/user/profile', form, {
+    const response = await axiosInstance.patch(`${USER_PATH}/profile`, form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return extractProfile(response);

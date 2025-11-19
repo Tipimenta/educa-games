@@ -41,7 +41,7 @@ export default function AppLayout({ user, onLogout, children, containerClassName
         <div
           className={`flex flex-1 flex-col transition-[margin] duration-300 ease-in-out ${offsetClass}`}
         >
-          <main className="flex-grow p-6 pt-16">
+          <main className="flex-grow p-6 pt-16 overflow-y-auto">
             <div
               className={`mx-auto w-full ${containerClassName || 'max-w-6xl'} ${
                 containerClassName === 'max-w-full' ? 'px-0' : 'px-4 sm:px-6 lg:px-8'

@@ -5,6 +5,35 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [1.3.0] - 2025-11-18
+
+### Adicionado
+
+- Schema completo `quizSchema` com validações de questões, alternativas e pontos
+- Validação de quiz centralizada usando Zod schemas
+
+### Alterado
+
+- Validações de quiz movidas de componente para schema Zod
+- Endpoints de lessons separados: `addLessons` (POST) e `updateLessons` (PUT)
+- Endpoints de quiz separados: `createQuiz` (POST) e `updateQuiz` (PUT)
+- Redirecionamento após salvar módulo sempre para listagem geral (sem filtro por curso)
+- Links "Voltar" não passam mais `courseId` no state
+
+### Corrigido
+
+- Proteção contra duplo clique no botão de salvar módulo
+- Botão desabilitado durante operação de salvamento com feedback visual "Salvando..."
+- Módulos podem ser criados sem vínculo obrigatório com curso
+- Permite desvincular módulo de curso ao atualizar
+
+### Notas
+
+- Sem breaking changes
+- Detalhes completos em [docs/release-notes/v1.3.0.md](docs/release-notes/v1.3.0.md)
+
+---
+
 ## [1.2.0] - 2025-11-11
 
 ### Adicionado
@@ -99,4 +128,5 @@ Para documentação detalhada, consulte [docs/release-notes/v1.0.0.md](docs/rele
 
 [1.0.0]: https://github.com/Tipimenta/educa-games/releases/tag/v1.0.0
 [1.1.0]: https://github.com/Tipimenta/educa-games/releases/tag/v1.1.0
-[1.2.0]: https://github.com/Tipimenta/educa-games/releases/tag/v1.1.1
+[1.2.0]: https://github.com/Tipimenta/educa-games/releases/tag/v1.2.0
+[1.3.0]: https://github.com/Tipimenta/educa-games/releases/tag/v1.3.0

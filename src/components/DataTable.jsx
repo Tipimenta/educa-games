@@ -17,6 +17,7 @@ export default function DataTable({
   renderRow,
   className = '',
   embedded = false,
+  hidePagination = false,
 }) {
   if (data.length === 0) {
     if (embedded) return null;
@@ -64,12 +65,14 @@ export default function DataTable({
           ))}
         </tbody>
       </table>
-      <Pagination
-        currentPage={currentPage}
-        totalItems={totalItems}
-        pageSize={pageSize}
-        onPageChange={onPageChange}
-      />
+      {!hidePagination && (
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={onPageChange}
+        />
+      )}
     </Wrapper>
   );
 }

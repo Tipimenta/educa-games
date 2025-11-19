@@ -110,8 +110,6 @@ export default function DatePicker({ value = '', onChange, error = false, classN
           </Popover.Content>
         </Popover.Portal>
       </Popover.Root>
-
-      {/* Removido placeholder constante para evitar erro de lint (no-constant-binary-expression) */}
     </div>
   );
 }
