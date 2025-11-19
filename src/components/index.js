@@ -19,6 +19,7 @@ export * from './Icons';
 export { default as Input } from './Input';
 export { default as Label } from './Label';
 export { default as LandingHeader } from './LandingHeader';
+export { default as LatestBadges } from './LatestBadges';
 export { default as LogoAnimation } from './LogoAnimation';
 export { default as Modal } from './Modal';
 export { default as PageSizeSelector } from './PageSizeSelector';

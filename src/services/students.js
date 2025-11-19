@@ -14,7 +14,9 @@ export const studentsService = {
   },
 
   getByClassroomAndId: async (classroomId, studentId) => {
-    const response = await axiosInstance.get(`${CLASSROOM_PATH}/${classroomId}/students/${studentId}`);
+    const response = await axiosInstance.get(
+      `${CLASSROOM_PATH}/${classroomId}/students/${studentId}`
+    );
     return response?.data || response;
   },
 

@@ -1,42 +1,18 @@
 import { useContext } from 'react';
 
 import {
-  ArrowDownCircleIcon,
-  ArrowUpCircleIcon,
   BarChartIcon,
   CheckSquareIcon,
   DashboardCard,
   FlameIcon,
   FormattedDate,
-  MinusCircleIcon,
+  LatestBadges,
   TargetIcon,
 } from '../../components';
 import AppLayout from '../../components/AppLayout';
 import PageTitle from '../../components/PageTitle';
 import { AuthContext } from '../../context';
 import { useAuth, useStudentAnnouncements, useStudentDashboard, useStudentRanking } from '../../hooks';
-
-const RankingIndicator = ({ change }) => {
-  if (change > 0) {
-    return (
-      <span className="flex items-center gap-1 text-xs text-green-500">
-        <ArrowUpCircleIcon className="h-4 w-4" /> Subiu {change}
-      </span>
-    );
-  }
-  if (change < 0) {
-    return (
-      <span className="flex items-center gap-1 text-xs text-red-500">
-        <ArrowDownCircleIcon className="h-4 w-4" /> Desceu {Math.abs(change)}
-      </span>
-    );
-  }
-  return (
-    <span className="flex items-center gap-1 text-xs text-gray-400">
-      <MinusCircleIcon className="h-4 w-4" /> Manteve
-    </span>
-  );
-};
 
 const DashboardPage = () => {
   const { user } = useContext(AuthContext);
@@ -123,9 +99,9 @@ const DashboardPage = () => {
         <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
           <div className="rounded-lg bg-white p-6 shadow-md lg:col-span-2">
             <h3 className="mb-4 text-xl font-bold text-gray-800">Ranking da Turma</h3>
-            <div className="overflow-x-auto">
+            <div className="max-h-96 overflow-y-auto">
               <table className="w-full text-left">
-                <thead>
+                <thead className="sticky top-0 bg-white">
                   <tr className="border-b">
                     <th className="px-4 py-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
                       Posição
@@ -136,8 +112,8 @@ const DashboardPage = () => {
                     <th className="px-4 py-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
                       Pontuação
                     </th>
-                    <th className="px-4 py-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                      Progresso
+                    <th className="px-4 py-2 text-center text-xs font-semibold tracking-wider text-gray-500 uppercase">
+                      Últimas Conquistas
                     </th>
                   </tr>
                 </thead>
@@ -172,8 +148,8 @@ const DashboardPage = () => {
                         >
                             {entry.score} Pts
                         </td>
-                        <td className="px-4 py-4">
-                            <RankingIndicator change={entry.rankChange || 0} />
+                        <td className="px-4 py-4 text-center">
+                            <LatestBadges badges={entry.latestBadges || []} />
                         </td>
                       </tr>
                     );
