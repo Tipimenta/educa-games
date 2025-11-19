@@ -6,6 +6,8 @@ Frontend do projeto EducaGames, baseado em React + Vite com Tailwind.
 [![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white&style=for-the-badge)](https://vitejs.dev)
 [![React Query](https://img.shields.io/badge/React%20Query-5-FF4154?logo=reactquery&logoColor=white&style=for-the-badge)](https://tanstack.com/query)
 [![Zod](https://img.shields.io/badge/Zod-4-2F2F2F?logo=semanticweb&logoColor=white&style=for-the-badge)](https://zod.dev)
+[![React Router](https://img.shields.io/badge/React%20Router-7-CA4245?logo=reactrouter&logoColor=white&style=for-the-badge)](https://reactrouter.com)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38B2AC?logo=tailwindcss&logoColor=white&style=for-the-badge)](https://tailwindcss.com)
 
 ## Pré-requisitos
 
@@ -28,11 +30,11 @@ Frontend do projeto EducaGames, baseado em React + Vite com Tailwind.
    ```
 
 3. Configure o ambiente:
-   - Copie `.env.example` para `.env` e ajuste conforme necessário.
+   - Crie um arquivo `.env` na raiz do projeto e ajuste conforme necessário.
    - **Variáveis obrigatórias:**
      - `VITE_API_BASE_URL`: URL base da API (obrigatória)
-       - Produção: `VITE_API_BASE_URL`
-       - Desenvolvimento: `VITE_API_BASE_URL`
+       - Exemplo produção: `https://api.educagames.com`
+       - Exemplo desenvolvimento: `http://localhost:3000`
    - **Variáveis opcionais:**
      - `VITE_DEV_SERVER_PORT`: porta do dev server (default: 5173).
      - `VITE_USE_MOCKS`: `true/false` para habilitar mocks no `src/services/api.js`.
@@ -61,7 +63,6 @@ npm run dev
 
 ```
 ├── .editorconfig
-├── .env.example
 ├── .eslintcache
 ├── .gitattributes
 ├── .gitignore
@@ -70,9 +71,12 @@ npm run dev
 │   └── pre-commit
 ├── .prettierrc.json
 ├── .vscode\
+├── CHANGELOG.md
 ├── LICENSE
 ├── README.md
-├── components.json
+├── components.json          
+├── docs\                   
+│   └── release-notes\
 ├── eslint.config.mjs
 ├── index.html
 ├── jsconfig.json
@@ -96,6 +100,7 @@ npm run dev
 │   ├── schemas\
 │   ├── services\
 │   └── utils\
+├── vercel.json             
 └── vite.config.js
 ```
 
@@ -133,11 +138,55 @@ O `QueryClient` está configurado em `src/App.jsx` com:
 - `refetchOnWindowFocus`: false
 - `retry`: 1 para queries, 0 para mutations
 
+## Tecnologias e Bibliotecas Principais
+
+### Core
+
+- **React 19** - Biblioteca principal
+- **Vite 6** - Build tool e dev server
+- **React Router DOM 7** - Roteamento
+- **React Query (TanStack Query) 5** - Gerenciamento de estado de servidor e cache
+
+### UI e Estilização
+
+- **Tailwind CSS 4** - Framework CSS utilitário
+- **shadcn/ui** - Componentes UI baseados em Radix UI
+- **Radix UI** - Componentes acessíveis (Popover, Slot)
+- **Lucide React** - Biblioteca de ícones
+- **Recharts** - Gráficos e visualizações
+- **React Day Picker** - Seletor de datas
+
+### Editor e Conteúdo
+
+- **TipTap** - Editor de texto rico
+- **Highlight.js** - Syntax highlighting para blocos de código
+- **Lowlight** - Integração do Highlight.js com TipTap
+
+### Utilitários
+
+- **Axios** - Cliente HTTP
+- **Zod 4** - Validação de schemas
+- **@dnd-kit** - Drag and drop para ordenação
+- **class-variance-authority** - Gerenciamento de variantes de componentes
+- **clsx** e **tailwind-merge** - Utilitários para classes CSS
+
 ## Configuração da API e Mocks
 
 - A URL base da API é configurada via `VITE_API_BASE_URL` em `src/services/api.js` (variável obrigatória).
 - `VITE_USE_MOCKS=true` habilita respostas mock para autenticação em `src/services/api.js`.
 - **Importante:** Configure CORS no backend para aceitar requisições do frontend em desenvolvimento (ex: `http://localhost:5173`).
+
+## Deploy
+
+O projeto está configurado para deploy no **Vercel** através do arquivo `vercel.json`. Para fazer deploy:
+
+1. Conecte o repositório à Vercel
+2. Configure as variáveis de ambiente na plataforma
+3. O build será executado automaticamente com `npm run build`
+
+## Changelog
+
+Para ver todas as mudanças do projeto, consulte o [CHANGELOG.md](CHANGELOG.md). Release notes detalhadas estão disponíveis em `docs/release-notes/`.
 
 ## Contribuição
 
